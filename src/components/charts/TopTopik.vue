@@ -8,9 +8,9 @@
     <div v-else class="space-y-6 animate-fade-in">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div
-                class="lg:col-span-1 bg-white p-6 rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(0,0,0,0.3)] flex flex-col justify-between">
+                class="lg:col-span-1 bg-white p-6 rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(3,37,92,0.3)] flex flex-col justify-between">
                 <div class="flex flex-col items-center">
-                    <div class="text-6xl font-bold text-gray-800 tracking-wider">
+                    <div class="text-6xl font-bold text-[#03255C] tracking-wider">
                         {{ currentTime }}
                     </div>
                     <div class="text-lg text-gray-500">
@@ -27,8 +27,8 @@
 
                         <div class="flex flex-col items-start">
                             <div class="flex items-baseline space-x-2">
-                                <span class="text-3xl font-bold text-gray-900">{{ stat.value }}</span>
-                                <span class="text-xs font-semibold bg-gray-900 text-white px-2 py-1 rounded-md">
+                                <span class="text-3xl font-bold text-[#03255C]">{{ stat.value }}</span>
+                                <span class="text-xs font-semibold bg-[#03255C] text-white px-2 py-1 rounded-md">
                                     {{ stat.change }}
                                 </span>
                             </div>
@@ -40,8 +40,8 @@
             </div>
 
             <div
-                class="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(0,0,0,0.3)]">
-                <h3 class="text-lg font-bold text-gray-800 mb-4">Kompas Status Terkini</h3>
+                class="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(3,37,92,0.3)]">
+                <h3 class="text-lg font-bold text-[#03255C] mb-4">Kompas Status Terkini</h3>
                 <div class="relative w-full h-80 md:h-96 flex justify-center items-center">
                     <div class="absolute w-full h-full">
                         <Pie :data="pieChartData" :options="pieChartOptions" />
@@ -57,29 +57,30 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div v-for="(topic, index) in topicsDetailsData" :key="index"
-                class="bg-white rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(0,0,0,0.3)] flex flex-col">
+                class="bg-white rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(3,37,92,0.3)] flex flex-col">
                 <div class="p-4 border-b border-gray-200">
-                    <h3 class="text-lg font-bold text-gray-800">Topik {{ index + 1 }}: {{ topic.title }}</h3>
+                    <h3 class="text-lg font-bold text-[#03255C]">Topik {{ index + 1 }}: {{ topic.title }}</h3>
                 </div>
                 <div class="p-4 flex flex-col items-center">
                     <div :class="[topic.statusColor.bg, topic.statusColor.text]"
                         class="px-4 py-1 text-sm font-bold rounded-full mb-2">
                         {{ topic.status }}
                     </div>
-                    <div class="w-full max-w-[200px] aspect-video relative mt-2">
-                        <div class="gauge-container">
-                            <div class="gauge-segment normal"></div>
-                            <div class="gauge-segment early"></div>
-                            <div class="gauge-segment emerging"></div>
-                            <div class="gauge-segment current-s"></div>
-                            <div class="gauge-segment crisis"></div>
-                            <div class="gauge-needle" :style="{ transform: `rotate(${topic.gaugeValue}deg)` }"></div>
-                            <div class="gauge-center-circle"></div>
-                        </div>
-                        <div
-                            class="absolute w-full h-full flex justify-between items-end text-xs text-gray-500 font-semibold -bottom-2">
-                            <span>Normal</span>
-                            <span>Crisis</span>
+
+                    <div class="gauge-wrapper">
+                        <div :class="['gauge five', topic.status.toLowerCase()]">
+                            <div class="slice-colors">
+                                <div class="st slice-item"></div>
+                                <div class="st slice-item"></div>
+                                <div class="st slice-item"></div>
+                                <div class="st slice-item"></div>
+                                <div class="st slice-item"></div>
+                            </div>
+                            <div class="needle"></div>
+                            <div class="gauge-center">
+                                <div class="label">STATUS</div>
+                                <div class="number">{{ topic.status }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -94,7 +95,7 @@
                                         <div class="flex items-center gap-2">
                                             <FontAwesomeIcon :icon="post.socialIcon"
                                                 :class="getSocialIconColor(post.socialIcon)" class="h-4 w-4" />
-                                            <span class="font-bold text-sm text-gray-800">{{ post.author }}</span>
+                                            <span class="font-bold text-sm text-[#03255C]">{{ post.author }}</span>
                                         </div>
 
                                         <div class="flex items-center gap-2">
@@ -111,7 +112,7 @@
                                         <p class="text-xs text-gray-500">{{ post.date }}</p>
                                         <p class="text-xs font-semibold text-blue-500">Folls: {{ post.followers }}</p>
                                         <p class="text-xs font-semibold text-purple-500">Engg: {{ post.engagementScore
-                                        }}</p>
+                                            }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -142,7 +143,7 @@
                             <div class="flex items-center justify-end gap-2 mt-3">
                                 <button
                                     class="text-xs font-semibold bg-gray-100 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-200 transition">Kunjungi</button>
-                                <button
+                                <button @click="openDetailModal(post)"
                                     class="text-xs font-semibold bg-blue-500 text-white px-3 py-1.5 rounded-md hover:bg-blue-600 transition">Lihat
                                     Detail</button>
                             </div>
@@ -158,9 +159,9 @@
             </div>
         </div>
 
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(0,0,0,0.3)]">
+        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(3,37,92,0.3)]">
             <div class="grid grid-cols-[1.5fr,1fr,1fr,1fr,1fr,1fr] gap-2 text-center text-sm font-semibold">
-                <div class="p-2 bg-gray-800 text-white rounded-t-lg md:rounded-lg flex items-center justify-center">
+                <div class="p-2 bg-[#03255C] text-white rounded-t-lg md:rounded-lg flex items-center justify-center">
                     Status Setiap Platform
                 </div>
                 <div v-for="platform in platforms" :key="platform.name"
@@ -189,6 +190,64 @@
             </div>
         </div>
     </div>
+
+    <Teleport to="body">
+        <div v-if="isDetailModalOpen"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 backdrop-blur-sm transition-opacity duration-300"
+            @click.self="closeDetailModal">
+
+            <div
+                class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-lg transform transition-all duration-300 scale-100 opacity-100">
+                <div class="flex justify-between items-center border-b pb-3 mb-4">
+                    <h3 class="text-xl font-bold text-[#03255C]">Detail Postingan Viral</h3>
+                    <button @click="closeDetailModal" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div v-if="selectedPost" class="space-y-4">
+                    <div class="flex items-center">
+                        <img :src="selectedPost.avatar" alt="Avatar" class="w-12 h-12 rounded-full mr-4">
+                        <div>
+                            <p class="font-bold text-lg text-[#03255C]">{{ selectedPost.author }}</p>
+                            <p class="text-sm text-gray-500 flex items-center gap-2">
+                                <FontAwesomeIcon :icon="selectedPost.socialIcon"
+                                    :class="getSocialIconColor(selectedPost.socialIcon)" class="h-4 w-4" />
+                                {{ selectedPost.date }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <p class="text-gray-700 text-base border-t pt-4">{{ selectedPost.content }}</p>
+
+                    <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-sm p-3 bg-gray-50 rounded-lg">
+                        <p><strong>Status Post:</strong> <span
+                                :class="[selectedPost.statusColor, 'font-bold px-2 py-0.5 rounded']">{{
+                                    selectedPost.postStatus }}</span></p>
+                        <p><strong>Topik Terkait:</strong> <span class="font-semibold text-blue-600">{{
+                            selectedPost.topicTag }}</span></p>
+                        <p><strong>Followers:</strong> {{ selectedPost.followers }}</p>
+                        <p><strong>Engagement:</strong> {{ selectedPost.engagementScore }}</p>
+                        <p><strong>Views:</strong> {{ selectedPost.views }}</p>
+                        <p><strong>Likes:</strong> {{ selectedPost.likes }}</p>
+                        <p><strong>Comments:</strong> {{ selectedPost.comments }}</p>
+                        <p><strong>Shares:</strong> {{ selectedPost.shares }}</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <a :href="'#'" target="_blank"
+                        class="text-sm font-semibold bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">Kunjungi
+                        Sumber Asli</a>
+                </div>
+            </div>
+        </div>
+    </Teleport>
 </template>
 
 <script setup>
@@ -201,7 +260,6 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 // Ikon Merek Sosial
 import { faTiktok, faFacebook, faYoutube, faXTwitter, faInstagram } from '@fortawesome/free-brands-svg-icons';
 // Ikon Solid Baru untuk Metrik
-// PERBAIKAN: Menambahkan faChartSimple ke impor solid
 import { faStar, faEye, faHeart, faCommentDots, faShareNodes, faChartSimple } from '@fortawesome/free-solid-svg-icons';
 
 ChartJS.register(Title, Tooltip, Legend, ArcElement);
@@ -212,6 +270,10 @@ const currentTime = ref('');
 const currentDate = ref('');
 let timerInterval = null;
 
+// State for Modal Detail Post
+const isDetailModalOpen = ref(false);
+const selectedPost = ref(null);
+
 // State for Section 1
 const topTopics = ref([]);
 const pieChartData = ref({ labels: [], datasets: [] });
@@ -219,10 +281,10 @@ const pieChartLabels = ref([]);
 
 // --- Data for Platform Status Table ---
 const platforms = ref([
-    { name: 'TikTok', icon: faTiktok, color: 'text-black' },
+    { name: 'TikTok', icon: faTiktok, color: 'text-[#03255C]' },
     { name: 'Facebook', icon: faFacebook, color: 'text-blue-600' },
     { name: 'YouTube', icon: faYoutube, color: 'text-red-600' },
-    { name: 'X / Twitter', icon: faXTwitter, color: 'text-black' },
+    { name: 'X / Twitter', icon: faXTwitter, color: 'text-[#03255C]' },
     { name: 'Instagram', icon: faInstagram, color: 'text-pink-600' },
 ]);
 const platformStatuses = ref([]);
@@ -239,10 +301,10 @@ const pieChartOptions = {
 
 // --- LOGIC FOR SOCIAL ICON COLORS (Refactored) ---
 const socialIconColors = {
-    [faTiktok.iconName]: 'text-black',
+    [faTiktok.iconName]: 'text-[#03255C]',
     [faFacebook.iconName]: 'text-blue-600',
     [faYoutube.iconName]: 'text-red-600',
-    [faXTwitter.iconName]: 'text-black',
+    [faXTwitter.iconName]: 'text-[#03255C]',
     [faInstagram.iconName]: 'text-pink-600',
 };
 
@@ -253,7 +315,7 @@ const getSocialIconColor = (icon) => {
 
 // --- LOGIC FOR STATUS COLORS (Perbaikan) ---
 const getStatusClass = (status) => {
-    // PERBAIKAN: Menambahkan kelas teks agar tidak selalu putih (terutama untuk Emerging)
+    // Menambahkan kelas teks agar konsisten
     const classes = {
         'Normal': 'bg-blue-500 text-white',
         'Early': 'bg-green-500 text-white',
@@ -277,6 +339,16 @@ onUnmounted(() => {
 });
 
 // --- METHODS ---
+const openDetailModal = (post) => {
+    selectedPost.value = post;
+    isDetailModalOpen.value = true;
+};
+
+const closeDetailModal = () => {
+    isDetailModalOpen.value = false;
+    selectedPost.value = null; // Opsional: hapus data post saat ditutup
+};
+
 const updateTime = () => {
     const now = new Date();
     currentTime.value = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
@@ -312,6 +384,7 @@ const fetchAllDashboardData = () => {
         // --- Data for Topic Details Section ---
         topicsDetailsData.value = [
             {
+                // Status akan menjadi kelas CSS: 'crisis'
                 title: 'Kereta Api', status: 'CRISIS', statusColor: { bg: 'bg-red-600', text: 'text-white' }, gaugeValue: 160,
                 posts: [
                     {
@@ -336,6 +409,7 @@ const fetchAllDashboardData = () => {
                 pagination: { total: 8 }
             },
             {
+                // Status akan menjadi kelas CSS: 'emerging'
                 title: 'Komisaris', status: 'EMERGING', statusColor: { bg: 'bg-yellow-400', text: 'text-yellow-900' }, gaugeValue: 80,
                 posts: [
                     {
@@ -360,6 +434,7 @@ const fetchAllDashboardData = () => {
                 pagination: { total: 8 }
             },
             {
+                // Status akan menjadi kelas CSS: 'normal'
                 title: 'Presiden', status: 'NORMAL', statusColor: { bg: 'bg-blue-500', text: 'text-white' }, gaugeValue: 20,
                 posts: [
                     {
@@ -406,11 +481,245 @@ const fetchAllDashboardData = () => {
 };
 </script>
 
-
+---
 <style scoped>
-/* Styles from previous components are combined here */
+/* ======================================= */
+/* GAUGE CSS (5 LEVEL) */
+/* ======================================= */
+
+.gauge-wrapper {
+    display: inline-block;
+    width: auto;
+    margin: 0 auto;
+    padding: 20px 15px 15px;
+}
+
+.gauge {
+    background: #e7e7e7;
+    box-shadow: 0 -3px 6px 2px rgba(0, 0, 0, 0.50);
+    width: 200px;
+    height: 100px;
+    border-radius: 100px 100px 0 0 !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.gauge-center {
+    content: '';
+    color: #fff;
+    width: 60%;
+    height: 60%;
+    background: #15222E;
+    border-radius: 100px 100px 0 0 !important;
+    position: absolute;
+    box-shadow: 0 -13px 15px -10px rgba(0, 0, 0, 0.28);
+    right: 21%;
+    bottom: 0;
+    color: #fff;
+    z-index: 10;
+}
+
+.gauge-center .label,
+.gauge-center .number {
+    display: block;
+    width: 100%;
+    text-align: center;
+    border: 0 !important;
+}
+
+.gauge-center .label {
+    font-size: 0.75em;
+    opacity: 0.6;
+    margin: 1.1em 0 0.3em 0;
+}
+
+.gauge-center .number {
+    font-size: 1.2em;
+}
+
+.needle {
+    width: 80px;
+    height: 7px;
+    background: #15222E;
+    border-bottom-left-radius: 100% !important;
+    border-bottom-right-radius: 5px !important;
+    border-top-left-radius: 100% !important;
+    border-top-right-radius: 5px !important;
+    position: absolute;
+    bottom: -2px;
+    left: 20px;
+    transform-origin: 100% 4px;
+    transform: rotate(0deg);
+    box-shadow: 0 2px 2px 1px rgba(0, 0, 0, 0.38);
+    display: none;
+    z-index: 9;
+}
+
+/* --- ATURAN ANIMASI JARUM (NEEDLE) UNTUK 5 STATUS --- */
+/* Status: normal, early, emerging, current, crisis */
+.five.normal .needle {
+    animation: fivespeed1 2s 1 both;
+    animation-delay: 1s;
+    display: block;
+}
+
+.five.early .needle {
+    animation: fivespeed2 2s 1 both;
+    animation-delay: 1s;
+    display: block;
+}
+
+.five.emerging .needle {
+    animation: fivespeed3 2s 1 both;
+    animation-delay: 1s;
+    display: block;
+}
+
+.five.current .needle {
+    animation: fivespeed4 2s 1 both;
+    animation-delay: 1s;
+    display: block;
+}
+
+.five.crisis .needle {
+    animation: fivespeed5 2s 1 both;
+    animation-delay: 1s;
+    display: block;
+}
+
+
+.slice-colors {
+    height: 100%;
+}
+
+.slice-colors .st {
+    position: absolute;
+    bottom: 0;
+    width: 0;
+    height: 0;
+    border: 50px solid transparent;
+    transform-origin: 50% 100%;
+    left: 50%;
+    transform: translateX(-50%) rotate(0deg);
+}
+
+/* --- PENGATURAN WARNA 5 LEVEL (36 derajat per segmen) --- */
+/* Segmen 1: Normal (0-36 deg) - Biru */
+.five .slice-colors .st.slice-item:nth-child(1) {
+    border-top: 50px #3B82F6 solid;
+    /* Blue-500 */
+    border-left: 50px #3B82F6 solid;
+    transform: translateX(-50%) rotate(0deg);
+    z-index: 5;
+}
+
+/* Segmen 2: Early (36-72 deg) - Hijau */
+.five .slice-colors .st.slice-item:nth-child(2) {
+    border-top: 50px #22C55E solid;
+    /* Green-500 */
+    border-right: 50px #22C55E solid;
+    transform: translateX(-50%) rotate(36deg);
+    z-index: 4;
+}
+
+/* Segmen 3: Emerging (72-108 deg) - Kuning/Lime */
+.five .slice-colors .st.slice-item:nth-child(3) {
+    border-bottom: 50px #EAB308 solid;
+    /* Yellow-600 */
+    border-right: 50px #EAB308 solid;
+    transform: translateX(-50%) rotate(72deg);
+    z-index: 3;
+}
+
+/* Segmen 4: Current (108-144 deg) - Oranye */
+.five .slice-colors .st.slice-item:nth-child(4) {
+    border-bottom: 50px #F97316 solid;
+    /* Orange-500 */
+    border-right: 50px #F97316 solid;
+    transform: translateX(-50%) rotate(108deg);
+    z-index: 2;
+}
+
+/* Segmen 5: Crisis (144-180 deg) - Merah */
+.five .slice-colors .st.slice-item:nth-child(5) {
+    border-bottom: 50px #EF4444 solid;
+    /* Red-500 */
+    border-right: 50px #EF4444 solid;
+    transform: translateX(-50%) rotate(144deg);
+    z-index: 1;
+}
+
+
+/* --- KEYFRAMES UNTUK 5 KECEPATAN (SUDUT) --- */
+/* Posisi rata: 18, 54, 90, 126, 162 derajat */
+
+@keyframes fivespeed1 {
+    0% {
+        transform: rotate(0);
+    }
+
+    100% {
+        transform: rotate(18deg);
+    }
+
+    /* Normal */
+}
+
+@keyframes fivespeed2 {
+    0% {
+        transform: rotate(0);
+    }
+
+    100% {
+        transform: rotate(54deg);
+    }
+
+    /* Early */
+}
+
+@keyframes fivespeed3 {
+    0% {
+        transform: rotate(0);
+    }
+
+    100% {
+        transform: rotate(90deg);
+    }
+
+    /* Emerging (Tengah) */
+}
+
+@keyframes fivespeed4 {
+    0% {
+        transform: rotate(0);
+    }
+
+    100% {
+        transform: rotate(126deg);
+    }
+
+    /* Current */
+}
+
+@keyframes fivespeed5 {
+    0% {
+        transform: rotate(0);
+    }
+
+    100% {
+        transform: rotate(162deg);
+    }
+
+    /* Crisis */
+}
+
+/* ======================================= */
+/* END GAUGE CSS */
+/* ======================================= */
+
+/* Loader style */
 .loader {
-    border-top-color: #3498db;
+    border-top-color: #3B82F6;
     animation: spinner 1.5s linear infinite;
 }
 
@@ -424,87 +733,20 @@ const fetchAllDashboardData = () => {
     }
 }
 
-@keyframes fade-in {
+/* Animasi Fade In */
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(20px);
     }
 
     to {
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-.animate-fade-in {
-    animation: fade-in 0.5s ease-out forwards;
-}
-
-.gauge-container {
-    width: 100%;
-    height: 50%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    overflow: hidden;
-    border-radius: 100px 100px 0 0;
-}
-
-.gauge-segment {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 100px 100px 0 0;
-    transform-origin: 50% 100%;
-    clip-path: polygon(50% 100%, 0 100%, 0 0, 50% 0);
-}
-
-.gauge-segment.normal {
-    background-color: #3b82f6;
-    transform: rotate(0deg);
-}
-
-.gauge-segment.early {
-    background-color: #22c55e;
-    transform: rotate(36deg);
-}
-
-.gauge-segment.emerging {
-    background-color: #eab308;
-    transform: rotate(72deg);
-}
-
-.gauge-segment.current-s {
-    background-color: #f97316;
-    transform: rotate(108deg);
-}
-
-.gauge-segment.crisis {
-    background-color: #ef4444;
-    transform: rotate(144deg);
-}
-
-.gauge-needle {
-    position: absolute;
-    width: 2px;
-    height: 45%;
-    background-color: #1f2937;
-    bottom: 0;
-    left: 50%;
-    transform-origin: 50% 100%;
-    transition: transform 0.5s ease-out;
-    z-index: 10;
-}
-
-.gauge-center-circle {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    background-color: #1f2937;
-    border-radius: 50%;
-    bottom: -6px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 11;
 }
 </style>

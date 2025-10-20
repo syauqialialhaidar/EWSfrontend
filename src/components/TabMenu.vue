@@ -13,7 +13,7 @@
 <script setup>
 const tabs = [
     { name: 'Crisis Compass', path: '/crisis-compass' }, // Tambahkan path untuk routing
-    { name: 'Trendtracker', path: '/trendtracker' },   // Tambahkan path untuk routing
+    { name: 'Trendtracker', path: '/trendtracker' },   // Tambahkan path untuk routing
 ];
 </script>
 
@@ -21,14 +21,14 @@ const tabs = [
 .tab-link {
     font-family: 'Poppins', sans-serif;
     font-size: 1rem;
-    font-weight: 600; 
+    font-weight: 600;
     transition: color 0.3s, border-color 0.3s;
 }
 
 .tab-link-active {
     color: #1d4ed8;
     font-weight: 500;
-    font-weight: 600; 
+    font-weight: 600;
     border-bottom: 2px solid #1d4ed8;
 }
 
@@ -39,8 +39,8 @@ const tabs = [
 }
 
 .tab-link-inactive:hover {
-    color: #111827;
-    /* lebih gelap saat hover */
+    color: #03255C;
+    /* WARNA BARU: #03255C saat hover */
     border-bottom-color: #d1d5db;
     /* abu muda */
 }

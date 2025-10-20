@@ -1,6 +1,6 @@
 <template>
-  <div class="bg-white rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(0,0,0,0.3)] p-6">
-    <h2 class="text-xl font-bold text-gray-800 mb-6">Flagged Account from Post</h2>
+  <div class="bg-white rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(3,37,92,0.3)] p-6">
+    <h2 class="text-xl font-bold text-[#03255C] mb-6">Flagged Account from Post</h2>
 
     <div v-if="isLoading" class="flex justify-center items-center min-h-[20rem]">
       <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-10 w-10"></div>
@@ -25,7 +25,7 @@
                     F
                   </div>
                   <div>
-                    <p class="font-bold text-sm text-gray-800">{{ account.author }}</p>
+                    <p class="font-bold text-sm text-[#03255C]">{{ account.author }}</p>
                     <div class="flex items-center gap-1 text-xs text-gray-600">
                       <i :class="[account.socialIcon, 'h-3 w-3 flex items-center justify-center text-sm']"></i>
                       <span>{{ account.platform }}</span>
@@ -101,10 +101,10 @@ const flaggedData = ref([]);
 
 // ICONS sekarang menggunakan kelas Font Awesome
 const ICONS = {
-  // text-[color] ditambahkan untuk memberi warna ikon
+  // PERUBAHAN: text-black diganti dengan text-[#03255C]
   youtube: 'fab fa-youtube text-red-500',
-  instagram: 'fab fa-instagram text-pink-600', // Instagram menggunakan pink untuk Font Awesome
-  tiktok: 'fab fa-tiktok text-black',
+  instagram: 'fab fa-instagram text-pink-600',
+  tiktok: 'fab fa-tiktok text-[#03255C]',
 };
 
 const createDummyAccount = (id, platform) => ({

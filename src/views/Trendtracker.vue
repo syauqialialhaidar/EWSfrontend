@@ -3,15 +3,15 @@
     <div class="min-h-screen">
         <div class="grid grid-cols-1 grid-cols-2 gap-6">
 
-            <div class="bg-white p-6 rounded-lg shadow-[3px_3px_5px_rgba(0,0,0,0.3)]">
+            <div class="bg-white p-6 rounded-lg shadow-[3px_3px_5px_rgba(3,37,92,0.3)]">
                 <div class="flex flex-col sm:flex-row justify-around items-center mb-6 gap-4">
 
                     <div
                         class="bg-white border border-gray-200 rounded-lg shadow-sm px-6 py-4 text-center w-full sm:w-1/2">
                         <div class="flex items-center justify-center space-x-2">
-                            <p class="text-3xl font-bold text-blue-800">1,836</p>
+                            <p class="text-3xl font-bold text-[#03255C]">1,836</p>
                             <span
-                                class="text-xs font-semibold text-blue-800 bg-blue-100 rounded-full px-2 py-0.5">-2.2%</span>
+                                class="text-xs font-semibold text-[#03255C] bg-blue-100 rounded-full px-2 py-0.5">-2.2%</span>
                         </div>
                         <p class="text-sm text-gray-500 mt-1">Total Post Keseluruhan</p>
                     </div>
@@ -49,15 +49,15 @@
             </div>
 
 
-            <div class="bg-white p-6 rounded-lg shadow-[3px_3px_5px_rgba(0,0,0,0.3)]">
+            <div class="bg-white p-6 rounded-lg shadow-[3px_3px_5px_rgba(3,37,92,0.3)]">
                 <div class="flex flex-col sm:flex-row justify-around items-center mb-6 gap-4">
 
                     <div
                         class="bg-white border border-gray-200 rounded-lg shadow-sm px-6 py-4 text-center w-full sm:w-1/2">
                         <div class="flex items-center justify-center space-x-2">
-                            <p class="text-3xl font-bold text-blue-800">1,836</p>
+                            <p class="text-3xl font-bold text-[#03255C]">1,836</p>
                             <span
-                                class="text-xs font-semibold text-blue-800 bg-blue-100 rounded-full px-2 py-0.5">-2.2%</span>
+                                class="text-xs font-semibold text-[#03255C] bg-blue-100 rounded-full px-2 py-0.5">-2.2%</span>
                         </div>
                         <p class="text-sm text-gray-500 mt-1">Total Post Keseluruhan</p>
                     </div>

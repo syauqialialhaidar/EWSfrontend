@@ -7,7 +7,7 @@
 
   <div v-else class="space-y-6 animate-fade-in">
     <div
-      class="bg-white p-4 rounded-xl border border border-gray-200 shadow-[4px_4px_6px_rgba(0,0,0,0.3)] flex items-center justify-start gap-8">
+      class="bg-white p-4 rounded-xl border border border-gray-200 shadow-[4px_4px_6px_rgba(3,37,92,0.3)] flex items-center justify-start gap-8">
       <span class="text-sm font-semibold text-gray-600">Filter Analysis by</span>
 
       <div class="relative flex-grow max-w-xs">
@@ -29,9 +29,9 @@
           <div class="flex items-center gap-2 text-gray-600">
             <i class="fab fa-facebook-f text-blue-600 h-5 w-5 flex items-center justify-center text-sm"></i>
             <i class="fab fa-youtube text-red-600 h-5 w-5 flex items-center justify-center text-sm"></i>
-            <i class="fab fa-tiktok text-black h-5 w-5 flex items-center justify-center text-sm"></i>
+            <i class="fab fa-tiktok text-[#03255C] h-5 w-5 flex items-center justify-center text-sm"></i>
             <i class="fab fa-instagram text-pink-600 h-5 w-5 flex items-center justify-center text-sm"></i>
-            <i class="fab fa-x-twitter text-gray-800 h-5 w-5 flex items-center justify-center text-sm"></i>
+            <i class="fab fa-x-twitter text-[#03255C] h-5 w-5 flex items-center justify-center text-sm"></i>
           </div>
           <select id="platform-filter" class="w-full absolute inset-0 opacity-0"></select>
         </div>
@@ -46,8 +46,8 @@
       </div>
     </div>
 
-    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(0,0,0,0.3)]">
-      <h3 class="text-lg font-bold text-gray-800 mb-4">Analisis Topik</h3>
+    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(3,37,92,0.3)]">
+      <h3 class="text-lg font-bold text-[#03255C] mb-4">Analisis Topik</h3>
       <div class="h-80">
         <Line :data="lineChartData" :options="lineChartOptions" />
       </div>
@@ -146,5 +146,3 @@ onMounted(fetchAnalysisData);
   animation: fade-in 0.5s ease-out forwards;
 }
 </style>
-
-<!-- nusdhoijewfhygewkfq -->

@@ -33,8 +33,10 @@
     "primevue": "^4.4.1",
     "vue": "^3.5.22",
     "vue-chartjs": "^5.3.2",
+    "vue-gauge": "^1.0.3",
     "vue-router": "^4.5.1",
-    "vue3-apexcharts": "^1.9.0"
+    "vue3-apexcharts": "^1.9.0",
+    "vue3-gauge": "^0.0.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
