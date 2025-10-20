@@ -146,3 +146,5 @@ onMounted(fetchAnalysisData);
   animation: fade-in 0.5s ease-out forwards;
 }
 </style>
+
+<!-- nusdhoijewfhygewkfq -->
