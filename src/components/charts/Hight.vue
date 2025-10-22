@@ -1,8 +1,9 @@
 <template>
   <div v-if="isLoading"
-    class="flex justify-center items-center p-6 bg-white rounded-xl border border-gray-200 shadow-sm min-h-[40rem]">
-    <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
-    <p class="text-lg font-semibold text-gray-600 ml-4">Memuat postingan...</p>
+    class="flex flex-col justify-center items-center p-6 bg-white rounded-xl border border-gray-200 shadow-sm min-h-[40rem]">
+    <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-2"></div>
+    <p class="text-lg font-semibold text-gray-600">Memuat postingan...</p>
+    <p v-if="apiError" class="text-sm text-red-500 mt-2">{{ apiError }}</p>
   </div>
 
   <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
@@ -36,7 +37,7 @@
                 }}</span>
               </div>
               <div class="flex items-center gap-4 text-xs text-gray-500 mt-1">
-                <span>{{ post.stats.followers }}</span>
+                <span>Followers: {{ post.stats.followers }}</span>
                 <span class="flex items-center"><svg class="h-3 w-3 mr-1 text-yellow-500" fill="currentColor"
                     viewBox="0 0 20 20">
                     <path
@@ -64,16 +65,15 @@
             </div>
           </div>
         </div>
+        <p v-if="column.posts.length === 0" class="text-sm text-gray-500 text-center py-4">Tidak ada data postingan.</p>
       </div>
 
       <div class="p-2 border-t border-gray-200 mt-auto">
         <div class="flex justify-between items-center text-xs text-gray-600">
-          <span>Menampilkan 1 - 3 dari {{ column.pagination.total }} Data</span>
+          <span>Menampilkan 1 - {{ column.posts.length }} dari {{ column.pagination.total }} Data</span>
           <div class="flex items-center">
             <button class="p-1 rounded-md hover:bg-gray-100">&lt;</button>
             <span class="px-2 py-1 bg-blue-100 text-blue-600 font-bold rounded-md mx-1">1</span>
-            <span class="px-2 py-1 rounded-md hover:bg-gray-100">2</span>
-            <span class="px-2 py-1 rounded-md hover:bg-gray-100">3</span>
             <button class="p-1 rounded-md hover:bg-gray-100">&gt;</button>
           </div>
         </div>
@@ -84,7 +84,7 @@
   <Teleport to="body">
     <div v-if="isDetailModalOpen"
       class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 backdrop-blur-sm transition-opacity duration-300"
-      @click.self="closeDetailModal">
+      @click.self="closeDetailModal" @keydown.esc="closeDetailModal" tabindex="0">
 
       <div
         class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-lg transform transition-all duration-300 scale-100 opacity-100">
@@ -117,7 +117,7 @@
           <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-sm p-3 bg-gray-50 rounded-lg">
             <p><strong>Status:</strong> <span :class="[selectedPost.statusColor, 'font-bold px-2 py-0.5 rounded']">{{
               selectedPost.postStatus
-                }}</span></p>
+            }}</span></p>
             <p><strong>Topik:</strong> <span class="font-semibold text-blue-600">{{ selectedPost.topicTag
                 }}</span></p>
             <p><strong>Followers:</strong> {{ selectedPost.stats.followers }}</p>
@@ -139,22 +139,19 @@
 import { ref, onMounted } from 'vue';
 
 const isLoading = ref(true);
+const apiError = ref(null);
 const columnsData = ref([]);
 
-// --- Tambahan State untuk Modal ---
+// --- State dan Methods Modal ---
 const isDetailModalOpen = ref(false);
 const selectedPost = ref(null);
 
-// SVG Icons diganti dengan Font Awesome Classes (fab = Font Awesome Brands)
-// PERUBAHAN: text-gray-800 dan text-black diganti dengan text-[#03255C]
 const ICONS = {
-  // Catatan: Pastikan library Font Awesome Brands telah diimpor (fa-x-twitter dan fa-tiktok)
   x: 'fab fa-x-twitter text-[#03255C]',
   facebook: 'fab fa-facebook-f text-blue-600',
   tiktok: 'fab fa-tiktok text-[#03255C]',
 };
 
-// --- Tambahan Methods untuk Modal ---
 const openDetailModal = (post) => {
   selectedPost.value = post;
   isDetailModalOpen.value = true;
@@ -165,6 +162,7 @@ const closeDetailModal = () => {
   selectedPost.value = null;
 };
 
+// Fungsi Dummy (Hanya digunakan untuk Kolom 3)
 const createDummyPost = (id, social) => ({
   id,
   author: 'fachryAlamsyah',
@@ -178,27 +176,122 @@ const createDummyPost = (id, social) => ({
   topicTag: 'Kereta',
 });
 
-const fetchPostsData = () => {
-  setTimeout(() => {
-    columnsData.value = [
-      {
-        title: 'Posts From Highest Engagement',
-        posts: [createDummyPost(1, 'x'), createDummyPost(2, 'facebook'), createDummyPost(3, 'tiktok')],
-        pagination: { total: 8 }
-      },
-      {
-        title: 'Posts From Highest Followers',
-        posts: [createDummyPost(4, 'facebook'), createDummyPost(5, 'x'), createDummyPost(6, 'tiktok')],
-        pagination: { total: 8 }
-      },
-      {
-        title: 'Posts From 5 Marked Accounts',
-        posts: [createDummyPost(7, 'tiktok'), createDummyPost(8, 'facebook'), createDummyPost(9, 'x')],
-        pagination: { total: 8 }
-      }
-    ];
-    isLoading.value = false;
-  }, 1800);
+// Fungsi untuk memetakan data API ke format post lokal
+// Fungsi ini fleksibel untuk memetakan data dari kedua API
+const mapApiPostToLocalPost = (apiPost, postId, statusTitle, statusColor) => {
+  // API Anda hanya mengembalikan string '25184838' di followers
+  const followersValue = apiPost.user?.followers || 'N/A';
+  const formattedFollowers = typeof followersValue === 'string' ? Number(followersValue).toLocaleString('en-US') : followersValue.toLocaleString('en-US');
+
+  return {
+    id: postId,
+    author: apiPost.user?.screen_name || 'Anonim',
+    avatar: 'https://placehold.co/40x40/E2E8F0/4A5568?text=' + (apiPost.user?.screen_name?.substring(0, 2).toUpperCase() || 'NA'),
+    socialIcon: ICONS.x,
+    stats: {
+      followers: formattedFollowers,
+      rating: 5,
+      verified: 300
+    },
+    date: new Date().toLocaleDateString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+    postStatus: statusTitle,
+    statusColor: statusColor,
+    content: apiPost.text || 'Tidak ada konten.',
+    topicTag: 'Berita/Transportasi',
+  };
+};
+
+// Fungsi Pembantu untuk Panggilan API
+const callApi = async (url) => {
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Status HTTP: ${response.status} dari ${url}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Gagal mengambil data dari ${url}:`, error.message);
+    throw new Error(`Gagal memuat data dari API. (${url})`);
+  }
+};
+
+const fetchPostsData = async () => {
+  const ENGAGEMENT_URL = 'http://127.0.0.1:8000/top-engagement';
+  const FOLLOWERS_URL = 'http://127.0.0.1:8000/top-followers';
+
+  // Siapkan wadah untuk data API
+  let engagementPost = [];
+  let followersPost = [];
+  let errorMessages = [];
+
+  // --- 1. Ambil Data Engagement ---
+  try {
+    const data = await callApi(ENGAGEMENT_URL);
+    const apiPostData = data.highest_engagement;
+    engagementPost.push(mapApiPostToLocalPost(
+      apiPostData,
+      'api-engage',
+      'High Engagement',
+      'bg-red-100 text-red-800'
+    ));
+  } catch (e) {
+    errorMessages.push(`Engagement: ${e.message}`);
+    // Fallback untuk Engagement
+    engagementPost.push(createDummyPost('fail-engage', 'x'));
+    engagementPost[0].title = 'Error Load';
+  }
+
+  // --- 2. Ambil Data Followers ---
+  try {
+    const data = await callApi(FOLLOWERS_URL);
+    const apiPostData = data.highest_followers;
+    followersPost.push(mapApiPostToLocalPost(
+      apiPostData,
+      'api-foll',
+      'Highest Foll',
+      'bg-indigo-100 text-indigo-800'
+    ));
+  } catch (e) {
+    errorMessages.push(`Followers: ${e.message}`);
+    // Fallback untuk Followers
+    followersPost.push(createDummyPost('fail-foll', 'facebook'));
+    followersPost[0].title = 'Error Load';
+  }
+
+  // Tangani semua Error API
+  if (errorMessages.length > 0) {
+    apiError.value = errorMessages.join(' | ');
+  }
+
+  // --- 3. Isi Kolom ---
+  const dummyPosts3 = [createDummyPost(7, 'tiktok'), createDummyPost(8, 'facebook'), createDummyPost(9, 'x')];
+
+  columnsData.value = [
+    {
+      // KOLOM 1: Posts From Highest Engagement (API)
+      title: 'Posts From Highest Engagement',
+      posts: engagementPost, // Isi 1 post dari API
+      pagination: { total: engagementPost.length }
+    },
+    {
+      // KOLOM 2: Posts From Highest Followers (API)
+      title: 'Posts From Highest Followers',
+      posts: followersPost, // Isi 1 post dari API
+      pagination: { total: followersPost.length }
+    },
+    {
+      // KOLOM 3: Posts From 5 Marked Accounts (Dummy)
+      title: 'Posts From 5 Marked Accounts (Dummy)',
+      posts: dummyPosts3,
+      pagination: { total: 8 }
+    }
+  ];
+
+  isLoading.value = false;
 };
 
 onMounted(fetchPostsData);

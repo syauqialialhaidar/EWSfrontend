@@ -2,7 +2,7 @@
     <div v-if="isLoading"
         class="flex flex-col justify-center items-center p-6 bg-white rounded-xl border border-gray-200 shadow-sm min-h-[48rem]">
         <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
-        <p class="text-lg font-semibold text-gray-600">Memuat data topik terkini...</p>
+        <p class="text-lg font-semibold text-gray-600">Memuat data topik terkini dari API...</p>
     </div>
 
     <div v-else class="space-y-6 animate-fade-in">
@@ -18,13 +18,11 @@
                     </div>
                 </div>
                 <div class="mt-6 flex flex-col items-center space-y-4">
-                    <div v-for="(stat, index) in topTopics" :key="index"
+                    <div v-for="(stat, index) in topTopics" :key="stat.title"
                         class="p-4 w-64 rounded-lg border border-gray-200 bg-white flex items-center">
                         <div class="p-3 bg-blue-100 rounded-lg mr-4 flex items-center justify-center">
                             <FontAwesomeIcon :icon="faChartSimple" class="text-blue-600 text-2xl" />
                         </div>
-
-
                         <div class="flex flex-col items-start">
                             <div class="flex items-baseline space-x-2">
                                 <span class="text-3xl font-bold text-[#03255C]">{{ stat.value }}</span>
@@ -36,7 +34,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
 
             <div
@@ -62,8 +59,7 @@
                     <h3 class="text-lg font-bold text-[#03255C]">Topik {{ index + 1 }}: {{ topic.title }}</h3>
                 </div>
                 <div class="p-4 flex flex-col items-center">
-                    <div :class="[topic.statusColor.bg, topic.statusColor.text]"
-                        class="px-4 py-1 text-sm font-bold rounded-full mb-2">
+                    <div :class="getStatusClass(topic.status)" class="px-4 py-1 text-sm font-bold rounded-full mb-2">
                         {{ topic.status }}
                     </div>
 
@@ -84,6 +80,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="p-4 flex-grow">
                     <h4 class="font-bold text-gray-700 mb-3">Postingan Viral Terbaru</h4>
                     <div class="space-y-4">
@@ -97,20 +94,18 @@
                                                 :class="getSocialIconColor(post.socialIcon)" class="h-4 w-4" />
                                             <span class="font-bold text-sm text-[#03255C]">{{ post.author }}</span>
                                         </div>
-
                                         <div class="flex items-center gap-2">
-                                            <FontAwesomeIcon v-if="post.isBookmarked" :icon="faStar"
-                                                class="h-4 w-4 text-yellow-500 cursor-pointer hover:text-yellow-600 transition" />
                                             <span
                                                 :class="[post.statusColor, 'text-xs font-bold px-2 py-0.5 rounded-full']">
                                                 {{ post.postStatus }}
                                             </span>
                                         </div>
                                     </div>
-
                                     <div class="flex justify-start items-center gap-4 mt-0.5">
                                         <p class="text-xs text-gray-500">{{ post.date }}</p>
                                         <p class="text-xs font-semibold text-blue-500">Folls: {{ post.followers }}</p>
+                                        <p class="text-xs font-semibold text-cyan-500">Follwing: {{ post.following }}
+                                        </p>
                                         <p class="text-xs font-semibold text-purple-500">Engg: {{ post.engagementScore
                                             }}</p>
                                     </div>
@@ -137,8 +132,6 @@
                                         <span>{{ post.shares }}</span>
                                     </div>
                                 </div>
-
-                                <span class="text-xs bg-gray-100 px-2 py-0.5 rounded">Topik: {{ post.topicTag }}</span>
                             </div>
                             <div class="flex items-center justify-end gap-2 mt-3">
                                 <button
@@ -152,7 +145,7 @@
                 </div>
                 <div class="p-4 border-t border-gray-200 mt-auto">
                     <div class="flex justify-between items-center text-xs text-gray-600">
-                        <span>Menampilkan 1 - 3 dari {{ topic.pagination.total }} Data</span>
+                        <span>Menampilkan 1 - {{ topic.pagination.total }} dari {{ topic.pagination.total }} Data</span>
                         <div class="flex items-center">...</div>
                     </div>
                 </div>
@@ -170,7 +163,7 @@
                     <span class="text-xs text-gray-700 mt-1">{{ platform.name }}</span>
                 </div>
 
-                <template v-for="(item, topicIndex) in platformStatuses" :key="topicIndex">
+                <template v-for="(item, topicIndex) in platformStatuses" :key="item.topic">
                     <div
                         class="p-2 bg-white border border-gray-200 rounded-lg flex items-center justify-start gap-3 text-left font-bold text-gray-700">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -181,7 +174,7 @@
                         </svg>
                         <span>{{ item.topic }}</span>
                     </div>
-                    <div v-for="(status, statusIndex) in item.statuses" :key="statusIndex"
+                    <div v-for="(status, statusIndex) in item.statuses" :key="`${item.topic}-${statusIndex}`"
                         :class="getStatusClass(status)"
                         class="p-2 rounded-lg flex items-center justify-center font-bold">
                         {{ status }}
@@ -229,11 +222,11 @@
                         <p><strong>Status Post:</strong> <span
                                 :class="[selectedPost.statusColor, 'font-bold px-2 py-0.5 rounded']">{{
                                     selectedPost.postStatus }}</span></p>
-                        <p><strong>Topik Terkait:</strong> <span class="font-semibold text-blue-600">{{
-                            selectedPost.topicTag }}</span></p>
+                        <p></p>
                         <p><strong>Followers:</strong> {{ selectedPost.followers }}</p>
+                        <p><strong>Following:</strong> {{ selectedPost.following }}</p>
                         <p><strong>Engagement:</strong> {{ selectedPost.engagementScore }}</p>
-                        <p><strong>Views:</strong> {{ selectedPost.views }}</p>
+                        <p><strong>Views (Est.):</strong> {{ selectedPost.views }}</p>
                         <p><strong>Likes:</strong> {{ selectedPost.likes }}</p>
                         <p><strong>Comments:</strong> {{ selectedPost.comments }}</p>
                         <p><strong>Shares:</strong> {{ selectedPost.shares }}</p>
@@ -257,14 +250,16 @@ import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 
 // --- FONT AWESOME IMPORTS ---
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-// Ikon Merek Sosial
-import { faTiktok, faFacebook, faYoutube, faXTwitter, faInstagram } from '@fortawesome/free-brands-svg-icons';
-// Ikon Solid Baru untuk Metrik
-import { faStar, faEye, faHeart, faCommentDots, faShareNodes, faChartSimple } from '@fortawesome/free-solid-svg-icons';
+// Menghapus TikTok, Facebook, Youtube, Instagram (karena API hanya dari X)
+import { faXTwitter } from '@fortawesome/free-brands-svg-icons';
+import { faEye, faHeart, faCommentDots, faShareNodes, faChartSimple } from '@fortawesome/free-solid-svg-icons';
 
 ChartJS.register(Title, Tooltip, Legend, ArcElement);
 
-// --- COMBINED STATE ---
+// --- KONSTANTA API ---
+const API_URL = 'http://127.0.0.1:8000/top-topics'; // Endpoint API Anda
+
+// --- STATE MANAGEMENT ---
 const isLoading = ref(true);
 const currentTime = ref('');
 const currentDate = ref('');
@@ -274,56 +269,56 @@ let timerInterval = null;
 const isDetailModalOpen = ref(false);
 const selectedPost = ref(null);
 
-// State for Section 1
+// State for Section 1 (Akan diisi dari API)
 const topTopics = ref([]);
 const pieChartData = ref({ labels: [], datasets: [] });
 const pieChartLabels = ref([]);
 
-// --- Data for Platform Status Table ---
+// --- Data for Platform Status Table (Mock/Dummy) ---
 const platforms = ref([
-    { name: 'TikTok', icon: faTiktok, color: 'text-[#03255C]' },
-    { name: 'Facebook', icon: faFacebook, color: 'text-blue-600' },
-    { name: 'YouTube', icon: faYoutube, color: 'text-red-600' },
+    { name: 'TikTok', icon: faXTwitter, color: 'text-[#03255C]' },
+    { name: 'Facebook', icon: faXTwitter, color: 'text-blue-600' },
+    { name: 'YouTube', icon: faXTwitter, color: 'text-red-600' },
     { name: 'X / Twitter', icon: faXTwitter, color: 'text-[#03255C]' },
-    { name: 'Instagram', icon: faInstagram, color: 'text-pink-600' },
+    { name: 'Instagram', icon: faXTwitter, color: 'text-pink-600' },
 ]);
-const platformStatuses = ref([]);
+const platformStatuses = ref([
+    // Mock data untuk mengisi tabel agar tidak kosong
+    { topic: 'Topik A', statuses: ['Normal', 'Early', 'Emerging', 'Current', 'Crisis'] },
+    { topic: 'Topik B', statuses: ['Crisis', 'Current', 'Emerging', 'Early', 'Normal'] },
+]);
 
-// State for Section 2
+// State for Section 2 (Mock/diisi dari API)
 const topicsDetailsData = ref([]);
 
-// --- CHART OPTIONS ---
+// --- CHART OPTIONS (Tetap) ---
 const pieChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: { legend: { display: false } },
 };
 
-// --- LOGIC FOR SOCIAL ICON COLORS (Refactored) ---
+// --- LOGIC FOR SOCIAL ICON COLORS (Disimpelkan ke X/Twitter) ---
 const socialIconColors = {
-    [faTiktok.iconName]: 'text-[#03255C]',
-    [faFacebook.iconName]: 'text-blue-600',
-    [faYoutube.iconName]: 'text-red-600',
-    [faXTwitter.iconName]: 'text-[#03255C]',
-    [faInstagram.iconName]: 'text-pink-600',
+    [faXTwitter.iconName]: 'text-[#03255C]', // Hanya warna X/Twitter yang relevan
 };
 
 const getSocialIconColor = (icon) => {
-    // Menggunakan iconName untuk pencarian yang lebih solid
     return socialIconColors[icon.iconName] || 'text-gray-700';
 };
 
-// --- LOGIC FOR STATUS COLORS (Perbaikan) ---
+// --- LOGIC FOR STATUS COLORS (Perbaikan & Konsisten) ---
 const getStatusClass = (status) => {
-    // Menambahkan kelas teks agar konsisten
     const classes = {
-        'Normal': 'bg-blue-500 text-white',
-        'Early': 'bg-green-500 text-white',
-        'Emerging': 'bg-lime-400 text-gray-800', // Teks gelap untuk keterbacaan yang lebih baik
-        'Current': 'bg-orange-500 text-white',
-        'Crisis': 'bg-red-600 text-white',
+        'NORMAL': 'bg-blue-500 text-white',
+        'EARLY': 'bg-green-500 text-white',
+        'EMERGING': 'bg-lime-400 text-gray-800',
+        'CURRENT': 'bg-orange-500 text-white',
+        'CRISIS': 'bg-red-600 text-white',
+        'N/A': 'bg-gray-400 text-white',
+        'UNKNOWN': 'bg-gray-400 text-white',
     };
-    return classes[status] || 'bg-gray-400 text-white';
+    return classes[status.toUpperCase()] || 'bg-gray-400 text-white';
 };
 
 
@@ -346,7 +341,7 @@ const openDetailModal = (post) => {
 
 const closeDetailModal = () => {
     isDetailModalOpen.value = false;
-    selectedPost.value = null; // Opsional: hapus data post saat ditutup
+    selectedPost.value = null;
 };
 
 const updateTime = () => {
@@ -356,15 +351,27 @@ const updateTime = () => {
 };
 
 
-const fetchAllDashboardData = () => {
-    // Simulate one single API call for all data in this component
-    setTimeout(() => {
-        // --- Data for Section 1 (Top Cards & Pie Chart) ---
-        topTopics.value = [
-            { title: 'Total Post Topik 1', value: '1,836', change: '-3.2%' },
-            { title: 'Total Post Topik 2', value: '1,836', change: '-3.2%' },
-            { title: 'Total Post Topik 3', value: '1,836', change: '-3.2%' },
-        ];
+// --- FUNGSI UTAMA: MENGAMBIL DATA DARI API NYATA ---
+const fetchAllDashboardData = async () => {
+    try {
+        const response = await fetch(API_URL);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const topTopicsApiData = data.top_topics || [];
+
+        // 1. Memformat data untuk state topTopics (Kartu Statistik Atas)
+        topTopics.value = topTopicsApiData.map((item, index) => ({
+            title: `Topik ${index + 1}: ${item.topic}`,
+            value: String(item.total_posts).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+            // Data perubahan masih mock
+            change: index % 2 === 0 ? '+5.0%' : '-1.5%',
+        }));
+
+        // --- MOCK DATA UNTUK PIE CHART (Tetap karena API tidak menyediakan) ---
         pieChartData.value = {
             labels: ['Crisis', 'Kereta Api', 'Normal Early', 'Current Emerging', 'Komisaris', 'Presiden'],
             datasets: [{
@@ -381,103 +388,63 @@ const fetchAllDashboardData = () => {
             { name: 'Presiden', icon: `<svg xmlns="http://www.w3.org/2000/svg" class="text-blue-600" viewBox="0 0 16 16" fill="currentColor"><path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v2.228h-1.307c-.983 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z"/></svg>`, position: { bottom: '15%', right: '20%' } },
         ];
 
-        // --- Data for Topic Details Section ---
-        topicsDetailsData.value = [
-            {
-                // Status akan menjadi kelas CSS: 'crisis'
-                title: 'Kereta Api', status: 'CRISIS', statusColor: { bg: 'bg-red-600', text: 'text-white' }, gaugeValue: 160,
-                posts: [
-                    {
-                        id: 1,
-                        author: 'fachryAlamsyah',
-                        avatar: 'https://placehold.co/40x40/3B82F6/FFFFFF?text=F',
-                        date: '02 Juni 2024 12:00:15',
-                        postStatus: 'Early',
-                        statusColor: 'bg-green-100 text-green-800',
-                        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-                        topicTag: 'Kereta',
-                        isBookmarked: true,
-                        socialIcon: faTiktok,
-                        followers: '1.2M',
-                        engagementScore: '9.8',
-                        views: '125K',
-                        likes: '15K',
-                        comments: '3.1K',
-                        shares: '7.5K',
-                    }
-                ],
-                pagination: { total: 8 }
-            },
-            {
-                // Status akan menjadi kelas CSS: 'emerging'
-                title: 'Komisaris', status: 'EMERGING', statusColor: { bg: 'bg-yellow-400', text: 'text-yellow-900' }, gaugeValue: 80,
-                posts: [
-                    {
-                        id: 4,
-                        author: 'Budi_Santoso',
-                        avatar: 'https://placehold.co/40x40/E2E8F0/4A5568?text=BS',
-                        date: '02 Juni 2024 12:00:15',
-                        postStatus: 'Normal',
-                        statusColor: 'bg-blue-100 text-blue-800',
-                        content: 'Berita terbaru mengenai restrukturisasi perusahaan harus dicermati oleh publik. Kita perlu transparansi.',
-                        topicTag: 'Bisnis',
-                        isBookmarked: false,
-                        socialIcon: faFacebook,
-                        followers: '30K',
-                        engagementScore: '5.2',
-                        views: '5K',
-                        likes: '450',
-                        comments: '80',
-                        shares: '12',
-                    }
-                ],
-                pagination: { total: 8 }
-            },
-            {
-                // Status akan menjadi kelas CSS: 'normal'
-                title: 'Presiden', status: 'NORMAL', statusColor: { bg: 'bg-blue-500', text: 'text-white' }, gaugeValue: 20,
-                posts: [
-                    {
-                        id: 7,
-                        author: 'PolitikToday',
-                        avatar: 'https://placehold.co/40x40/10B981/FFFFFF?text=PT',
-                        date: '02 Juni 2024 12:00:15',
-                        postStatus: 'Current',
-                        statusColor: 'bg-orange-100 text-orange-800',
-                        content: 'Presiden hari ini menyampaikan pidato penting tentang ketahanan pangan nasional di Istana Negara.',
-                        topicTag: 'Pemerintahan',
-                        isBookmarked: true,
-                        socialIcon: faXTwitter,
-                        followers: '5M',
-                        engagementScore: '7.9',
-                        views: '2M',
-                        likes: '150K',
-                        comments: '20K',
-                        shares: '50K',
-                    }
-                ],
-                pagination: { total: 8 }
-            },
-        ];
 
-        // --- Data for new Platform Status Table ---
-        platformStatuses.value = [
-            {
-                topic: 'Kereta Api',
-                statuses: ['Normal', 'Early', 'Emerging', 'Current', 'Crisis']
-            },
-            {
-                topic: 'Komisaris',
-                statuses: ['Crisis', 'Current', 'Emerging', 'Early', 'Normal']
-            },
-            {
-                topic: 'Presiden',
-                statuses: ['Emerging', 'Normal', 'Current', 'Early', 'Crisis']
-            },
-        ];
+        // 2. Memformat data untuk topicsDetailsData (Bagian Detail Topik)
+        topicsDetailsData.value = topTopicsApiData.map((topicItem, index) => {
 
+            // Tentukan status topik (ambil status dari post teratas untuk keperluan visualisasi gauge)
+            const topicStatus = topicItem.top_10_posts[0]?.latest_status || 'N/A';
+
+            return {
+                title: topicItem.topic,
+                status: topicStatus.toUpperCase(),
+                gaugeValue: index * 40, // Mocked, untuk mengatur jarum
+
+                posts: topicItem.top_10_posts.map(post => {
+                    // Konversi created_at dari string ISO (hasil datetime.fromtimestamp)
+                    const dateObj = new Date(post.created_at);
+                    const formattedDate = dateObj.toLocaleString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+                    // Hitung views (estimasi)
+                    const totalInteractions = (post.retweet_count || 0) + (post.favorite_count || 0) + (post.reply_count || 0);
+
+                    return {
+                        id: post.tweet_id,
+                        author: post.user.name || post.user.screen_name,
+                        avatar: post.user.profile_image_url || 'https://placehold.co/40x40/E2E8F0/4A5568?text=U',
+                        date: formattedDate,
+                        postStatus: post.latest_status,
+                        statusColor: getStatusClass(post.latest_status),
+                        content: post.text,
+                        topicTag: 'N/A', // Dihilangkan sesuai permintaan
+                        isBookmarked: false, // Dihilangkan sesuai permintaan
+                        socialIcon: faXTwitter, // Hardcode X/Twitter
+
+                        followers: String(post.user.followers_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                        following: String(post.user.following_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","), // TAMBAHAN: Following
+
+                        engagementScore: (post.engagement || 0).toFixed(2),
+                        views: String(totalInteractions).replace(/\B(?=(\d{3})+(?!\d))/g, ","), // Views dihitung dari interaksi
+                        likes: String(post.favorite_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                        comments: String(post.reply_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                        shares: String(post.retweet_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                    };
+                }),
+
+                pagination: { total: topicItem.top_10_posts.length }
+            };
+        });
+
+    } catch (error) {
+        console.error("Gagal mengambil data dari API:", error);
+        // Fallback
+        topTopics.value = [{ title: 'Gagal Memuat', value: '0', change: 'Error' }];
+        topicsDetailsData.value = [];
+        pieChartData.value = { labels: [], datasets: [] };
+
+    } finally {
         isLoading.value = false;
-    }, 1500);
+    }
 };
 </script>
 
@@ -497,7 +464,7 @@ const fetchAllDashboardData = () => {
 .gauge {
     background: #e7e7e7;
     box-shadow: 0 -3px 6px 2px rgba(0, 0, 0, 0.50);
-    width: 200px;
+    width: 250px;
     height: 100px;
     border-radius: 100px 100px 0 0 !important;
     position: relative;
@@ -530,24 +497,27 @@ const fetchAllDashboardData = () => {
 .gauge-center .label {
     font-size: 0.75em;
     opacity: 0.6;
-    margin: 1.1em 0 0.3em 0;
+    margin: 0.5em 0 0.3em 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .gauge-center .number {
     font-size: 1.2em;
+    font-weight: bold;
 }
 
 .needle {
-    width: 80px;
-    height: 7px;
-    background: #15222E;
+    width: 110px;
+    height: 10px;
+    background: #e20404;
     border-bottom-left-radius: 100% !important;
     border-bottom-right-radius: 5px !important;
     border-top-left-radius: 100% !important;
     border-top-right-radius: 5px !important;
     position: absolute;
-    bottom: -2px;
-    left: 20px;
+    bottom: -15x;
+    left: 10px;
     transform-origin: 100% 4px;
     transform: rotate(0deg);
     box-shadow: 0 2px 2px 1px rgba(0, 0, 0, 0.38);
@@ -556,7 +526,6 @@ const fetchAllDashboardData = () => {
 }
 
 /* --- ATURAN ANIMASI JARUM (NEEDLE) UNTUK 5 STATUS --- */
-/* Status: normal, early, emerging, current, crisis */
 .five.normal .needle {
     animation: fivespeed1 2s 1 both;
     animation-delay: 1s;
@@ -604,46 +573,41 @@ const fetchAllDashboardData = () => {
 }
 
 /* --- PENGATURAN WARNA 5 LEVEL (36 derajat per segmen) --- */
-/* Segmen 1: Normal (0-36 deg) - Biru */
+/* Segmen 1: Normal */
 .five .slice-colors .st.slice-item:nth-child(1) {
     border-top: 50px #3B82F6 solid;
-    /* Blue-500 */
     border-left: 50px #3B82F6 solid;
     transform: translateX(-50%) rotate(0deg);
     z-index: 5;
 }
 
-/* Segmen 2: Early (36-72 deg) - Hijau */
+/* Segmen 2: Early */
 .five .slice-colors .st.slice-item:nth-child(2) {
     border-top: 50px #22C55E solid;
-    /* Green-500 */
     border-right: 50px #22C55E solid;
     transform: translateX(-50%) rotate(36deg);
     z-index: 4;
 }
 
-/* Segmen 3: Emerging (72-108 deg) - Kuning/Lime */
+/* Segmen 3: Emerging */
 .five .slice-colors .st.slice-item:nth-child(3) {
     border-bottom: 50px #EAB308 solid;
-    /* Yellow-600 */
     border-right: 50px #EAB308 solid;
     transform: translateX(-50%) rotate(72deg);
     z-index: 3;
 }
 
-/* Segmen 4: Current (108-144 deg) - Oranye */
+/* Segmen 4: Current */
 .five .slice-colors .st.slice-item:nth-child(4) {
     border-bottom: 50px #F97316 solid;
-    /* Orange-500 */
     border-right: 50px #F97316 solid;
     transform: translateX(-50%) rotate(108deg);
     z-index: 2;
 }
 
-/* Segmen 5: Crisis (144-180 deg) - Merah */
+/* Segmen 5: Crisis */
 .five .slice-colors .st.slice-item:nth-child(5) {
     border-bottom: 50px #EF4444 solid;
-    /* Red-500 */
     border-right: 50px #EF4444 solid;
     transform: translateX(-50%) rotate(144deg);
     z-index: 1;
@@ -651,8 +615,6 @@ const fetchAllDashboardData = () => {
 
 
 /* --- KEYFRAMES UNTUK 5 KECEPATAN (SUDUT) --- */
-/* Posisi rata: 18, 54, 90, 126, 162 derajat */
-
 @keyframes fivespeed1 {
     0% {
         transform: rotate(0);
