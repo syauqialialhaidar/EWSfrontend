@@ -1,7 +1,6 @@
 // router/index.js
 import { createRouter, createWebHistory } from 'vue-router';
-import CrisisCompass from '../views/CrisisCompass.vue'; // Pastikan path import benar
-import Trendtracker from '../views/Trendtracker.vue';   // Pastikan path import benar
+import CrisisCompass from '../views/CrisisCompass.vue';
 
 const routes = [
   {
@@ -12,11 +11,6 @@ const routes = [
     path: '/crisis-compass',
     name: 'CrisisCompass',
     component: CrisisCompass
-  },
-  {
-    path: '/trendtracker',
-    name: 'Trendtracker',
-    component: Trendtracker
   }
 ];
 

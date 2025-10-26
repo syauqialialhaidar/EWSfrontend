@@ -3,7 +3,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div v-for="card in summaryStatistics" :key="card.key"
-                class="bg-white p-6 rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(3,37,92,0.3)]">
+                class="bg-white p-6 rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(128,128,128,0.3)]">
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div class="border border-gray-400 rounded-lg p-4 flex items-center justify-center h-full">
                         <div class="flex items-center gap-4">
@@ -72,8 +72,9 @@
 
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
             <div v-if="isLoading.status" class="text-gray-500 col-span-5 text-center">Memuat status posts...</div>
-            <div v-else-if="error.status" class="text-red-500 col-span-5 text-center">Gagal memuat status posts: {{ error.status }}</div>
-            
+            <div v-else-if="error.status" class="text-red-500 col-span-5 text-center">Gagal memuat status posts: {{
+                error.status }}</div>
+
             <div v-else v-for="card in statusCards" :key="card.title" :class="[card.bgColor,
                 'p-4 rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-transform duration-300 text-white flex flex-col justify-center items-center aspect-square md:aspect-auto md:h-40'
             ]">
@@ -95,7 +96,7 @@ ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale);
 const totalApiData = ref(null);
 const viralApiData = ref(null);
 // TAMBAHAN: State untuk data status posts
-const statusApiData = ref(null); 
+const statusApiData = ref(null);
 
 // Memperbarui reactive state untuk loading dan error
 const isLoading = reactive({ total: true, viral: true, status: true });
@@ -103,42 +104,42 @@ const error = reactive({ total: null, viral: null, status: null });
 
 // ... Chart data (leftChartData dan rightChartData) TIDAK BERUBAH ...
 const leftChartData = ref({
-    labels: ['Positif', 'Negatif', 'Netral'], // Diperbarui untuk 3 sentimen
-    datasets: [{
-        backgroundColor: ['#22c55e', '#ef4444', '#3b82f6'], // Diperbarui untuk 3 sentimen
-        data: [], 
-        borderWidth: 3, 
-        borderColor: '#ffffff' 
-    }]
+    labels: ['Positif', 'Negatif', 'Netral'], // Diperbarui untuk 3 sentimen
+    datasets: [{
+        backgroundColor: ['#22c55e', '#ef4444', '#3b82f6'], // Diperbarui untuk 3 sentimen
+        data: [],
+        borderWidth: 3,
+        borderColor: '#ffffff'
+    }]
 });
 const rightChartData = ref({
-    labels: [],
-    datasets: [{
-        backgroundColor: ['#22c55e', '#ef4444', '#3b82f6'],
-        data: [],
-        borderWidth: 3, 
-        borderColor: '#ffffff' 
-    }]
+    labels: ['Post Normal', 'Post Viral', 'Negatif Viral'],
+    datasets: [{
+        backgroundColor: ['#22c55e', '#ef4444', '#3b82f6'],
+        data: [],
+        borderWidth: 3,
+        borderColor: '#ffffff'
+    }]
 });
 
 // Computed property summaryStatistics (TIDAK BERUBAH)
 const summaryStatistics = computed(() => [
-    {
-        key: 'total',
-        apiData: totalApiData.value,
-        chartData: leftChartData.value,
-        totalTitle: 'Total Post Keseluruhan',
-        negativeTitle: 'Total Post Negatif', 
-        negativeTextClass: 'text-red-600'
-    },
-    {
-        key: 'viral',
-        apiData: viralApiData.value,
-        chartData: rightChartData.value,
-        totalTitle: 'Total Post Viral',
-        negativeTitle: 'Total Post Negatif Viral',
-        negativeTextClass: 'text-red-600'
-    }
+    {
+        key: 'total',
+        apiData: totalApiData.value,
+        chartData: leftChartData.value,
+        totalTitle: 'Total Post Keseluruhan',
+        negativeTitle: 'Total Post Negatif',
+        negativeTextClass: 'text-red-600'
+    },
+    {
+        key: 'viral',
+        apiData: viralApiData.value,
+        chartData: rightChartData.value,
+        totalTitle: 'Total Post Viral',
+        negativeTitle: 'Total Post Negatif Viral',
+        negativeTextClass: 'text-red-600'
+    }
 ]);
 
 // FUNGSI BARU: Memetakan data status API ke format kartu tampilan
@@ -146,11 +147,11 @@ const statusCards = computed(() => {
     if (!statusApiData.value || !statusApiData.value.distribution) return [];
 
     const colorMap = {
-        'normal': 'bg-blue-500',
-        'early': 'bg-green-500',
-        'emerging': 'bg-yellow-500',
-        'current': 'bg-orange-500',
-        'crisis': 'bg-red-600',
+        'normal': 'bg-[#2092EC]',
+        'early': 'bg-[#28C76F]',
+        'emerging': 'bg-[#AAD816]',
+        'current': 'bg-[#FF9900]',
+        'crisis': 'bg-[#E60000]',
     };
 
     const titleMap = {
@@ -171,7 +172,7 @@ const statusCards = computed(() => {
         bgColor: colorMap[item.status] || 'bg-gray-400',
         order: desiredOrder.indexOf(item.status) // Tambahkan indeks untuk sorting
     }));
-    
+
     // Urutkan data
     return mappedData.sort((a, b) => a.order - b.order);
 });
@@ -184,21 +185,21 @@ async function fetchTotalData() {
 
     try {
         // Panggilan API 1: Total Posts
-        const totalResponse = await fetch('http://127.0.0.1:8000/total-posts'); 
+        const totalResponse = await fetch('http://127.0.0.1:8000/total-posts');
         if (!totalResponse.ok) throw new Error(`HTTP error fetching total posts! status: ${totalResponse.status}`);
         totalPostsData = await totalResponse.json();
 
         // Panggilan API 2: Distribusi Sentimen
-        const sentimentResponse = await fetch('http://127.0.0.1:8000/sentiment-distribution'); 
+        const sentimentResponse = await fetch('http://127.0.0.1:8000/sentiment-distribution');
         if (!sentimentResponse.ok) throw new Error(`HTTP error fetching sentiment! status: ${sentimentResponse.status}`);
         sentimentData = await sentimentResponse.json();
-        
+
         const sentiment = sentimentData.sentiment_distribution;
 
         // Memetakan data gabungan
         totalApiData.value = {
-            total: totalPostsData.total_posts, 
-            negative: sentiment.negative, 
+            total: totalPostsData.total_posts,
+            negative: sentiment.negative,
             positive: sentiment.positive,
             neutral: sentiment.neutral
         };
@@ -206,8 +207,8 @@ async function fetchTotalData() {
         // Mengisi chart data dengan sentimen
         leftChartData.value.labels = ['Positif', 'Negatif', 'Netral'];
         leftChartData.value.datasets[0].data = [
-            sentiment.positive, 
-            sentiment.negative, 
+            sentiment.positive,
+            sentiment.negative,
             sentiment.neutral
         ];
         leftChartData.value.datasets[0].backgroundColor = ['#22c55e', '#ef4444', '#3b82f6'];
@@ -222,22 +223,52 @@ async function fetchTotalData() {
 }
 
 // Fetch viral data (TIDAK BERUBAH)
+// ... kode di atas ...
+
+// Fetch viral data (DIUBAH)
 async function fetchViralData() {
-    try {
-        const response = await fetch('http://154.26.134.72:8031/api/analytics/viral-posts');
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        viralApiData.value = data;
-        rightChartData.value.labels = ['Positif', 'Negatif', 'Netral'];
-        rightChartData.value.datasets[0].data = [data.positive, data.negative, data.neutral];
-    } catch (err) {
-        console.error("Gagal memuat data viral:", err);
-        error.viral = err.message;
-    } finally {
-        isLoading.viral = false;
-    }
+    try {
+        // 1. Ganti URL API
+        const response = await fetch('http://127.0.0.1:8000/viral-posts');
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+        const data = await response.json();
+
+        // Data dari API baru
+        const totalViral = data.total_viral_posts;
+        const normalPosts = data.by_status.normal; // Mengambil nilai dari 'normal'
+
+        // 2. Memetakan data (sesuai permintaan user)
+        viralApiData.value = {
+            total: totalViral,
+            negative: 0, // DITETAPKAN KE 0 (Total Post Negatif Viral)
+            // Tambahkan properti lain yang mungkin dibutuhkan, misalnya untuk chart:
+            normal: normalPosts,
+            viral: totalViral
+        };
+
+        // 3. Mengisi chart data (sesuai permintaan user)
+        // Post Normal > "by_status": di "normal"
+        // Post Viral > total_viral_posts
+        // Negatif Viral > di 0 kan dlu
+        rightChartData.value.labels = ['Post Normal', 'Post Viral', 'Negatif Viral'];
+        rightChartData.value.datasets[0].data = [
+            normalPosts, // Post Normal
+            totalViral,  // Post Viral
+            0            // Negatif Viral (ditetapkan ke 0)
+        ];
+        // Atur ulang warna latar belakang (jika perlu disesuaikan dengan 3 label baru)
+        rightChartData.value.datasets[0].backgroundColor = ['#22c55e', '#ef4444', '#3b82f6'];
+
+    } catch (err) {
+        console.error("Gagal memuat data viral:", err);
+        error.viral = err.message;
+    } finally {
+        isLoading.viral = false;
+    }
 }
 
+// ... kode di bawah ...
 
 // FUNGSI BARU: Ambil data untuk kartu Status
 async function fetchStatusData() {
@@ -245,10 +276,10 @@ async function fetchStatusData() {
         // URL API status-distribution
         const response = await fetch('http://127.0.0.1:8000/status-distribution');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        
+
         const data = await response.json();
         statusApiData.value = data; // Menyimpan respons penuh
-        
+
     } catch (err) {
         console.error("Gagal memuat data status:", err);
         error.status = err.message;
@@ -260,39 +291,39 @@ async function fetchStatusData() {
 
 // Mount
 onMounted(() => {
-    console.log('Komponen dimuat sekali ✅');
-    fetchTotalData();
-    fetchViralData();
+    console.log('Komponen dimuat sekali ✅');
+    fetchTotalData();
+    fetchViralData();
     fetchStatusData(); // Panggil fungsi baru
 });
 
 // ... chartOptions (TIDAK BERUBAH) ...
 const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-        tooltip: {
-            callbacks: {
-                label: function (context) {
-                    let label = context.label || '';
-                    if (label) {
-                        label += ': ';
-                    }
-                    if (context.parsed !== null) {
-                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                        const value = context.parsed;
-                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%'; 
-                        label += `${value} (${percentage})`;
-                    }
-                    return label;
-                }
-            }
-        },
-        legend: {
-            position: 'bottom',
-            labels: { usePointStyle: true, boxWidth: 8, padding: 20 }
-        }
-    }
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        tooltip: {
+            callbacks: {
+                label: function (context) {
+                    let label = context.label || '';
+                    if (label) {
+                        label += ': ';
+                    }
+                    if (context.parsed !== null) {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const value = context.parsed;
+                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+                        label += `${value} (${percentage})`;
+                    }
+                    return label;
+                }
+            }
+        },
+        legend: {
+            position: 'bottom',
+            labels: { usePointStyle: true, boxWidth: 8, padding: 20 }
+        }
+    }
 };
 
 // MENGHAPUS array summaryCards yang statis dan menggantinya dengan computed property statusCards di atas.

@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(3,37,92,0.3)] p-6">
+  <div class="bg-white rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(128,128,128,0.3)] p-6">
     <h2 class="text-xl font-bold text-[#03255C] mb-6">Flagged Account from Post</h2>
 
     <div v-if="isLoading" class="flex justify-center items-center min-h-[20rem]">

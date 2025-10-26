@@ -8,14 +8,14 @@
 
   <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
     <div v-for="(column, index) in columnsData" :key="index"
-      class="bg-white rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(3,37,92,0.3)] flex flex-col p-4">
+      class="bg-white rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(128,128,128,0.3)] flex flex-col p-4">
       <h3 class="text-lg font-bold text-[#03255C] mb-3">{{ column.title }}</h3>
 
       <div class="relative mb-4">
         <input type="text" placeholder="Cari Akun"
           class="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
         <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg"
-          width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"
           stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -23,58 +23,111 @@
       </div>
 
       <div class="space-y-4 flex-grow">
-        <div v-for="post in column.posts" :key="post.id"
+        <div v-for="post in paginatedPosts(column)" :key="post.id"
           class="border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
-          <div class="flex items-start mb-2">
+          <div class="flex items-start mb-4">
             <img :src="post.avatar" alt="Avatar" class="w-10 h-10 rounded-full mr-3">
             <div class="flex-grow">
-              <div class="flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                  <i :class="[post.socialIcon, 'h-4 w-4 text-sm flex items-center justify-center flex-shrink-0']"></i>
-                  <span class="font-bold text-sm text-[#03255C]">{{ post.author }}</span>
+              <div class="flex justify-between items-center mb-2">
+                <div class="flex items-center gap-2 min-w-0 max-w-[66%]">
+                  <i :class="[post.socialIcon, 'h-4 w-4']"></i>
+                  <span class="font-bold text-sm text-[#03255C] block overflow-hidden whitespace-nowrap text-ellipsis">
+                    {{ post.author }}
+                  </span>
                 </div>
-                <span :class="[post.statusColor, 'text-xs font-bold px-2 py-0.5 rounded-full']">{{ post.postStatus
-                }}</span>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                  <span :class="[post.statusColor, 'text-xs font-bold px-2 py-0.5 rounded-full']">
+                    {{ post.postStatus }}
+                  </span>
+                </div>
               </div>
-              <div class="flex items-center gap-4 text-xs text-gray-500 mt-1">
-                <span>Followers: {{ post.stats.followers }}</span>
-                <span class="flex items-center"><svg class="h-3 w-3 mr-1 text-yellow-500" fill="currentColor"
-                    viewBox="0 0 20 20">
-                    <path
-                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
-                    </path>
-                  </svg>{{ post.stats.rating }}</span>
-                <span class="flex items-center"><svg class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>{{ post.stats.verified }}</span>
+              <div class="flex justify-start items-center gap-4 mt-0.5">
+                <p class="text-xs font-semibold text-gray-600 flex items-center gap-1">
+                  <FontAwesomeIcon :icon="faUsers" class="h-4 w-4" />
+                  {{ post.stats.followers }}
+                </p>
+                <p class="text-xs font-semibold text-gray-600 flex items-center gap-1">
+                  <FontAwesomeIcon :icon="faUser" class="h-4 w-4" />
+                  {{ post.stats.following }}
+                </p>
+                <p class="text-xs font-semibold text-gray-600 flex items-center gap-1">
+                  <FontAwesomeIcon :icon="faChartLine" class="h-4 w-4" />
+                  {{ post.stats.engagement }}
+                </p>
               </div>
-              <p class="text-xs text-gray-500 mt-1">{{ post.date }}</p>
             </div>
           </div>
-          <p class="text-sm text-gray-600 mb-3">{{ post.content }}</p>
-          <div class="flex items-center justify-between">
-            <span class="text-xs bg-gray-100 px-2 py-0.5 rounded">Topik: {{ post.topicTag }}</span>
-            <div class="flex items-center gap-2">
-              <button
-                class="text-xs font-semibold bg-gray-100 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-200 transition">Kunjungi</button>
+          <p class="text-xs text-gray-500 flex items-center gap-1 mb-5">
+            <FontAwesomeIcon :icon="faCalendarDays" class="h-4 w-4" />
+            {{ post.date }}
+          </p>
+          <p class="text-sm text-gray-600 mb-4 line-clamp-2">{{ post.content }}</p>
+          <div class="flex items-center justify-between text-xs text-gray-500 mb-4">
+            <div class="flex items-center gap-4">
+              <div class="flex items-center gap-1">
+                <FontAwesomeIcon :icon="faEye" class="h-4 w-4" />
+                <span>{{ post.stats.views }}</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <FontAwesomeIcon :icon="faHeart" class="h-4 w-4" />
+                <span>{{ post.stats.favorites }}</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <FontAwesomeIcon :icon="faCommentDots" class="h-4 w-4" />
+                <span>{{ post.stats.replies }}</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <FontAwesomeIcon :icon="faShareNodes" class="h-4 w-4" />
+                <span>{{ post.stats.retweets }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between mt-3">
+            <div class="min-w-0 mr-4">
+              <span
+                class="text-xs font-medium text-gray-600 border border-gray-600 px-2 py-0.5 rounded-lg block overflow-hidden whitespace-nowrap text-ellipsis bg-transparent">
+                {{ post.topicTag }}
+              </span>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0"> <button
+                class="text-xs font-semibold bg-gray-100 text-[#2092EC] border border-[#2092EC] px-3 py-1.5 rounded-md hover:bg-gray-200 transition flex items-center gap-1">
+                <i class="fas fa-up-right-from-square h-3 w-3"></i>
+                Kunjungi
+              </button>
               <button @click="openDetailModal(post)"
-                class="text-xs font-semibold bg-blue-500 text-white px-3 py-1.5 rounded-md hover:bg-blue-600 transition">Lihat
-                Detail</button>
+                class="text-xs font-semibold bg-[#2092EC] text-white px-3 py-1.5 rounded-md hover:bg-blue-600 transition flex items-center gap-1">
+                <i class="fas fa-eye h-3 w-3"></i>
+                Lihat Detail
+              </button>
             </div>
           </div>
         </div>
         <p v-if="column.posts.length === 0" class="text-sm text-gray-500 text-center py-4">Tidak ada data postingan.</p>
       </div>
 
-      <div class="p-2 border-t border-gray-200 mt-auto">
-        <div class="flex justify-between items-center text-xs text-gray-600">
-          <span>Menampilkan 1 - {{ column.posts.length }} dari {{ column.pagination.total }} Data</span>
-          <div class="flex items-center">
-            <button class="p-1 rounded-md hover:bg-gray-100">&lt;</button>
-            <span class="px-2 py-1 bg-blue-100 text-blue-600 font-bold rounded-md mx-1">1</span>
-            <button class="p-1 rounded-md hover:bg-gray-100">&gt;</button>
+      <div v-if="column.posts.length > 0" class="p-2 border-t border-gray-200 mt-auto">
+        <div class="flex justify-between items-center text-sm text-gray-700">
+          <span class="text-xs">{{ displayRange(column) }}</span>
+
+          <div class="flex items-center gap-1">
+            <button @click="prevPage(column)" :disabled="column.pagination.currentPage === 1"
+              class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+              &lt;
+            </button>
+
+            <button v-for="page in totalPages(column)" :key="page" @click="goToPage(column, page)" :class="[
+              'w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold transition-colors',
+              page === column.pagination.currentPage
+                ? 'bg-[#03255C] text-white'  // <-- Border dihilangkan
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200' // <-- Border dihilangkan & warna diganti
+            ]">
+              {{ page }}
+            </button>
+
+            <button @click="nextPage(column)" :disabled="column.pagination.currentPage === totalPages(column)"
+              class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+              &gt;
+            </button>
           </div>
         </div>
       </div>
@@ -85,7 +138,6 @@
     <div v-if="isDetailModalOpen"
       class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 backdrop-blur-sm transition-opacity duration-300"
       @click.self="closeDetailModal" @keydown.esc="closeDetailModal" tabindex="0">
-
       <div
         class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-lg transform transition-all duration-300 scale-100 opacity-100">
         <div class="flex justify-between items-center border-b pb-3 mb-4">
@@ -97,7 +149,6 @@
             </svg>
           </button>
         </div>
-
         <div v-if="selectedPost" class="space-y-4">
           <div class="flex items-center">
             <img :src="selectedPost.avatar" alt="Avatar" class="w-12 h-12 rounded-full mr-4">
@@ -111,21 +162,23 @@
               </p>
             </div>
           </div>
-
           <p class="text-gray-700 text-base border-t pt-4">{{ selectedPost.content }}</p>
-
           <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-sm p-3 bg-gray-50 rounded-lg">
-            <p><strong>Status:</strong> <span :class="[selectedPost.statusColor, 'font-bold px-2 py-0.5 rounded']">{{
-              selectedPost.postStatus
-            }}</span></p>
-            <p><strong>Topik:</strong> <span class="font-semibold text-blue-600">{{ selectedPost.topicTag
+            <p><strong>Status EWS:</strong> <span
+                :class="[selectedPost.statusColor, 'font-bold px-2 py-0.5 rounded']">{{
+                  selectedPost.postStatus
                 }}</span></p>
+            <p><strong>Topik:</strong> <span class="font-semibold text-blue-600">{{ selectedPost.topicTag
+            }}</span></p>
             <p><strong>Followers:</strong> {{ selectedPost.stats.followers }}</p>
-            <p><strong>Rating:</strong> {{ selectedPost.stats.rating }} / 5</p>
-            <p><strong>Verified:</strong> {{ selectedPost.stats.verified }}</p>
+            <p><strong>Following:</strong> {{ selectedPost.stats.following }}</p>
+            <p><strong>Engagement Total:</strong> {{ selectedPost.stats.engagement }}</p>
+            <p><strong>Shares (Retweets):</strong> {{ selectedPost.stats.retweets }}</p>
+            <p><strong>Likes (Favorites):</strong> {{ selectedPost.stats.favorites }}</p>
+            <p><strong>Komentar (Replies):</strong> {{ selectedPost.stats.replies }}</p>
+            <p><strong>Views (Impression):</strong> {{ selectedPost.stats.views }}</p>
           </div>
         </div>
-
         <div class="mt-6 flex justify-end">
           <button @click="closeDetailModal"
             class="text-sm font-semibold bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition">Tutup</button>
@@ -136,13 +189,27 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import {
+  ref,
+  onMounted
+} from 'vue';
+import {
+  FontAwesomeIcon
+} from '@fortawesome/vue-fontawesome';
+import {
+  faEye,
+  faHeart,
+  faCommentDots,
+  faShareNodes,
+  faUsers,
+  faUser,
+  faChartLine,
+  faCalendarDays
+} from '@fortawesome/free-solid-svg-icons';
 
 const isLoading = ref(true);
 const apiError = ref(null);
 const columnsData = ref([]);
-
-// --- State dan Methods Modal ---
 const isDetailModalOpen = ref(false);
 const selectedPost = ref(null);
 
@@ -152,153 +219,244 @@ const ICONS = {
   tiktok: 'fab fa-tiktok text-[#03255C]',
 };
 
+const STATUS_MAPPING = {
+  'Crisis': {
+    title: 'Crisis',
+    color: 'text-[#E60000] border border-[#E60000] bg-[#E60000]/10'
+  },
+  'Current': {
+    title: 'Current',
+    color: 'text-[#FF9900] border border-[#FF9900] bg-[#FF9900]/10'
+  },
+  'Emerging': {
+    title: 'Emerging',
+    color: 'text-[#AAD816] border border-[#AAD816] bg-[#AAD816]/10'
+  },
+  'Early': {
+    title: 'Early',
+    color: 'text-[#28C76F] border border-[#28C76F] bg-[#28C76F]/10'
+  },
+  'Normal': {
+    title: 'Normal',
+    color: 'text-[#2092EC] border border-[#2092EC] bg-[#2092EC]/10'
+  },
+  'N/A': {
+    title: 'Unknown',
+    color: 'text-gray-500 border border-gray-500 bg-gray-100'
+  },
+};
+
 const openDetailModal = (post) => {
   selectedPost.value = post;
   isDetailModalOpen.value = true;
 };
-
 const closeDetailModal = () => {
   isDetailModalOpen.value = false;
   selectedPost.value = null;
 };
 
-// Fungsi Dummy (Hanya digunakan untuk Kolom 3)
-const createDummyPost = (id, social) => ({
-  id,
-  author: 'fachryAlamsyah',
-  avatar: 'https://placehold.co/40x40/E2E8F0/4A5568?text=FA',
-  socialIcon: ICONS[social],
-  stats: { followers: '15.5K', rating: 5, verified: 300 },
-  date: '02 Juni 2024 12:00:15',
-  postStatus: id % 2 === 0 ? 'Emerging' : 'Early',
-  statusColor: id % 2 === 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800',
-  content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et...',
-  topicTag: 'Kereta',
-});
+// ==========================================================
+// ============ LOGIKA PAGINASI DITAMBAHKAN DI SINI =========
+// ==========================================================
 
-// Fungsi untuk memetakan data API ke format post lokal
-// Fungsi ini fleksibel untuk memetakan data dari kedua API
-const mapApiPostToLocalPost = (apiPost, postId, statusTitle, statusColor) => {
-  // API Anda hanya mengembalikan string '25184838' di followers
-  const followersValue = apiPost.user?.followers || 'N/A';
-  const formattedFollowers = typeof followersValue === 'string' ? Number(followersValue).toLocaleString('en-US') : followersValue.toLocaleString('en-US');
+// Menghitung total halaman untuk sebuah kolom
+const totalPages = (column) => {
+  if (!column.pagination || !column.pagination.total) return 1;
+  return Math.ceil(column.pagination.total / column.pagination.perPage);
+};
 
+// Mengambil data yang akan ditampilkan sesuai halaman saat ini
+const paginatedPosts = (column) => {
+  const { currentPage, perPage } = column.pagination;
+  const startIndex = (currentPage - 1) * perPage;
+  const endIndex = startIndex + perPage;
+  return column.posts.slice(startIndex, endIndex);
+};
+
+// Membuat teks "Menampilkan 1 - 3 dari 10 Data"
+const displayRange = (column) => {
+  const { currentPage, perPage, total } = column.pagination;
+  if (total === 0) return 'Tidak ada data';
+
+  const start = (currentPage - 1) * perPage + 1;
+  const end = Math.min(start + perPage - 1, total);
+
+  return `Menampilkan ${start} - ${end} dari ${total} Data`;
+};
+
+// Fungsi navigasi halaman
+const goToPage = (column, page) => {
+  if (page >= 1 && page <= totalPages(column)) {
+    column.pagination.currentPage = page;
+  }
+};
+
+const prevPage = (column) => {
+  goToPage(column, column.pagination.currentPage - 1);
+};
+
+const nextPage = (column) => {
+  goToPage(column, column.pagination.currentPage + 1);
+};
+// ==========================================================
+// ================= AKHIR LOGIKA PAGINASI ==================
+// ==========================================================
+
+const createDummyPost = (id, social) => {
+  const status = 'Normal';
+  const statusData = STATUS_MAPPING[status];
   return {
-    id: postId,
-    author: apiPost.user?.screen_name || 'Anonim',
-    avatar: 'https://placehold.co/40x40/E2E8F0/4A5568?text=' + (apiPost.user?.screen_name?.substring(0, 2).toUpperCase() || 'NA'),
-    socialIcon: ICONS.x,
+    id,
+    author: `Dummy-${social}-${id}`,
+    avatar: 'https://placehold.co/40x40/E2E8F0/4A5568?text=DA',
+    socialIcon: ICONS[social],
     stats: {
-      followers: formattedFollowers,
-      rating: 5,
-      verified: 300
+      followers: `${id}K`,
+      following: 'N/A',
+      retweets: 'N/A',
+      favorites: 'N/A',
+      replies: 'N/A',
+      views: 'N/A',
+      engagement: 'N/A',
     },
-    date: new Date().toLocaleDateString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-    postStatus: statusTitle,
-    statusColor: statusColor,
-    content: apiPost.text || 'Tidak ada konten.',
-    topicTag: 'Berita/Transportasi',
+    date: new Date().toLocaleDateString('id-ID'),
+    postStatus: statusData.title,
+    statusColor: statusData.color,
+    content: `Ini adalah postingan dummy #${id} untuk mengisi kolom karena API gagal terhubung.`,
+    topicTag: 'FallBack-Data',
   };
 };
 
-// Fungsi Pembantu untuk Panggilan API
+const mapApiPostToLocalPost = (apiPost, postId) => {
+  const statusKey = apiPost.latest_status || 'N/A';
+  const statusData = STATUS_MAPPING[statusKey] || STATUS_MAPPING['N/A'];
+  const formatNumber = (num) => {
+    if (typeof num !== 'number') return '0';
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toLocaleString('en-US');
+  };
+  const dateString = apiPost.created_at ? new Date(apiPost.created_at).toLocaleDateString('id-ID', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }) : 'Tanggal tidak tersedia';
+  return {
+    id: apiPost.tweet_id || postId,
+    author: apiPost.user?.screen_name || 'Anonim',
+    avatar: apiPost.user?.profile_image_url || 'https://placehold.co/40x40/E2E8F0/4A5568?text=NA',
+    socialIcon: ICONS.x,
+    stats: {
+      followers: formatNumber(apiPost.user?.followers_count),
+      following: formatNumber(apiPost.user?.following_count),
+      retweets: formatNumber(apiPost.retweet_count),
+      favorites: formatNumber(apiPost.favorite_count),
+      replies: formatNumber(apiPost.reply_count),
+      views: formatNumber(apiPost.views_count),
+      engagement: formatNumber(apiPost.engagement),
+    },
+    date: dateString,
+    postStatus: statusData.title,
+    statusColor: statusData.color,
+    content: apiPost.text || 'Tidak ada konten.',
+    topicTag: apiPost.topik || 'N/A',
+  };
+};
+
 const callApi = async (url) => {
   try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: { 'Accept': 'application/json' }
-    });
-
+    const response = await fetch(url);
     if (!response.ok) {
-      throw new Error(`Status HTTP: ${response.status} dari ${url}`);
+      throw new Error(`HTTP Error: ${response.status} for ${url}`);
     }
     return await response.json();
   } catch (error) {
-    console.error(`Gagal mengambil data dari ${url}:`, error.message);
-    throw new Error(`Gagal memuat data dari API. (${url})`);
+    console.error(`Failed to fetch data from ${url}:`, error);
+    throw error;
   }
 };
 
 const fetchPostsData = async () => {
-  const ENGAGEMENT_URL = 'http://127.0.0.1:8000/top-engagement';
-  const FOLLOWERS_URL = 'http://127.0.0.1:8000/top-followers';
-
-  // Siapkan wadah untuk data API
-  let engagementPost = [];
-  let followersPost = [];
+  const ENGAGEMENT_URL = 'http://127.0.0.1:8000/posts-by-engagement';
+  const FOLLOWERS_URL = 'http://127.0.0.1:8000/posts-by-followers';
+  let engagementPosts = [];
+  let followersPosts = [];
   let errorMessages = [];
+  isLoading.value = true;
+  apiError.value = null;
 
-  // --- 1. Ambil Data Engagement ---
   try {
     const data = await callApi(ENGAGEMENT_URL);
-    const apiPostData = data.highest_engagement;
-    engagementPost.push(mapApiPostToLocalPost(
-      apiPostData,
-      'api-engage',
-      'High Engagement',
-      'bg-red-100 text-red-800'
-    ));
+    const apiPostsArray = data.posts_by_engagement;
+    if (apiPostsArray && apiPostsArray.length > 0) {
+      engagementPosts = apiPostsArray.map((post, index) => mapApiPostToLocalPost(post, `engage-${index}`));
+    }
   } catch (e) {
     errorMessages.push(`Engagement: ${e.message}`);
-    // Fallback untuk Engagement
-    engagementPost.push(createDummyPost('fail-engage', 'x'));
-    engagementPost[0].title = 'Error Load';
+    // Fallback dengan 10 data dummy agar paginasi terlihat
+    engagementPosts = Array.from({ length: 10 }, (_, i) => createDummyPost(i + 1, 'x'));
   }
 
-  // --- 2. Ambil Data Followers ---
   try {
     const data = await callApi(FOLLOWERS_URL);
-    const apiPostData = data.highest_followers;
-    followersPost.push(mapApiPostToLocalPost(
-      apiPostData,
-      'api-foll',
-      'Highest Foll',
-      'bg-indigo-100 text-indigo-800'
-    ));
+    const apiPostsArray = data.posts_by_followers;
+    if (apiPostsArray && apiPostsArray.length > 0) {
+      followersPosts = apiPostsArray.map((post, index) => mapApiPostToLocalPost(post, `foll-${index}`));
+    }
   } catch (e) {
     errorMessages.push(`Followers: ${e.message}`);
-    // Fallback untuk Followers
-    followersPost.push(createDummyPost('fail-foll', 'facebook'));
-    followersPost[0].title = 'Error Load';
+    // Fallback dengan 10 data dummy
+    followersPosts = Array.from({ length: 10 }, (_, i) => createDummyPost(i + 1, 'facebook'));
   }
 
-  // Tangani semua Error API
   if (errorMessages.length > 0) {
     apiError.value = errorMessages.join(' | ');
   }
 
-  // --- 3. Isi Kolom ---
-  const dummyPosts3 = [createDummyPost(7, 'tiktok'), createDummyPost(8, 'facebook'), createDummyPost(9, 'x')];
+  // Membuat 10 data dummy untuk kolom ketiga agar sesuai contoh gambar
+  const dummyPosts3 = Array.from({
+    length: 10
+  }, (_, i) => createDummyPost(i + 1, 'tiktok'));
 
-  columnsData.value = [
-    {
-      // KOLOM 1: Posts From Highest Engagement (API)
-      title: 'Posts From Highest Engagement',
-      posts: engagementPost, // Isi 1 post dari API
-      pagination: { total: engagementPost.length }
-    },
-    {
-      // KOLOM 2: Posts From Highest Followers (API)
-      title: 'Posts From Highest Followers',
-      posts: followersPost, // Isi 1 post dari API
-      pagination: { total: followersPost.length }
-    },
-    {
-      // KOLOM 3: Posts From 5 Marked Accounts (Dummy)
-      title: 'Posts From 5 Marked Accounts (Dummy)',
-      posts: dummyPosts3,
-      pagination: { total: 8 }
+  columnsData.value = [{
+    title: 'Posts From Highest Engagement',
+    posts: engagementPosts,
+    // PERUBAHAN: Menambahkan objek paginasi
+    pagination: {
+      total: engagementPosts.length,
+      currentPage: 1,
+      perPage: 10
     }
-  ];
-
+  }, {
+    title: 'Posts From Highest Followers',
+    posts: followersPosts,
+    // PERUBAHAN: Menambahkan objek paginasi
+    pagination: {
+      total: followersPosts.length,
+      currentPage: 1,
+      perPage: 10
+    }
+  }, {
+    title: 'Posts From 5 Marked Accounts (Dummy)',
+    posts: dummyPosts3,
+    // PERUBAHAN: Menambahkan objek paginasi
+    pagination: {
+      total: dummyPosts3.length,
+      currentPage: 1,
+      perPage: 10
+    }
+  }];
   isLoading.value = false;
 };
 
 onMounted(fetchPostsData);
 </script>
 
+
 <style scoped>
-/* Loader and fade-in animations */
+/* Loader and fade-in animations (Tidak berubah) */
 .loader {
   border-top-color: #3498db;
   animation: spinner 1.5s linear infinite;
@@ -328,5 +486,13 @@ onMounted(fetchPostsData);
 
 .animate-fade-in {
   animation: fade-in 0.5s ease-out forwards;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

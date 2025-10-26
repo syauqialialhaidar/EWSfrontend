@@ -6,7 +6,6 @@
       <div class="max-w-7xl mx-auto space-y-5">
         <AppHeader />
         <FilterBar />
-        <TabMenu />
         <router-view />
       </div>
     </main>
@@ -18,9 +17,7 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import Sidebar from './components/Sidebar.vue'
 import AppHeader from './components/AppHeader.vue'
 import FilterBar from './components/FilterBar.vue'
-import TabMenu from './components/TabMenu.vue'
 
-// --- State sekarang dikelola di sini ---
 const isOpen = ref(true)
 const isMobile = ref(false)
 
