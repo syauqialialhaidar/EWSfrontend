@@ -9,11 +9,11 @@
     <!-- Bagian Filter -->
     <div
       class="bg-white p-4 rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(128,128,128,0.3)] flex items-center justify-start gap-8">
-      <span class="text-sm font-semibold text-gray-600">Filter Analysis by</span>
+      <span class="text-sm font-bold font-poppins text-[#03255C]">Filter Analysis by</span>
 
       <!-- Filter Topik Kustom -->
-      <div class="relative min-w-[200px]" ref="topicDropdownEl">
-        <label class="text-xs text-gray-500 absolute -top-2 left-2 bg-white px-1 z-10">Pilih Topik</label>
+      <div class="relative min-w-[200px] text-[#03255C]" ref="topicDropdownEl">
+        <label class="text-xs absolute -top-2 left-2 bg-white px-1 z-10">Pilih Topik</label>
         <button @click.stop="isTopicDropdownOpen = !isTopicDropdownOpen"
           class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full flex justify-between items-center bg-white focus:outline-none focus:ring-2 focus:ring-blue-300">
           <span>{{ selectedTopic }}</span>
@@ -38,8 +38,8 @@
       </div>
 
       <!-- Filter Platform Kustom (DIPERBAIKI) -->
-      <div class="relative min-w-[220px]" ref="platformDropdownEl">
-        <label class="text-xs text-gray-500 absolute -top-2 left-2 bg-white px-1 z-10">Platform</label>
+      <div class="relative min-w-[220px] text-[#03255C]" ref="platformDropdownEl">
+        <label class="text-xs absolute -top-2 left-2 bg-white px-1 z-10">Platform</label>
         <!-- Tombol Pemicu Dropdown (DIPERBAIKI) -->
         <button @click.stop="isPlatformDropdownOpen = !isPlatformDropdownOpen"
           class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full flex justify-between items-center bg-white focus:outline-none focus:ring-2 focus:ring-blue-300">

@@ -10,10 +10,10 @@
             <div
                 class="lg:col-span-1 bg-white p-6 rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(128,128,128,0.3)] flex flex-col justify-between">
                 <div class="flex flex-col items-center">
-                    <div class="text-6xl font-bold text-[#03255C] tracking-wider">
+                    <div class="font-poppins text-6xl font-bold text-[#03255C] tracking-wider">
                         {{ currentTime }}
                     </div>
-                    <div class="text-lg text-gray-500">
+                    <div class="font-poppins text-lg font-bold text-[#03255C] ">
                         {{ currentDate }}
                     </div>
                 </div>
@@ -26,38 +26,30 @@
                         <div class="flex flex-col items-start">
                             <div class="flex items-baseline space-x-2">
                                 <span class="text-3xl font-bold text-[#03255C]">{{ stat.value }}</span>
-                                <span class="text-xs font-semibold bg-[#03255C] text-white px-2 py-1 rounded-md">
-                                    {{ stat.change }}
-                                </span>
+
                             </div>
-                            <p class="text-sm text-gray-500 mt-1">{{ stat.title }}</p>
+                            <p class="font-poppins font-bold text-[#03255C] text-sm mt-1">{{ stat.title }}</p>
                         </div>
                     </div>
                 </div>
             </div>
-
             <div
                 class="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(128,128,128,0.3)]">
-                <h3 class="text-lg font-bold text-[#03255C] mb-4">Kompas Status Terkini</h3>
-
-                <div class="relative w-full h-80 md:h-96 flex justify-center items-center">
+                <h3 class="text-xl font-bold text-[#03255C] mb-4">Kompas Status Terkini</h3>
+                <div class="relative w-full h-80 md:h-96 flex justify-center items-cente pie-chart-wrapper">
                     <div class="absolute w-full h-full">
                         <Pie :data="pieChartData" :options="pieChartOptions" />
                     </div>
-
                     <div class="pie-needle-wrapper primary" :class="pieStatus.toLowerCase()">
                         <div class="needle"></div>
                         <div class="pie-center-dot"></div>
                     </div>
-
                     <div class="pie-needle-wrapper secondary" :class="pieStatus2.toLowerCase()">
                         <div class="needle"></div>
                     </div>
-
                     <div class="pie-needle-wrapper tertiary" :class="pieStatus3.toLowerCase()">
                         <div class="needle"></div>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -72,7 +64,6 @@
                     <div :class="getStatusClass(topic.status)" class="px-4 py-1 text-sm font-bold rounded-full mb-2">
                         {{ topic.status }}
                     </div>
-
                     <div class="gauge-wrapper">
                         <div :class="['gauge five', topic.status.toLowerCase()]">
                             <div class="slice-colors">
@@ -92,18 +83,15 @@
                 </div>
 
                 <div class="p-4 flex-grow">
-                    <h4 class="font-bold text-gray-700 mb-3">Postingan Viral Terbaru</h4>
+                    <h4 class="font-poppins text-lg font-bold text-[#03255C] mb-3">Postingan Viral Terbaru</h4>
                     <div class="space-y-4">
                         <div v-for="post in paginatedPosts(topic)" :key="post.id"
-                            class="border border-gray-200 rounded-lg p-3">
+                            class="bg-[#F8F7FA] border border-gray-200 rounded-lg p-3 transition-shadow hover:shadow-md">
 
                             <div class="flex items-start mb-4">
                                 <img :src="post.avatar" alt="Avatar" class="w-10 h-10 rounded-full mr-3">
-
                                 <div class="flex-grow">
-
                                     <div class="flex justify-between items-center mb-2">
-
                                         <div class="flex items-center gap-2 min-w-0 max-w-[66%]">
                                             <FontAwesomeIcon :icon="post.socialIcon"
                                                 :class="getSocialIconColor(post.socialIcon)" class="h-4 w-4" />
@@ -112,15 +100,14 @@
                                                 {{ post.author }}
                                             </span>
                                         </div>
-
-                                        <div class="flex items-center gap-2 flex-shrink-0">
+                                        <div class="flex items-center gap-3 flex-shrink-0">
                                             <span
                                                 :class="[post.statusColor, 'text-xs font-bold px-2 py-0.5 rounded-full']">
                                                 {{ post.postStatus }}
                                             </span>
+                                            <FontAwesomeIcon :icon="faBookmark" :class="['h-4 w-4 text-gray-300 ']" />
                                         </div>
                                     </div>
-
                                     <div class="flex justify-start items-center gap-6 mt-0.5">
                                         <p class="text-xs font-semibold text-gray-600 flex items-center gap-1">
                                             <FontAwesomeIcon :icon="faUsers" class="h-4 w-4" />
@@ -137,14 +124,11 @@
                                     </div>
                                 </div>
                             </div>
-
                             <p class="text-xs text-gray-500 flex items-center gap-1 mb-5">
                                 <FontAwesomeIcon :icon="faCalendarDays" class="h-4 w-4" />
                                 {{ post.date }}
                             </p>
-
-                            <p class="text-sm text-gray-600 mb-5 line-clamp-2">{{ post.content }}</p>
-
+                            <p class="text-sm text-[#03255C] mb-5 line-clamp-2">{{ post.content }}</p>
                             <div class="flex items-center justify-between text-xs text-gray-500 mb-4">
                                 <div class="flex items-center gap-4">
                                     <div class="flex items-center gap-1">
@@ -166,17 +150,25 @@
                                 </div>
                             </div>
 
-                            <div class="flex items-center justify-end gap-2 mt-3">
-                                <button
-                                    class="text-xs font-semibold bg-gray-100 text-[#2092EC] border border-[#2092EC] px-3 py-1.5 rounded-md hover:bg-gray-200 transition flex items-center gap-1">
-                                    <FontAwesomeIcon :icon="faUpRightFromSquare" class="h-3 w-3" />
-                                    Kunjungi
-                                </button>
-                                <button @click="openDetailModal(post)"
-                                    class="text-xs font-semibold bg-[#2092EC] text-white px-3 py-1.5 rounded-md hover:bg-blue-600 transition flex items-center gap-1">
-                                    <FontAwesomeIcon :icon="faEye" class="h-3 w-3" />
-                                    Lihat Detail
-                                </button>
+                            <div class="flex items-center justify-between mt-3">
+                                <div class="min-w-0 mr-4">
+                                    <span
+                                        class="text-xs font-medium text-gray-600 border border-gray-600 px-2 py-0.5 rounded-lg block overflow-hidden whitespace-nowrap text-ellipsis bg-transparent">
+                                        {{ post.topicTag }}
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-2 flex-shrink-0">
+                                    <button @click="openLinkInNewTab(post)"
+                                        class="text-xs font-semibold bg-gray-100 text-[#2092EC] border border-[#2092EC] px-3 py-1.5 rounded-md hover:bg-gray-200 transition flex items-center gap-1">
+                                        <FontAwesomeIcon :icon="faUpRightFromSquare" class="h-3 w-3" />
+                                        Kunjungi
+                                    </button>
+                                    <button @click="openDetailModal(post)"
+                                        class="text-xs font-semibold bg-[#2092EC] text-white px-3 py-1.5 rounded-md hover:bg-blue-600 transition flex items-center gap-1">
+                                        <FontAwesomeIcon :icon="faEye" class="h-3 w-3" />
+                                        Lihat Detail
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -186,31 +178,42 @@
                     <div v-if="topic.totalPosts > POSTS_PER_PAGE"
                         class="flex justify-between items-center text-xs text-gray-600">
                         <span>
-                            Menampilkan {{ (topic.currentPage - 1) * POSTS_PER_PAGE + 1 }} -
+                            {{ (topic.currentPage - 1) * POSTS_PER_PAGE + 1 }} -
                             {{ Math.min(topic.currentPage * POSTS_PER_PAGE, topic.totalPosts) }} dari
                             {{ topic.totalPosts }} Data
                         </span>
 
-                        <div class="flex items-center space-x-1">
+                        <div class="flex items-center space-x-2">
                             <button @click="changePage(topic, topic.currentPage - 1)"
                                 :disabled="topic.currentPage === 1"
-                                :class="{ 'opacity-50 cursor-not-allowed': topic.currentPage === 1 }"
-                                class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 transition">
+                                :class="{ 'opacity-30 cursor-not-allowed': topic.currentPage === 1, 'hover:bg-gray-100': topic.currentPage !== 1 }"
+                                class="w-8 h-8 flex items-center justify-center rounded-full transition text-lg font-bold">
                                 &lt;
                             </button>
 
-                            <button v-for="page in totalPages(topic)" :key="page" @click="changePage(topic, page)"
-                                :class="{
-                                    'bg-[#03255C] text-white': topic.currentPage === page,
-                                    'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300': topic.currentPage !== page
-                                }" class="w-6 h-6 text-xs font-semibold rounded-full transition">
-                                {{ page }}
-                            </button>
+                            <div class="flex items-center justify-center space-x-2">
+                                <div v-if="topic.currentPage > 1"
+                                    class="w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 rounded-full text-xs font-semibold">
+                                    {{ topic.currentPage - 1 }}
+                                </div>
+                                <div v-else class="w-6 h-6"></div>
+
+                                <div
+                                    class="w-8 h-8 flex items-center justify-center bg-[#03255C] text-white rounded-full text-base font-bold shadow-md">
+                                    {{ topic.currentPage }}
+                                </div>
+
+                                <div v-if="topic.currentPage < totalPages(topic)"
+                                    class="w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 rounded-full text-xs font-semibold">
+                                    {{ topic.currentPage + 1 }}
+                                </div>
+                                <div v-else class="w-6 h-6"></div>
+                            </div>
 
                             <button @click="changePage(topic, topic.currentPage + 1)"
                                 :disabled="topic.currentPage === totalPages(topic)"
-                                :class="{ 'opacity-50 cursor-not-allowed': topic.currentPage === totalPages(topic) }"
-                                class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 transition">
+                                :class="{ 'opacity-30 cursor-not-allowed': topic.currentPage === totalPages(topic), 'hover:bg-gray-100': topic.currentPage !== totalPages(topic) }"
+                                class="w-8 h-8 flex items-center justify-center rounded-full transition text-lg font-bold">
                                 &gt;
                             </button>
                         </div>
@@ -224,18 +227,19 @@
 
         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(128,128,128,0.3)]">
             <div class="grid grid-cols-[1.5fr,1fr,1fr,1fr,1fr,1fr] gap-2 text-center text-sm font-semibold">
-                <div class="p-2 bg-[#03255C] text-white rounded-t-lg md:rounded-lg flex items-center justify-center">
+                <div
+                    class="p-2 bg-[#03255C] text-white text-lg font-bold rounded-t-lg md:rounded-lg flex items-center justify-center">
                     Status Setiap Platform
                 </div>
                 <div v-for="platform in platforms" :key="platform.name"
-                    class="p-2 bg-white rounded-lg border border-gray-200 flex flex-col items-center justify-center">
+                    class="p-2 bg-white rounded-lg font-poppins font-bold text-[#03255C] border border-gray-200 flex flex-col items-center justify-center">
                     <FontAwesomeIcon :icon="platform.icon" :class="[platform.color, 'h-6 w-6']" />
-                    <span class="text-xs text-gray-700 mt-1">{{ platform.name }}</span>
+                    <span class="font-poppins text-sm font-bold text-[#03255C] mt-1">{{ platform.name }}</span>
                 </div>
 
                 <template v-for="(item, topicIndex) in platformStatuses" :key="item.topic">
                     <div
-                        class="p-2 bg-white border border-gray-200 rounded-lg flex items-center justify-start gap-3 text-left font-bold text-gray-700">
+                        class="p-2 bg-white border border-gray-200 rounded-lg flex items-center justify-start gap-3 text-left font-bold font-poppins text-sm text-[#03255C]">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="w-5 h-5 text-gray-400">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -306,9 +310,11 @@
                 </div>
 
                 <div class="mt-6 flex justify-end">
-                    <a :href="'#'" target="_blank"
-                        class="text-sm font-semibold bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">Kunjungi
-                        Sumber Asli</a>
+                    <button @click="openLinkInNewTab(selectedPost)"
+                        class="text-xs font-semibold bg-gray-100 text-[#2092EC] border border-[#2092EC] px-3 py-1.5 rounded-md hover:bg-gray-200 transition flex items-center gap-1">
+                        <FontAwesomeIcon :icon="faUpRightFromSquare" class="h-3 w-3" />
+                        Kunjungi sumber asli
+                    </button>
                 </div>
             </div>
         </div>
@@ -319,76 +325,54 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { Pie } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js';
-
-// --- FONT AWESOME IMPORTS ---
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faTiktok, faFacebook, faYoutube, faInstagram, faXTwitter } from '@fortawesome/free-brands-svg-icons';
-
-import { faEye, faHeart, faCommentDots, faShareNodes, faUsers, faUser, faChartLine, faCalendarDays, faChartSimple, faUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark, faEye, faHeart, faCommentDots, faShareNodes, faUsers, faUser, faChartLine, faCalendarDays, faChartSimple, faUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 
 ChartJS.register(Title, Tooltip, Legend, ArcElement);
 
-// --- KONSTANTA API ---
-const API_URL = 'http://127.0.0.1:8000/top-topics'; // Endpoint API Anda
-// Perubahan di sini: Mengubah batas postingan menjadi 3
+// ================= PERUBAHAN 1: Menambahkan URL API baru =================
+const API_URL = 'http://127.0.0.1:8000/top-topics';
+const STATUS_API_URL = 'http://127.0.0.1:8000/topic-status'; // URL untuk status detail
+// ================= AKHIR PERUBAHAN 1 =================
+
 const POSTS_PER_PAGE = 3;
-
-// Di bagian STATE MANAGEMENT
-
-// State untuk jarum Pie Chart (diambil dari status paling dominan)
 const pieStatus = ref('EMERGING');
-
-// State baru untuk jarum kedua (misalnya, status untuk TikTok)
 const pieStatus2 = ref('CURRENT');
-
-// State baru untuk jarum ketiga (misalnya, status untuk Twitter)
 const pieStatus3 = ref('NORMAL');
-// --- STATE MANAGEMENT ---
 const isLoading = ref(true);
 const currentTime = ref('');
 const currentDate = ref('');
 let timerInterval = null;
-
-// State for Modal Detail Post
 const isDetailModalOpen = ref(false);
 const selectedPost = ref(null);
-
-// State for Section 1 (Akan diisi dari API)
 const topTopics = ref([]);
 const pieChartData = ref({ labels: [], datasets: [] });
 const pieChartLabels = ref([]);
-
-// --- Data for Platform Status Table (Mock/Dummy) ---
-// --- Data untuk Platform Status Table (Sekarang dengan ikon yang benar) ---
 const platforms = ref([
     { name: 'X / Twitter', icon: faXTwitter, color: 'text-gray-800' },
     { name: 'TikTok', icon: faTiktok, color: 'text-black' },
     { name: 'Facebook', icon: faFacebook, color: 'text-blue-600' },
-    { name: 'YouTube', icon: faYoutube, color: 'text-red-600' },    
+    { name: 'YouTube', icon: faYoutube, color: 'text-red-600' },
     { name: 'Instagram', icon: faInstagram, color: 'text-pink-500' },
 ]);
 const platformStatuses = ref([]);
-
-// State for Section 2 (diisi dari API, sekarang menampung state pagination)
 const topicsDetailsData = ref([]);
 
-// --- CHART OPTIONS (Tetap) ---
 const pieChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: { legend: { display: false } },
 };
 
-// --- LOGIC FOR SOCIAL ICON COLORS (Disimpelkan ke X/Twitter) ---
 const socialIconColors = {
-    [faXTwitter.iconName]: 'text-[#03255C]', // Hanya warna X/Twitter yang relevan
+    [faXTwitter.iconName]: 'text-[#03255C]',
 };
 
 const getSocialIconColor = (icon) => {
     return socialIconColors[icon.iconName] || 'text-gray-700';
 };
 
-// --- LOGIC FOR STATUS COLORS (Perbaikan & Konsisten) ---
 const getStatusClass = (status) => {
     const classes = {
         NORMAL: 'text-[#2092EC] border border-[#2092EC] bg-[#2092EC]/10',
@@ -400,33 +384,25 @@ const getStatusClass = (status) => {
     return classes[status.toUpperCase()] || 'bg-gray-400 text-white';
 };
 
-// --- LOGIC FOR PAGINATION ---
-
-// Menghitung total halaman yang diperlukan per topik
 const totalPages = (topic) => {
     return Math.ceil(topic.totalPosts / POSTS_PER_PAGE);
 };
 
-// Mengambil post yang akan ditampilkan di halaman saat ini (Limit 3)
 const paginatedPosts = (topic) => {
     const start = (topic.currentPage - 1) * POSTS_PER_PAGE;
     const end = start + POSTS_PER_PAGE;
-
-    // Pastikan allPosts sudah terdefinisi dan merupakan array
     if (topic.allPosts) {
         return topic.allPosts.slice(start, end);
     }
     return [];
 };
 
-// Fungsi untuk pindah halaman
 const changePage = (topic, page) => {
     if (page >= 1 && page <= totalPages(topic)) {
         topic.currentPage = page;
     }
 };
 
-// --- LIFECYCLE HOOKS ---
 onMounted(() => {
     updateTime();
     timerInterval = setInterval(updateTime, 1000);
@@ -437,7 +413,6 @@ onUnmounted(() => {
     clearInterval(timerInterval);
 });
 
-// --- METHODS ---
 const openDetailModal = (post) => {
     selectedPost.value = post;
     isDetailModalOpen.value = true;
@@ -448,6 +423,16 @@ const closeDetailModal = () => {
     selectedPost.value = null;
 };
 
+const openLinkInNewTab = (post) => {
+    if (post && post.url) {
+        // Membuka URL di tab baru. '_blank' adalah targetnya.
+        // 'noopener,noreferrer' adalah untuk keamanan.
+        window.open(post.url, '_blank', 'noopener,noreferrer');
+    } else {
+        console.error('URL tidak ditemukan untuk postingan ini:', post);
+    }
+};
+
 const updateTime = () => {
     const now = new Date();
     currentTime.value = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
@@ -455,29 +440,55 @@ const updateTime = () => {
 };
 
 
-// --- FUNGSI UTAMA: MENGAMBIL DAN MEMPROSES SEMUA DATA DASBOR DARI API ---
+// ================= PERUBAHAN 2: Mengubah Seluruh Logika Fetch Data =================
 const fetchAllDashboardData = async () => {
+    isLoading.value = true;
     try {
+        // --- TAHAP 1: Ambil daftar topik dan detail postingannya ---
         const response = await fetch(API_URL);
-
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-
         const data = await response.json();
         const topTopicsApiData = data.top_topics || [];
 
-        // 1. Memformat data untuk state topTopics (Kartu Statistik Atas)
+        // --- TAHAP 2: Ambil status kalkulasi untuk SETIAP topik secara bersamaan ---
+        const enrichedTopicsData = await Promise.all(
+            topTopicsApiData.map(async (topicItem) => {
+                try {
+                    const topicName = encodeURIComponent(topicItem.topic);
+                    const statusResponse = await fetch(`${STATUS_API_URL}/${topicName}`);
+                    if (!statusResponse.ok) {
+                        console.error(`Gagal mengambil status untuk topik: ${topicItem.topic}`);
+                        // Jika gagal, kembalikan data asli dengan status default 'N/A'
+                        return { ...topicItem, calculated_status: 'N/A' };
+                    }
+                    const statusData = await statusResponse.json();
+
+                    // --- TAHAP 3: Gabungkan data. Tambahkan status baru ke data yang sudah ada ---
+                    return {
+                        ...topicItem,
+                        calculated_status: statusData.topic_status, // Ini adalah status yang benar
+                    };
+                } catch (e) {
+                    console.error(`Error saat fetch status untuk ${topicItem.topic}:`, e);
+                    return { ...topicItem, calculated_status: 'N/A' };
+                }
+            })
+        );
+
+        // --- TAHAP 4: Proses data yang sudah digabungkan untuk ditampilkan ---
+
+        // Mengisi ringkasan topik teratas (tidak berubah)
         topTopics.value = topTopicsApiData.map((item, index) => ({
             title: `Topik ${index + 1}: ${item.topic}`,
             value: String(item.total_posts).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-            // Data perubahan masih mock, bisa disesuaikan jika API menyediakan
             change: index % 2 === 0 ? '+5.0%' : '-1.5%',
         }));
 
-        // --- MOCK DATA UNTUK PIE CHART (Tetap karena API tidak menyediakan) ---
+        // Data Pie Chart (tidak berubah)
         pieChartData.value = {
-            labels: ['Crisis', 'Kereta Api', 'Normal Early', 'Current Emerging', 'Komisaris', 'Presiden'],
+            labels: ['Crisis', 'Normal', 'Early', 'Emerging', 'Current'],
             datasets: [{
                 backgroundColor: ['#E60000', '#2092EC', '#28C76F', '#AAD816', '#FF9900'],
                 data: [10, 15, 25, 25, 25],
@@ -487,11 +498,10 @@ const fetchAllDashboardData = async () => {
         };
         pieChartLabels.value = [];
 
-
-        // 2. Memformat data untuk topicsDetailsData (Bagian Detail Topik dengan Paginasi)
-        topicsDetailsData.value = topTopicsApiData.map((topicItem) => {
-            // Ambil status dari postingan teratas sebagai status representatif untuk topik tersebut
-            const topicStatus = topicItem.top_10_posts[0]?.latest_status || 'N/A';
+        // Mengisi data detail topik per kartu
+        topicsDetailsData.value = enrichedTopicsData.map((topicItem) => {
+            // Gunakan status baru dari `calculated_status`
+            const topicStatus = topicItem.calculated_status || 'N/A';
 
             const formattedPosts = topicItem.top_10_posts.map(post => {
                 const dateObj = new Date(post.created_at);
@@ -503,12 +513,12 @@ const fetchAllDashboardData = async () => {
                 return {
                     id: post.tweet_id,
                     author: post.user.name || post.user.screen_name,
-                    avatar: post.user.profile_image_url || 'https://placehold.co/40x40/E2E8F0/4A5568?text=U',
+                    avatar: post.user.profile_image_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
                     date: formattedDate,
                     postStatus: post.latest_status,
                     statusColor: getStatusClass(post.latest_status),
                     content: post.text,
-                    socialIcon: faXTwitter, // Hardcode ikon X/Twitter
+                    socialIcon: faXTwitter,
                     followers: String(post.user.followers_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
                     following: String(post.user.following_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
                     engagementScore: (post.engagement || 0).toFixed(2),
@@ -516,71 +526,62 @@ const fetchAllDashboardData = async () => {
                     likes: String(post.favorite_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
                     comments: String(post.reply_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
                     shares: String(post.retweet_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                    topicTag: topicItem.topic,
+                    url: `https://x.com/any/status/${post.tweet_id}`
                 };
             });
 
             return {
                 title: topicItem.topic,
-                status: topicStatus.toUpperCase(), // Pastikan UPPERCASE untuk mencocokkan class
+                status: topicStatus.toUpperCase(), // Gunakan status yang benar di sini
                 allPosts: formattedPosts,
                 totalPosts: formattedPosts.length,
-                currentPage: 1, // State paginasi awal untuk setiap topik
+                currentPage: 1,
             };
         });
 
-        // 3. ⚡ LOGIKA BARU: Mengisi Tabel Status Platform dari Top 3 Topik
+        // Mengisi data tabel platform
         const topThreeTopicsForTable = topicsDetailsData.value.slice(0, 3);
         platformStatuses.value = topThreeTopicsForTable.map(topic => {
-            // 1. Tentukan jumlah platform untuk membuat array dengan panjang yang benar.
             const numPlatforms = platforms.value.length;
-
-            // 2. Cari di mana posisi (indeks) "X / Twitter" berada.
             const twitterIndex = platforms.value.findIndex(p => p.name === 'X / Twitter');
-
-            // 3. Buat sebuah array yang semuanya berisi string kosong.
-            // Contoh: ['', '', '', '', '']
             const statusArray = Array(numPlatforms).fill('');
-
-            // 4. Jika kolom "X / Twitter" ditemukan, isi status topik di posisi tersebut.
             if (twitterIndex > -1) {
-                statusArray[twitterIndex] = topic.status; // misal: statusArray menjadi ['', '', '', 'CRISIS', '']
+                statusArray[twitterIndex] = topic.status;
             }
-
             return {
                 topic: topic.title,
-                statuses: statusArray, // Gunakan array yang sudah dimodifikasi
+                statuses: statusArray,
             };
         });
 
-        // 4. ⚡ LOGIKA BARU: Menghubungkan 3 Jarum Pie Chart dengan Status Topik
-        // Jarum 1 untuk Topik 1
+        // Mengatur jarum Pie Chart berdasarkan status yang benar
         pieStatus.value = topicsDetailsData.value.length > 0 ? topicsDetailsData.value[0].status : 'NORMAL';
-        // Jarum 2 untuk Topik 2
         pieStatus2.value = topicsDetailsData.value.length > 1 ? topicsDetailsData.value[1].status : 'NORMAL';
-        // Jarum 3 untuk Topik 3
         pieStatus3.value = topicsDetailsData.value.length > 2 ? topicsDetailsData.value[2].status : 'NORMAL';
 
     } catch (error) {
         console.error("Gagal mengambil data dari API:", error);
-        // Fallback jika API gagal untuk memastikan UI tidak rusak
         topTopics.value = [{ title: 'Gagal Memuat Data', value: '0', change: 'Error' }];
         topicsDetailsData.value = [];
         platformStatuses.value = [];
         pieChartData.value = { labels: [], datasets: [] };
-        // Set semua jarum ke status default jika terjadi error
         pieStatus.value = 'NORMAL';
         pieStatus2.value = 'NORMAL';
         pieStatus3.value = 'NORMAL';
-
     } finally {
-        // Pastikan loading state selalu dimatikan setelah selesai
         isLoading.value = false;
     }
 };
+// ================= AKHIR PERUBAHAN 2 =================
 </script>
 
----
 <style scoped>
+.pie-chart-wrapper :deep(canvas) {
+    filter: drop-shadow(12px 8px 10px rgba(0, 0, 0, 0.25));
+}
+
+/* Semua style CSS di sini tetap sama, tidak perlu diubah */
 /* ======================================= */
 /* GAUGE CSS (5 LEVEL) */
 /* ======================================= */
@@ -656,7 +657,6 @@ const fetchAllDashboardData = async () => {
     z-index: 9;
 }
 
-/* --- ATURAN ANIMASI JARUM (NEEDLE) UNTUK 5 STATUS --- */
 .five.normal .needle {
     animation: fivespeed1 2s 1 both;
     animation-delay: 1s;
@@ -703,53 +703,38 @@ const fetchAllDashboardData = async () => {
     transform: translateX(-50%) rotate(0deg);
 }
 
-/* --- PENGATURAN WARNA 5 LEVEL (36 derajat per segmen) --- */
-/* Segmen 1: Normal (TIDAK BERUBAH) */
 .five .slice-colors .st.slice-item:nth-child(1) {
     border-top: 50px #e5e7eb solid;
     border-left: 50px #e5e7eb solid;
     transform: translateX(-75%) rotate(-60deg);
-    /* Start: 0 deg */
     z-index: 5;
 }
 
-/* Segmen 2: Early (TIDAK BERUBAH) */
 .five .slice-colors .st.slice-item:nth-child(2) {
     border-top: 50px #e5e7eb solid;
     border-right: 50px #e5e7eb solid;
     transform: translateX(-140%) rotate(0deg);
-    /* Rotasi: 36 deg */
     z-index: 5;
 }
 
-/* Segmen 3: Emerging (PERBAIKAN ROTASI) */
 .five .slice-colors .st.slice-item:nth-child(3) {
     border-top: 50px #e5e7eb solid;
-    /* Ubah border-bottom ke border-top agar seragam */
     border-right: 50px #e5e7eb solid;
-    /* Pertahankan border-right */
     transform: translateX(-90%) rotate(0deg);
-    /* Rotasi: 72 deg (36 * 2) */
     z-index: 5;
 }
 
-/* Segmen 4: Current (PERBAIKAN ROTASI) */
 .five .slice-colors .st.slice-item:nth-child(4) {
     border-top: 50px #e5e7eb solid;
-    /* Ubah border-bottom ke border-top */
     border-right: 50px #e5e7eb solid;
     transform: translateX(-25%) rotate(30deg);
-    /* Rotasi: 108 deg (36 * 3) */
     z-index: 5;
 }
 
-/* Segmen 5: Crisis (PERBAIKAN ROTASI) */
 .five .slice-colors .st.slice-item:nth-child(5) {
     border-top: 50px #e5e7eb solid;
-    /* Ubah border-bottom ke border-top */
     border-right: 50px #e5e7eb solid;
     transform: translateX(-25%) rotate(70deg);
-    /* Rotasi: 144 deg (36 * 4) */
     z-index: 5;
 }
 
@@ -757,37 +742,27 @@ const fetchAllDashboardData = async () => {
 /* PIE CHART NEEDLE CSS (3 JARUM) */
 /* ======================================= */
 
-/* WARNA/KETEBALAN JARUM UTAMA (PRIMARY) */
 .pie-needle-wrapper.primary .needle {
     width: 340px;
-    /* Paling panjang */
     height: 15px;
     background: #03255C;
-    /* Merah tebal */
     z-index: 11;
 }
 
-/* WARNA/KETEBALAN JARUM KEDUA (SECONDARY - Contoh: Hijau) */
 .pie-needle-wrapper.secondary .needle {
     width: 340px;
-    /* Sedang */
     height: 13px;
     background: #03255C;
-    /* Hijau */
     z-index: 11;
 }
 
-/* WARNA/KETEBALAN JARUM KETIGA (TERTIARY - Contoh: Kuning) */
 .pie-needle-wrapper.tertiary .needle {
     width: 340px;
-    /* Paling pendek */
     height: 10px;
     background: #03255C;
-    /* Kuning/Jingga */
     z-index: 11;
 }
 
-/* ATURAN UMUM JARUM (Dipertahankan dari perbaikan sebelumnya) */
 .pie-needle-wrapper {
     position: absolute;
     top: 50%;
@@ -807,109 +782,102 @@ const fetchAllDashboardData = async () => {
     top: -10px;
     left: -10px;
     z-index: 13;
-    /* Paling depan */
 }
 
-/* Jarum individual - pastikan titik putar 0% 50% */
 .pie-needle-wrapper .needle {
     border-radius: 4px;
     position: absolute;
     top: -7px;
-    /* Tengah dari height 6px default untuk jarum baru */
     left: 0;
     transform-origin: 0% 50%;
     display: block;
     box-shadow: 0 2px 2px 1px rgba(0, 0, 0, 0.38);
 }
 
-/* KARENA JARUM PERTAMA HEIGHTNYA 10PX, KITA PERLU TWEAK POSISI TOPNYA */
 .pie-needle-wrapper.primary .needle {
     top: -5px;
-    /* Setengah dari 10px */
 }
 
-/* --- ATURAN ANIMASI JARUM (NEEDLE) UNTUK 5 STATUS PIE CHART --- */
+/* ...DENGAN BLOK INI */
 
-/* Jarum 1: PRIMARY (Menggunakan keyframes asli, tidak ada perubahan) */
+/* Primary Needle Animations */
 .pie-needle-wrapper.primary.normal {
-    animation: fivespeed1 2s 1 both;
+    animation: fivespeed1-pie 2s 1 both;
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.primary.early {
-    animation: fivespeed2 2s 1 both;
+    animation: fivespeed2-pie 2s 1 both;
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.primary.emerging {
-    animation: fivespeed3 2s 1 both;
+    animation: fivespeed3-pie 2s 1 both;
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.primary.current {
-    animation: fivespeed4 2s 1 both;
+    animation: fivespeed4-pie 2s 1 both;
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.primary.crisis {
-    animation: fivespeed5 2s 1 both;
+    animation: fivespeed5-pie 2s 1 both;
     animation-delay: 1s;
 }
 
-/* Jarum 2: SECONDARY (Menggunakan keyframes offset negatif) */
+/* Secondary Needle Animations */
 .pie-needle-wrapper.secondary.normal {
-    animation: fivespeed1-secondary 2s 1 both;
+    animation: fivespeed1-pie-secondary 2s 1 both;
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.secondary.early {
-    animation: fivespeed2-secondary 2s 1 both;
+    animation: fivespeed2-pie-secondary 2s 1 both;
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.secondary.emerging {
-    animation: fivespeed3-secondary 2s 1 both;
+    animation: fivespeed3-pie-secondary 2s 1 both;
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.secondary.current {
-    animation: fivespeed4-secondary 2s 1 both;
+    animation: fivespeed4-pie-secondary 2s 1 both;
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.secondary.crisis {
-    animation: fivespeed5-secondary 2s 1 both;
+    animation: fivespeed5-pie-secondary 2s 1 both;
     animation-delay: 1s;
 }
 
-/* Jarum 3: TERTIARY (Menggunakan keyframes offset positif) */
+/* Tertiary Needle Animations */
 .pie-needle-wrapper.tertiary.normal {
-    animation: fivespeed1-tertiary 2s 1 both;
+    animation: fivespeed1-pie-tertiary 2s 1 both;
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.tertiary.early {
-    animation: fivespeed2-tertiary 2s 1 both;
+    animation: fivespeed2-pie-tertiary 2s 1 both;
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.tertiary.emerging {
-    animation: fivespeed3-tertiary 2s 1 both;
+    animation: fivespeed3-pie-tertiary 2s 1 both;
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.tertiary.current {
-    animation: fivespeed4-tertiary 2s 1 both;
+    animation: fivespeed4-pie-tertiary 2s 1 both;
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.tertiary.crisis {
-    animation: fivespeed5-tertiary 2s 1 both;
+    animation: fivespeed5-pie-tertiary 2s 1 both;
     animation-delay: 1s;
 }
 
-/* JANGAN LUPA: Pastikan semua keyframes fivespeed1 sampai fivespeed5 tetap ada di bagian bawah <style> */
-/* --- KEYFRAMES BARU UNTUK JARUM SECONDARY (Offset Negatif 4 derajat) --- */
 @keyframes fivespeed1-secondary {
     100% {
         transform: rotate(14deg);
@@ -940,7 +908,6 @@ const fetchAllDashboardData = async () => {
     }
 }
 
-/* --- KEYFRAMES BARU UNTUK JARUM TERTIARY (Offset Positif 4 derajat) --- */
 @keyframes fivespeed1-tertiary {
     100% {
         transform: rotate(22deg);
@@ -971,7 +938,6 @@ const fetchAllDashboardData = async () => {
     }
 }
 
-/* --- KEYFRAMES UNTUK 5 KECEPATAN (SUDUT) --- */
 @keyframes fivespeed1 {
     0% {
         transform: rotate(0);
@@ -980,8 +946,6 @@ const fetchAllDashboardData = async () => {
     100% {
         transform: rotate(18deg);
     }
-
-    /* Normal */
 }
 
 @keyframes fivespeed2 {
@@ -992,8 +956,6 @@ const fetchAllDashboardData = async () => {
     100% {
         transform: rotate(54deg);
     }
-
-    /* Early */
 }
 
 @keyframes fivespeed3 {
@@ -1004,8 +966,6 @@ const fetchAllDashboardData = async () => {
     100% {
         transform: rotate(90deg);
     }
-
-    /* Emerging (Tengah) */
 }
 
 @keyframes fivespeed4 {
@@ -1016,8 +976,6 @@ const fetchAllDashboardData = async () => {
     100% {
         transform: rotate(126deg);
     }
-
-    /* Current */
 }
 
 @keyframes fivespeed5 {
@@ -1028,15 +986,8 @@ const fetchAllDashboardData = async () => {
     100% {
         transform: rotate(162deg);
     }
-
-    /* Crisis */
 }
 
-/* ======================================= */
-/* END GAUGE CSS */
-/* ======================================= */
-
-/* Loader style */
 .loader {
     border-top-color: #3B82F6;
     animation: spinner 1.5s linear infinite;
@@ -1052,7 +1003,6 @@ const fetchAllDashboardData = async () => {
     }
 }
 
-/* Animasi Fade In */
 .animate-fade-in {
     animation: fadeIn 0.5s ease-out forwards;
 }
@@ -1069,18 +1019,116 @@ const fetchAllDashboardData = async () => {
     }
 }
 
-
-.animate-fade-in {
-    animation: fade-in 0.5s ease-out forwards;
-}
-
 .line-clamp-2 {
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
-    /* Batasi menjadi 2 baris */
     overflow: hidden;
     text-overflow: ellipsis;
-    /* Tambahkan elipsis jika terpotong */
+}
+
+
+/* ======================================= */
+/* KEYFRAMES BARU UNTUK PIE CHART */
+/* ======================================= */
+
+/* Sudut untuk Jarum Utama */
+/* Sudut untuk Jarum Utama */
+@keyframes fivespeed1-pie {
+    100% {
+        transform: rotate(45deg);
+    }
+}
+
+/* Early */
+@keyframes fivespeed2-pie {
+    100% {
+        transform: rotate(135deg);
+    }
+}
+
+/* Emerging */
+@keyframes fivespeed3-pie {
+    100% {
+        transform: rotate(225deg);
+    }
+}
+
+/* Current */
+@keyframes fivespeed4-pie {
+    100% {
+        transform: rotate(-27deg);
+    }
+}
+
+/* Normal */
+@keyframes fivespeed5-pie {
+    100% {
+        transform: rotate(-72deg);
+    }
+}
+
+/* Crisis */
+
+/* Sudut untuk Jarum Kedua (offset -5deg) */
+@keyframes fivespeed1-pie-secondary {
+    100% {
+        transform: rotate(40deg);
+    }
+}
+
+@keyframes fivespeed2-pie-secondary {
+    100% {
+        transform: rotate(130deg);
+    }
+}
+
+@keyframes fivespeed3-pie-secondary {
+    100% {
+        transform: rotate(220deg);
+    }
+}
+
+@keyframes fivespeed4-pie-secondary {
+    100% {
+        transform: rotate(-32deg);
+    }
+}
+
+@keyframes fivespeed5-pie-secondary {
+    100% {
+        transform: rotate(-77deg);
+    }
+}
+
+/* Sudut untuk Jarum Ketiga (offset +5deg) */
+@keyframes fivespeed1-pie-tertiary {
+    100% {
+        transform: rotate(50deg);
+    }
+}
+
+@keyframes fivespeed2-pie-tertiary {
+    100% {
+        transform: rotate(140deg);
+    }
+}
+
+@keyframes fivespeed3-pie-tertiary {
+    100% {
+        transform: rotate(230deg);
+    }
+}
+
+@keyframes fivespeed4-pie-tertiary {
+    100% {
+        transform: rotate(-22deg);
+    }
+}
+
+@keyframes fivespeed5-pie-tertiary {
+    100% {
+        transform: rotate(-67deg);
+    }
 }
 </style>

@@ -7,7 +7,7 @@
   </div>
 
   <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
-    <div v-for="(column, index) in columnsData" :key="index"
+    <div v-for="(column, index) in allColumns" :key="index"
       class="bg-white rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(128,128,128,0.3)] flex flex-col p-4">
       <h3 class="text-lg font-bold text-[#03255C] mb-3">{{ column.title }}</h3>
 
@@ -24,7 +24,7 @@
 
       <div class="space-y-4 flex-grow">
         <div v-for="post in paginatedPosts(column)" :key="post.id"
-          class="border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
+          class="bg-[#F8F7FA] border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
           <div class="flex items-start mb-4">
             <img :src="post.avatar" alt="Avatar" class="w-10 h-10 rounded-full mr-3">
             <div class="flex-grow">
@@ -35,10 +35,17 @@
                     {{ post.author }}
                   </span>
                 </div>
-                <div class="flex items-center gap-2 flex-shrink-0">
+
+                <div class="flex items-center gap-3 flex-shrink-0">
                   <span :class="[post.statusColor, 'text-xs font-bold px-2 py-0.5 rounded-full']">
                     {{ post.postStatus }}
                   </span>
+                  <FontAwesomeIcon :icon="faBookmark" @click="toggleBookmark(post)" :class="[
+                    'h-4 w-4 cursor-pointer transition-colors',
+                    post.isBookmarked
+                      ? 'text-yellow-500 hover:text-yellow-600'
+                      : 'text-gray-400 hover:text-[#03255C]'
+                  ]" />
                 </div>
               </div>
               <div class="flex justify-start items-center gap-4 mt-0.5">
@@ -61,7 +68,7 @@
             <FontAwesomeIcon :icon="faCalendarDays" class="h-4 w-4" />
             {{ post.date }}
           </p>
-          <p class="text-sm text-gray-600 mb-4 line-clamp-2">{{ post.content }}</p>
+          <p class="text-sm text-[#03255C] mb-4 line-clamp-2">{{ post.content }}</p>
           <div class="flex items-center justify-between text-xs text-gray-500 mb-4">
             <div class="flex items-center gap-4">
               <div class="flex items-center gap-1">
@@ -89,9 +96,9 @@
                 {{ post.topicTag }}
               </span>
             </div>
-            <div class="flex items-center gap-2 flex-shrink-0"> <button
+            <div class="flex items-center gap-2 flex-shrink-0"> <button @click="openLinkInNewTab(post)"
                 class="text-xs font-semibold bg-gray-100 text-[#2092EC] border border-[#2092EC] px-3 py-1.5 rounded-md hover:bg-gray-200 transition flex items-center gap-1">
-                <i class="fas fa-up-right-from-square h-3 w-3"></i>
+                <FontAwesomeIcon :icon="faUpRightFromSquare" class="h-3 w-3" />
                 Kunjungi
               </button>
               <button @click="openDetailModal(post)"
@@ -109,23 +116,35 @@
         <div class="flex justify-between items-center text-sm text-gray-700">
           <span class="text-xs">{{ displayRange(column) }}</span>
 
-          <div class="flex items-center gap-1">
+          <div class="flex items-center space-x-2">
             <button @click="prevPage(column)" :disabled="column.pagination.currentPage === 1"
-              class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+              :class="{ 'opacity-30 cursor-not-allowed': column.pagination.currentPage === 1, 'hover:bg-gray-100': column.pagination.currentPage !== 1 }"
+              class="w-8 h-8 flex items-center justify-center rounded-full transition text-lg font-bold">
               &lt;
             </button>
 
-            <button v-for="page in totalPages(column)" :key="page" @click="goToPage(column, page)" :class="[
-              'w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold transition-colors',
-              page === column.pagination.currentPage
-                ? 'bg-[#03255C] text-white'  // <-- Border dihilangkan
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200' // <-- Border dihilangkan & warna diganti
-            ]">
-              {{ page }}
-            </button>
+            <div class="flex items-center justify-center space-x-2">
+              <div v-if="column.pagination.currentPage > 1"
+                class="w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 rounded-full text-xs font-semibold">
+                {{ column.pagination.currentPage - 1 }}
+              </div>
+              <div v-else class="w-6 h-6"></div>
+
+              <div
+                class="w-8 h-8 flex items-center justify-center bg-[#03255C] text-white rounded-full text-base font-bold shadow-md">
+                {{ column.pagination.currentPage }}
+              </div>
+
+              <div v-if="column.pagination.currentPage < totalPages(column)"
+                class="w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 rounded-full text-xs font-semibold">
+                {{ column.pagination.currentPage + 1 }}
+              </div>
+              <div v-else class="w-6 h-6"></div>
+            </div>
 
             <button @click="nextPage(column)" :disabled="column.pagination.currentPage === totalPages(column)"
-              class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+              :class="{ 'opacity-30 cursor-not-allowed': column.pagination.currentPage === totalPages(column), 'hover:bg-gray-100': column.pagination.currentPage !== totalPages(column) }"
+              class="w-8 h-8 flex items-center justify-center rounded-full transition text-lg font-bold">
               &gt;
             </button>
           </div>
@@ -143,8 +162,7 @@
         <div class="flex justify-between items-center border-b pb-3 mb-4">
           <h3 class="text-xl font-bold text-[#03255C]">Detail Postingan</h3>
           <button @click="closeDetailModal" class="text-gray-400 hover:text-gray-600">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24" xmlns="http://www.w3.org/2000/svg">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
@@ -169,7 +187,7 @@
                   selectedPost.postStatus
                 }}</span></p>
             <p><strong>Topik:</strong> <span class="font-semibold text-blue-600">{{ selectedPost.topicTag
-            }}</span></p>
+                }}</span></p>
             <p><strong>Followers:</strong> {{ selectedPost.stats.followers }}</p>
             <p><strong>Following:</strong> {{ selectedPost.stats.following }}</p>
             <p><strong>Engagement Total:</strong> {{ selectedPost.stats.engagement }}</p>
@@ -180,8 +198,11 @@
           </div>
         </div>
         <div class="mt-6 flex justify-end">
-          <button @click="closeDetailModal"
-            class="text-sm font-semibold bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition">Tutup</button>
+          <button @click="openLinkInNewTab(selectedPost)"
+            class="text-xs font-semibold bg-gray-100 text-[#2092EC] border border-[#2092EC] px-3 py-1.5 rounded-md hover:bg-gray-200 transition flex items-center gap-1">
+            <FontAwesomeIcon :icon="faUpRightFromSquare" class="h-3 w-3" />
+            Kunjungi sumber asli
+          </button>
         </div>
       </div>
     </div>
@@ -191,12 +212,14 @@
 <script setup>
 import {
   ref,
-  onMounted
+  onMounted,
+  computed
 } from 'vue';
 import {
   FontAwesomeIcon
 } from '@fortawesome/vue-fontawesome';
 import {
+  faBookmark,
   faEye,
   faHeart,
   faCommentDots,
@@ -207,11 +230,28 @@ import {
   faCalendarDays
 } from '@fortawesome/free-solid-svg-icons';
 
+
 const isLoading = ref(true);
 const apiError = ref(null);
 const columnsData = ref([]);
 const isDetailModalOpen = ref(false);
 const selectedPost = ref(null);
+
+const openLinkInNewTab = (post) => {
+  if (post && post.url) {
+    // Membuka URL di tab baru. '_blank' adalah targetnya.
+    // 'noopener,noreferrer' adalah untuk keamanan.
+    window.open(post.url, '_blank', 'noopener,noreferrer');
+  } else {
+    console.error('URL tidak ditemukan untuk postingan ini:', post);
+  }
+};
+
+
+const bookmarkedPosts = ref([]);
+// --- BARU: Kunci untuk menyimpan data di localStorage ---
+const BOOKMARK_STORAGE_KEY = 'vue-bookmarked-posts';
+
 
 const ICONS = {
   x: 'fab fa-x-twitter text-[#03255C]',
@@ -220,30 +260,12 @@ const ICONS = {
 };
 
 const STATUS_MAPPING = {
-  'Crisis': {
-    title: 'Crisis',
-    color: 'text-[#E60000] border border-[#E60000] bg-[#E60000]/10'
-  },
-  'Current': {
-    title: 'Current',
-    color: 'text-[#FF9900] border border-[#FF9900] bg-[#FF9900]/10'
-  },
-  'Emerging': {
-    title: 'Emerging',
-    color: 'text-[#AAD816] border border-[#AAD816] bg-[#AAD816]/10'
-  },
-  'Early': {
-    title: 'Early',
-    color: 'text-[#28C76F] border border-[#28C76F] bg-[#28C76F]/10'
-  },
-  'Normal': {
-    title: 'Normal',
-    color: 'text-[#2092EC] border border-[#2092EC] bg-[#2092EC]/10'
-  },
-  'N/A': {
-    title: 'Unknown',
-    color: 'text-gray-500 border border-gray-500 bg-gray-100'
-  },
+  'Crisis': { title: 'Crisis', color: 'text-[#E60000] border border-[#E60000] bg-[#E60000]/10' },
+  'Current': { title: 'Current', color: 'text-[#FF9900] border border-[#FF9900] bg-[#FF9900]/10' },
+  'Emerging': { title: 'Emerging', color: 'text-[#AAD816] border border-[#AAD816] bg-[#AAD816]/10' },
+  'Early': { title: 'Early', color: 'text-[#28C76F] border border-[#28C76F] bg-[#28C76F]/10' },
+  'Normal': { title: 'Normal', color: 'text-[#2092EC] border border-[#2092EC] bg-[#2092EC]/10' },
+  'N/A': { title: 'Unknown', color: 'text-gray-500 border border-gray-500 bg-gray-100' },
 };
 
 const openDetailModal = (post) => {
@@ -255,17 +277,61 @@ const closeDetailModal = () => {
   selectedPost.value = null;
 };
 
-// ==========================================================
-// ============ LOGIKA PAGINASI DITAMBAHKAN DI SINI =========
-// ==========================================================
 
-// Menghitung total halaman untuk sebuah kolom
+// --- BARU: Fungsi untuk menyimpan bookmark ke localStorage ---
+const saveBookmarks = () => {
+  localStorage.setItem(BOOKMARK_STORAGE_KEY, JSON.stringify(bookmarkedPosts.value));
+};
+
+// --- BARU: Fungsi untuk memuat bookmark dari localStorage ---
+const loadBookmarks = () => {
+  const savedBookmarks = localStorage.getItem(BOOKMARK_STORAGE_KEY);
+  if (savedBookmarks) {
+    bookmarkedPosts.value = JSON.parse(savedBookmarks);
+  }
+};
+
+
+// --- DIUBAH: Fungsi toggleBookmark sekarang melakukan sinkronisasi dua arah ---
+const toggleBookmark = (post) => {
+  const postIndex = bookmarkedPosts.value.findIndex(p => p.id === post.id);
+  let isNowBookmarked; // Variabel untuk menyimpan status baru
+
+  if (postIndex === -1) {
+    // Kasus: Menambahkan bookmark baru
+    post.isBookmarked = true;
+    isNowBookmarked = true;
+    bookmarkedPosts.value.unshift(post);
+  } else {
+    // Kasus: Menghapus bookmark
+    post.isBookmarked = false;
+    isNowBookmarked = false;
+    bookmarkedPosts.value.splice(postIndex, 1);
+  }
+
+  // --- SINKRONISASI DUA ARAH ---
+  // Cari postingan yang sama di kolom data asli (Engagement/Followers)
+  // dan pastikan status isBookmarked-nya juga diperbarui.
+  for (const column of columnsData.value) {
+    const originalPost = column.posts.find(p => p.id === post.id);
+    if (originalPost) {
+      originalPost.isBookmarked = isNowBookmarked;
+      break; // Hentikan pencarian jika sudah ditemukan
+    }
+  }
+  // --- AKHIR SINKRONISASI ---
+
+  // Simpan perubahan ke localStorage setiap kali ada aksi
+  saveBookmarks();
+};
+
+
+// Logika Paginasi (Tidak berubah)
 const totalPages = (column) => {
   if (!column.pagination || !column.pagination.total) return 1;
   return Math.ceil(column.pagination.total / column.pagination.perPage);
 };
 
-// Mengambil data yang akan ditampilkan sesuai halaman saat ini
 const paginatedPosts = (column) => {
   const { currentPage, perPage } = column.pagination;
   const startIndex = (currentPage - 1) * perPage;
@@ -273,34 +339,22 @@ const paginatedPosts = (column) => {
   return column.posts.slice(startIndex, endIndex);
 };
 
-// Membuat teks "Menampilkan 1 - 3 dari 10 Data"
 const displayRange = (column) => {
   const { currentPage, perPage, total } = column.pagination;
   if (total === 0) return 'Tidak ada data';
-
   const start = (currentPage - 1) * perPage + 1;
   const end = Math.min(start + perPage - 1, total);
-
-  return `Menampilkan ${start} - ${end} dari ${total} Data`;
+  return `${start} - ${end} dari ${total} Data`;
 };
 
-// Fungsi navigasi halaman
 const goToPage = (column, page) => {
   if (page >= 1 && page <= totalPages(column)) {
     column.pagination.currentPage = page;
   }
 };
+const prevPage = (column) => { goToPage(column, column.pagination.currentPage - 1); };
+const nextPage = (column) => { goToPage(column, column.pagination.currentPage + 1); };
 
-const prevPage = (column) => {
-  goToPage(column, column.pagination.currentPage - 1);
-};
-
-const nextPage = (column) => {
-  goToPage(column, column.pagination.currentPage + 1);
-};
-// ==========================================================
-// ================= AKHIR LOGIKA PAGINASI ==================
-// ==========================================================
 
 const createDummyPost = (id, social) => {
   const status = 'Normal';
@@ -324,6 +378,7 @@ const createDummyPost = (id, social) => {
     statusColor: statusData.color,
     content: `Ini adalah postingan dummy #${id} untuk mengisi kolom karena API gagal terhubung.`,
     topicTag: 'FallBack-Data',
+    isBookmarked: false,
   };
 };
 
@@ -346,7 +401,7 @@ const mapApiPostToLocalPost = (apiPost, postId) => {
   return {
     id: apiPost.tweet_id || postId,
     author: apiPost.user?.screen_name || 'Anonim',
-    avatar: apiPost.user?.profile_image_url || 'https://placehold.co/40x40/E2E8F0/4A5568?text=NA',
+    avatar: apiPost.user?.profile_image_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
     socialIcon: ICONS.x,
     stats: {
       followers: formatNumber(apiPost.user?.followers_count),
@@ -362,6 +417,8 @@ const mapApiPostToLocalPost = (apiPost, postId) => {
     statusColor: statusData.color,
     content: apiPost.text || 'Tidak ada konten.',
     topicTag: apiPost.topik || 'N/A',
+    isBookmarked: false,
+    url: `https://x.com/any/status/${apiPost.tweet_id}`
   };
 };
 
@@ -395,8 +452,9 @@ const fetchPostsData = async () => {
     }
   } catch (e) {
     errorMessages.push(`Engagement: ${e.message}`);
-    // Fallback dengan 10 data dummy agar paginasi terlihat
-    engagementPosts = Array.from({ length: 10 }, (_, i) => createDummyPost(i + 1, 'x'));
+    engagementPosts = Array.from({
+      length: 10
+    }, (_, i) => createDummyPost(i + 1, 'x'));
   }
 
   try {
@@ -407,56 +465,61 @@ const fetchPostsData = async () => {
     }
   } catch (e) {
     errorMessages.push(`Followers: ${e.message}`);
-    // Fallback dengan 10 data dummy
-    followersPosts = Array.from({ length: 10 }, (_, i) => createDummyPost(i + 1, 'facebook'));
+    followersPosts = Array.from({
+      length: 10
+    }, (_, i) => createDummyPost(i + 1, 'facebook'));
   }
 
   if (errorMessages.length > 0) {
     apiError.value = errorMessages.join(' | ');
   }
 
-  // Membuat 10 data dummy untuk kolom ketiga agar sesuai contoh gambar
-  const dummyPosts3 = Array.from({
-    length: 10
-  }, (_, i) => createDummyPost(i + 1, 'tiktok'));
+  // --- BARU: Sinkronisasi status bookmark setelah data API diterima ---
+  const bookmarkedIds = new Set(bookmarkedPosts.value.map(p => p.id));
+  engagementPosts.forEach(p => {
+    if (bookmarkedIds.has(p.id)) p.isBookmarked = true;
+  });
+  followersPosts.forEach(p => {
+    if (bookmarkedIds.has(p.id)) p.isBookmarked = true;
+  });
+
 
   columnsData.value = [{
     title: 'Posts From Highest Engagement',
     posts: engagementPosts,
-    // PERUBAHAN: Menambahkan objek paginasi
-    pagination: {
-      total: engagementPosts.length,
-      currentPage: 1,
-      perPage: 10
-    }
+    pagination: { total: engagementPosts.length, currentPage: 1, perPage: 10 }
   }, {
     title: 'Posts From Highest Followers',
     posts: followersPosts,
-    // PERUBAHAN: Menambahkan objek paginasi
-    pagination: {
-      total: followersPosts.length,
-      currentPage: 1,
-      perPage: 10
-    }
-  }, {
-    title: 'Posts From 5 Marked Accounts (Dummy)',
-    posts: dummyPosts3,
-    // PERUBAHAN: Menambahkan objek paginasi
-    pagination: {
-      total: dummyPosts3.length,
-      currentPage: 1,
-      perPage: 10
-    }
+    pagination: { total: followersPosts.length, currentPage: 1, perPage: 10 }
   }];
   isLoading.value = false;
 };
 
-onMounted(fetchPostsData);
+const allColumns = computed(() => {
+  const bookmarkedColumn = {
+    title: 'Posts From Marked Accounts', // Judul diubah agar lebih umum
+    posts: bookmarkedPosts.value,
+    pagination: {
+      total: bookmarkedPosts.value.length,
+      currentPage: 1,
+      perPage: 10
+    }
+  };
+
+  return [...columnsData.value, bookmarkedColumn];
+});
+
+// --- DIUBAH: onMounted sekarang memuat data dari localStorage terlebih dahulu ---
+onMounted(() => {
+  loadBookmarks();
+  fetchPostsData();
+});
 </script>
 
 
 <style scoped>
-/* Loader and fade-in animations (Tidak berubah) */
+/* Style tidak berubah */
 .loader {
   border-top-color: #3498db;
   animation: spinner 1.5s linear infinite;
