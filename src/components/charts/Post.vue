@@ -8,10 +8,10 @@
                     <div class="border border-gray-400 rounded-lg p-4 flex items-center justify-center h-full">
                         <div class="flex items-center gap-4">
                             <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24">
-                                <path d="M2 22 H 22" stroke="#B3BECE" stroke-width="2" stroke-linecap="round" />
-                                <rect x="4" y="12" width="3" height="7" rx="1" fill="#B3BECE" />
-                                <rect x="10" y="8" width="3" height="11" rx="1" fill="#B3BECE" />
-                                <rect x="16" y="4" width="3" height="15" rx="1" fill="#03255C" />
+                                <path d="M2 22 H 22" stroke="#B3BECE" stroke-width="3" stroke-linecap="round" />
+                                <rect x="4" y="12" width="4" height="7" rx="1" fill="#B3BECE" />
+                                <rect x="10" y="8" width="4" height="11" rx="1" fill="#B3BECE" />
+                                <rect x="16" y="4" width="4" height="15" rx="1" fill="#03255C" />
                             </svg>
                             <div>
                                 <div v-if="isLoading[card.key]" class="text-gray-500">Memuat...</div>
@@ -31,10 +31,10 @@
                     <div class="border border-gray-400 rounded-lg p-4 flex items-center justify-center h-full">
                         <div class="flex items-center gap-4">
                             <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24">
-                                <path d="M2 22 H 22" stroke="#F8B3B3" stroke-width="2" stroke-linecap="round" />
-                                <rect x="4" y="12" width="3" height="7" rx="1" fill="#F8B3B3" />
-                                <rect x="10" y="8" width="3" height="11" rx="1" fill="#F8B3B3" />
-                                <rect x="16" y="4" width="3" height="15" rx="1" fill="#E60000" />
+                                <path d="M2 22 H 22" stroke="#F8B3B3" stroke-width="3" stroke-linecap="round" />
+                                <rect x="4" y="12" width="4" height="7" rx="1" fill="#F8B3B3" />
+                                <rect x="10" y="8" width="4" height="11" rx="1" fill="#F8B3B3" />
+                                <rect x="16" y="4" width="4" height="15" rx="1" fill="#E60000" />
                             </svg>
                             <div>
                                 <div v-if="isLoading[card.key]" class="text-gray-500">Memuat...</div>

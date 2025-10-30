@@ -37,6 +37,23 @@
                 class="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(128,128,128,0.3)]">
                 <h3 class="text-xl font-bold text-[#03255C] mb-4">Kompas Status Terkini</h3>
                 <div class="relative w-full h-80 md:h-96 flex justify-center items-cente pie-chart-wrapper">
+                    <div class="absolute left-4 z-20 space-y-6" v-if="topTopicsForCards.length > 0">
+                        <div v-for="(topic, index) in topTopicsForCards" :key="index"
+                            class="flex items-center justify-center gap-5 p-3 rounded-lg border-2 shadow-xl backdrop-blur-sm"
+                            :style="{ borderColor: topic.color, backgroundColor: topic.color + '80' }">
+
+                            <div class="min-w-0 text-center">
+                                <p class="font-bold text-sm text-[#03255C] truncate" :title="topic.title">
+                                    {{ topic.title }}
+                                </p>
+                                <div
+                                    class="flex items-center justify-center gap-1.5 text-xs text-gray-700 font-bold mt-3">
+                                    <FontAwesomeIcon v-if="topic.platform.icon" :icon="topic.platform.icon"
+                                        class="h-3 w-3" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="absolute w-full h-full">
                         <Pie :data="pieChartData" :options="pieChartOptions" />
                     </div>
@@ -66,13 +83,13 @@
                     </div>
                     <div class="gauge-wrapper">
                         <div :class="['gauge five', topic.status.toLowerCase()]">
-                            <div class="slice-colors">
+                            <!-- <div class="slice-colors">
                                 <div class="st slice-item"></div>
                                 <div class="st slice-item"></div>
                                 <div class="st slice-item"></div>
                                 <div class="st slice-item"></div>
                                 <div class="st slice-item"></div>
-                            </div>
+                            </div> -->
                             <div class="needle"></div>
                             <div class="gauge-center">
                                 <div class="label">STATUS</div>
@@ -105,7 +122,12 @@
                                                 :class="[post.statusColor, 'text-xs font-bold px-2 py-0.5 rounded-full']">
                                                 {{ post.postStatus }}
                                             </span>
-                                            <FontAwesomeIcon :icon="faBookmark" :class="['h-4 w-4 text-gray-300 ']" />
+                                            <FontAwesomeIcon :icon="faBookmark" @click="toggleBookmark(post)" :class="[
+                                                'h-4 w-4 cursor-pointer transition-colors',
+                                                post.isBookmarked
+                                                    ? 'text-yellow-500 hover:text-yellow-600'
+                                                    : 'text-gray-400 hover:text-[#03255C]'
+                                            ]" />
                                         </div>
                                     </div>
                                     <div class="flex justify-start items-center gap-6 mt-0.5">
@@ -322,7 +344,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { Pie } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
@@ -349,6 +371,7 @@ const selectedPost = ref(null);
 const topTopics = ref([]);
 const pieChartData = ref({ labels: [], datasets: [] });
 const pieChartLabels = ref([]);
+
 const platforms = ref([
     { name: 'X / Twitter', icon: faXTwitter, color: 'text-gray-800' },
     { name: 'TikTok', icon: faTiktok, color: 'text-black' },
@@ -359,10 +382,37 @@ const platforms = ref([
 const platformStatuses = ref([]);
 const topicsDetailsData = ref([]);
 
+const needleColors = {
+    primary: '#f2ff00',   // Warna jarum 1
+    secondary: '#95ff00', // Warna jarum 2
+    tertiary: '#00f9cb'  // Warna jarum 3
+};
+
+const topTopicsForCards = computed(() => {
+    // Ambil 3 topik pertama dari data utama
+    const topics = topicsDetailsData.value.slice(0, 3);
+    const colors = [needleColors.primary, needleColors.secondary, needleColors.tertiary];
+    // Cari data platform X/Twitter dari ref yang sudah ada
+    const twitterPlatform = platforms.value.find(p => p.name === 'X / Twitter');
+
+    // Format data agar mudah digunakan di template
+    return topics.map((topic, index) => ({
+        title: topic.title,
+        color: colors[index],
+        platform: twitterPlatform ? { name: twitterPlatform.name, icon: twitterPlatform.icon } : { name: 'N/A', icon: null }
+    }));
+});
+
+
+const bookmarkedPosts = ref([]);
+// --- BARU: Kunci untuk menyimpan data di localStorage ---
+const BOOKMARK_STORAGE_KEY = 'vue-bookmarked-posts';
+
 const pieChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: { legend: { display: false } },
+    events: [],
 };
 
 const socialIconColors = {
@@ -403,7 +453,57 @@ const changePage = (topic, page) => {
     }
 };
 
+
+
+const saveBookmarks = () => {
+    localStorage.setItem(BOOKMARK_STORAGE_KEY, JSON.stringify(bookmarkedPosts.value));
+};
+
+// --- BARU: Fungsi untuk memuat bookmark dari localStorage ---
+const loadBookmarks = () => {
+    const savedBookmarks = localStorage.getItem(BOOKMARK_STORAGE_KEY);
+    if (savedBookmarks) {
+        bookmarkedPosts.value = JSON.parse(savedBookmarks);
+    }
+};
+
+
+// --- DIUBAH: Fungsi toggleBookmark sekarang melakukan sinkronisasi dua arah ---
+const toggleBookmark = (post) => {
+    const postIndex = bookmarkedPosts.value.findIndex(p => p.id === post.id);
+    let isNowBookmarked;
+
+    if (postIndex === -1) {
+        // Kasus: Menambahkan bookmark baru
+        post.isBookmarked = true;
+        isNowBookmarked = true;
+        bookmarkedPosts.value.unshift(post);
+    } else {
+        // Kasus: Menghapus bookmark
+        post.isBookmarked = false;
+        isNowBookmarked = false;
+        bookmarkedPosts.value.splice(postIndex, 1);
+    }
+
+    // --- SINKRONISASI YANG DIPERBAIKI ---
+    // Cari postingan asli di dalam `topicsDetailsData` untuk menyamakan status `isBookmarked`.
+    // Ini penting agar status bookmark tetap konsisten saat berganti halaman (paginasi).
+    for (const topic of topicsDetailsData.value) {
+        const originalPost = topic.allPosts.find(p => p.id === post.id);
+        if (originalPost) {
+            originalPost.isBookmarked = isNowBookmarked;
+            break; // Hentikan pencarian jika sudah ditemukan
+        }
+    }
+    // --- AKHIR SINKRONISASI ---
+
+    // Simpan perubahan ke localStorage setiap kali ada aksi
+    saveBookmarks();
+};
+
+
 onMounted(() => {
+    loadBookmarks();
     updateTime();
     timerInterval = setInterval(updateTime, 1000);
     fetchAllDashboardData();
@@ -440,7 +540,7 @@ const updateTime = () => {
 };
 
 
-// ================= PERUBAHAN 2: Mengubah Seluruh Logika Fetch Data =================
+// ================= AWAL FUNGSI fetchAllDashboardData =================
 const fetchAllDashboardData = async () => {
     isLoading.value = true;
     try {
@@ -460,15 +560,14 @@ const fetchAllDashboardData = async () => {
                     const statusResponse = await fetch(`${STATUS_API_URL}/${topicName}`);
                     if (!statusResponse.ok) {
                         console.error(`Gagal mengambil status untuk topik: ${topicItem.topic}`);
-                        // Jika gagal, kembalikan data asli dengan status default 'N/A'
                         return { ...topicItem, calculated_status: 'N/A' };
                     }
                     const statusData = await statusResponse.json();
 
-                    // --- TAHAP 3: Gabungkan data. Tambahkan status baru ke data yang sudah ada ---
+                    // --- TAHAP 3: Gabungkan data ---
                     return {
                         ...topicItem,
-                        calculated_status: statusData.topic_status, // Ini adalah status yang benar
+                        calculated_status: statusData.topic_status,
                     };
                 } catch (e) {
                     console.error(`Error saat fetch status untuk ${topicItem.topic}:`, e);
@@ -479,14 +578,14 @@ const fetchAllDashboardData = async () => {
 
         // --- TAHAP 4: Proses data yang sudah digabungkan untuk ditampilkan ---
 
-        // Mengisi ringkasan topik teratas (tidak berubah)
+        // Mengisi ringkasan topik teratas
         topTopics.value = topTopicsApiData.map((item, index) => ({
             title: `Topik ${index + 1}: ${item.topic}`,
             value: String(item.total_posts).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
             change: index % 2 === 0 ? '+5.0%' : '-1.5%',
         }));
 
-        // Data Pie Chart (tidak berubah)
+        // Data Pie Chart
         pieChartData.value = {
             labels: ['Crisis', 'Normal', 'Early', 'Emerging', 'Current'],
             datasets: [{
@@ -500,9 +599,7 @@ const fetchAllDashboardData = async () => {
 
         // Mengisi data detail topik per kartu
         topicsDetailsData.value = enrichedTopicsData.map((topicItem) => {
-            // Gunakan status baru dari `calculated_status`
             const topicStatus = topicItem.calculated_status || 'N/A';
-
             const formattedPosts = topicItem.top_10_posts.map(post => {
                 const dateObj = new Date(post.created_at);
                 const datePart = dateObj.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -527,13 +624,14 @@ const fetchAllDashboardData = async () => {
                     comments: String(post.reply_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
                     shares: String(post.retweet_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
                     topicTag: topicItem.topic,
-                    url: `https://x.com/any/status/${post.tweet_id}`
+                    url: `https://x.com/any/status/${post.tweet_id}`,
+                    // isBookmarked: false // Default state, akan di-update nanti
                 };
             });
 
             return {
                 title: topicItem.topic,
-                status: topicStatus.toUpperCase(), // Gunakan status yang benar di sini
+                status: topicStatus.toUpperCase(),
                 allPosts: formattedPosts,
                 totalPosts: formattedPosts.length,
                 currentPage: 1,
@@ -555,10 +653,25 @@ const fetchAllDashboardData = async () => {
             };
         });
 
-        // Mengatur jarum Pie Chart berdasarkan status yang benar
+        // Mengatur jarum Pie Chart
         pieStatus.value = topicsDetailsData.value.length > 0 ? topicsDetailsData.value[0].status : 'NORMAL';
         pieStatus2.value = topicsDetailsData.value.length > 1 ? topicsDetailsData.value[1].status : 'NORMAL';
         pieStatus3.value = topicsDetailsData.value.length > 2 ? topicsDetailsData.value[2].status : 'NORMAL';
+
+        // --- TAHAP 5 (KRUSIAL): Sinkronisasi Status Bookmark dari localStorage ---
+        // Setelah semua data API dimuat, periksa setiap post dan atur status `isBookmarked`
+        // berdasarkan data yang sudah ada di `bookmarkedPosts`.
+        const bookmarkedIds = new Set(bookmarkedPosts.value.map(p => p.id));
+
+        topicsDetailsData.value.forEach(topic => {
+            topic.allPosts.forEach(post => {
+                if (bookmarkedIds.has(post.id)) {
+                    post.isBookmarked = true;
+                } else {
+                    post.isBookmarked = false; // Pastikan properti ini selalu ada
+                }
+            });
+        });
 
     } catch (error) {
         console.error("Gagal mengambil data dari API:", error);
@@ -573,6 +686,7 @@ const fetchAllDashboardData = async () => {
         isLoading.value = false;
     }
 };
+// ================= AKHIR FUNGSI fetchAllDashboardData =================
 // ================= AKHIR PERUBAHAN 2 =================
 </script>
 
@@ -593,7 +707,7 @@ const fetchAllDashboardData = async () => {
     padding: 20px 15px 15px;
 }
 
-.gauge {
+/* .gauge {
     background: #e7e7e7;
     box-shadow: 0 -3px 6px 2px rgba(0, 0, 0, 0.50);
     width: 250px;
@@ -601,19 +715,40 @@ const fetchAllDashboardData = async () => {
     border-radius: 100px 100px 0 0 !important;
     position: relative;
     overflow: hidden;
+} */
+
+.gauge {
+    position: relative;
+    /* Penting agar elemen di dalamnya (needle, center) tetap di posisi yang benar */
+    width: 250px;
+    /* Sesuaikan lebar sesuai kebutuhan Anda */
+    height: 125px;
+    /* Biasanya setengah dari lebar untuk bentuk setengah lingkaran */
+    top: 5px;
+
+    /* Properti utama untuk latar belakang gambar */
+    background-image: url('@/assets/image/warna.png');
+    /* GANTI DENGAN PATH GAMBAR ANDA */
+    background-repeat: no-repeat;
+    /* Agar gambar tidak diulang-ulang */
+    /* MENJADI SEPERTI INI: */
+    background-position: center calc(100% + 1cm);
+    background-size: 408px;
+    /* Pastikan gambar pas di dalam div tanpa terpotong atau distorsi */
 }
+
 
 .gauge-center {
     content: '';
     color: #fff;
-    width: 60%;
-    height: 60%;
+    width: 61%;
+    height: 50%;
     background: #15222E;
     border-radius: 100px 100px 0 0 !important;
     position: absolute;
     box-shadow: 0 -13px 15px -10px rgba(0, 0, 0, 0.28);
-    right: 21%;
-    bottom: 0;
+    right: 20%;
+    bottom: 5px;
     color: #fff;
     z-index: 10;
 }
@@ -640,16 +775,16 @@ const fetchAllDashboardData = async () => {
 }
 
 .needle {
-    width: 110px;
+    width: 97px;
     height: 10px;
-    background: #e20404;
+    background: #ffffff;
     border-bottom-left-radius: 100% !important;
     border-bottom-right-radius: 5px !important;
     border-top-left-radius: 100% !important;
     border-top-right-radius: 5px !important;
     position: absolute;
-    bottom: -15x;
-    left: 10px;
+    bottom: 3px;
+    left: 25px;
     transform-origin: 100% 4px;
     transform: rotate(0deg);
     box-shadow: 0 2px 2px 1px rgba(0, 0, 0, 0.38);
@@ -743,23 +878,23 @@ const fetchAllDashboardData = async () => {
 /* ======================================= */
 
 .pie-needle-wrapper.primary .needle {
-    width: 340px;
-    height: 15px;
-    background: #03255C;
+    width: 170px;
+    height: 10px;
+    background: #f2ff00;
     z-index: 11;
 }
 
 .pie-needle-wrapper.secondary .needle {
-    width: 340px;
-    height: 13px;
-    background: #03255C;
+    width: 170px;
+    height: 10px;
+    background: #95ff00;
     z-index: 11;
 }
 
 .pie-needle-wrapper.tertiary .needle {
-    width: 340px;
+    width: 170px;
     height: 10px;
-    background: #03255C;
+    background: #00f9cb;
     z-index: 11;
 }
 
@@ -1029,11 +1164,10 @@ const fetchAllDashboardData = async () => {
 
 
 /* ======================================= */
-/* KEYFRAMES BARU UNTUK PIE CHART */
+/* KEYFRAMES UNTUK PIE CHART (OFFSET 10deg) */
 /* ======================================= */
 
-/* Sudut untuk Jarum Utama */
-/* Sudut untuk Jarum Utama */
+/* Sudut Dasar untuk Jarum Utama (Primary) */
 @keyframes fivespeed1-pie {
     100% {
         transform: rotate(45deg);
@@ -1061,74 +1195,84 @@ const fetchAllDashboardData = async () => {
     }
 }
 
-/* Normal */
+/* Crisis */
 @keyframes fivespeed5-pie {
     100% {
         transform: rotate(-72deg);
     }
 }
 
-/* Crisis */
 
-/* Sudut untuk Jarum Kedua (offset -5deg) */
+/* Sudut untuk Jarum Kedua (offset -10deg) */
 @keyframes fivespeed1-pie-secondary {
     100% {
-        transform: rotate(40deg);
+        transform: rotate(35deg);
+        /* 45 - 10 */
     }
 }
 
 @keyframes fivespeed2-pie-secondary {
     100% {
-        transform: rotate(130deg);
+        transform: rotate(125deg);
+        /* 135 - 10 */
     }
 }
 
 @keyframes fivespeed3-pie-secondary {
     100% {
-        transform: rotate(220deg);
+        transform: rotate(215deg);
+        /* 225 - 10 */
     }
 }
 
 @keyframes fivespeed4-pie-secondary {
     100% {
-        transform: rotate(-32deg);
+        transform: rotate(-37deg);
+        /* -27 - 10 */
     }
 }
 
 @keyframes fivespeed5-pie-secondary {
     100% {
-        transform: rotate(-77deg);
+        transform: rotate(-82deg);
+        /* -72 - 10 */
     }
 }
 
-/* Sudut untuk Jarum Ketiga (offset +5deg) */
+
+/* Sudut untuk Jarum Ketiga (offset +10deg) */
 @keyframes fivespeed1-pie-tertiary {
     100% {
-        transform: rotate(50deg);
+        transform: rotate(55deg);
+        /* 45 + 10 */
     }
 }
 
 @keyframes fivespeed2-pie-tertiary {
     100% {
-        transform: rotate(140deg);
+        transform: rotate(145deg);
+        /* 135 + 10 */
     }
 }
 
 @keyframes fivespeed3-pie-tertiary {
     100% {
-        transform: rotate(230deg);
+        transform: rotate(235deg);
+        /* 225 + 10 */
     }
 }
 
 @keyframes fivespeed4-pie-tertiary {
     100% {
-        transform: rotate(-22deg);
+        transform: rotate(-17deg);
+        /* -27 + 10 */
     }
 }
 
 @keyframes fivespeed5-pie-tertiary {
     100% {
-        transform: rotate(-67deg);
+        transform: rotate(-62deg);
+        /* -72 + 10 */
     }
 }
 </style>

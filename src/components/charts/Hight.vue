@@ -187,7 +187,7 @@
                   selectedPost.postStatus
                 }}</span></p>
             <p><strong>Topik:</strong> <span class="font-semibold text-blue-600">{{ selectedPost.topicTag
-                }}</span></p>
+            }}</span></p>
             <p><strong>Followers:</strong> {{ selectedPost.stats.followers }}</p>
             <p><strong>Following:</strong> {{ selectedPost.stats.following }}</p>
             <p><strong>Engagement Total:</strong> {{ selectedPost.stats.engagement }}</p>
@@ -283,14 +283,28 @@ const saveBookmarks = () => {
   localStorage.setItem(BOOKMARK_STORAGE_KEY, JSON.stringify(bookmarkedPosts.value));
 };
 
-// --- BARU: Fungsi untuk memuat bookmark dari localStorage ---
+// --- DIUBAH: Fungsi untuk memuat bookmark dengan penanganan error ---
 const loadBookmarks = () => {
   const savedBookmarks = localStorage.getItem(BOOKMARK_STORAGE_KEY);
   if (savedBookmarks) {
-    bookmarkedPosts.value = JSON.parse(savedBookmarks);
+    try {
+      const parsedData = JSON.parse(savedBookmarks);
+      // Pastikan data yang di-parse adalah sebuah array
+      if (Array.isArray(parsedData)) {
+        bookmarkedPosts.value = parsedData;
+      } else {
+        // Jika data valid JSON tapi bukan array, anggap saja kosong
+        console.warn('Data bookmark yang dimuat bukan array, direset menjadi kosong.');
+        bookmarkedPosts.value = [];
+      }
+    } catch (error) {
+      // Jika JSON.parse gagal, beri tahu developer dan reset state
+      console.error('Gagal memuat bookmark dari localStorage. Data mungkin rusak:', error);
+      bookmarkedPosts.value = []; // Atur ke array kosong agar aplikasi tidak crash
+      localStorage.removeItem(BOOKMARK_STORAGE_KEY); // Opsional: Hapus data yang rusak
+    }
   }
 };
-
 
 // --- DIUBAH: Fungsi toggleBookmark sekarang melakukan sinkronisasi dua arah ---
 const toggleBookmark = (post) => {
@@ -487,11 +501,11 @@ const fetchPostsData = async () => {
   columnsData.value = [{
     title: 'Posts From Highest Engagement',
     posts: engagementPosts,
-    pagination: { total: engagementPosts.length, currentPage: 1, perPage: 10 }
+    pagination: { total: engagementPosts.length, currentPage: 1, perPage: 5 }
   }, {
     title: 'Posts From Highest Followers',
     posts: followersPosts,
-    pagination: { total: followersPosts.length, currentPage: 1, perPage: 10 }
+    pagination: { total: followersPosts.length, currentPage: 1, perPage: 5 }
   }];
   isLoading.value = false;
 };
@@ -503,7 +517,7 @@ const allColumns = computed(() => {
     pagination: {
       total: bookmarkedPosts.value.length,
       currentPage: 1,
-      perPage: 10
+      perPage: 5
     }
   };
 
