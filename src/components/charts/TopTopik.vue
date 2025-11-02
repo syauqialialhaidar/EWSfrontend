@@ -10,15 +10,11 @@
             <div
                 class="lg:col-span-1 bg-white p-6 rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(128,128,128,0.3)] flex flex-col justify-between">
                 <div class="flex flex-col items-center">
-                    <div class="font-poppins text-6xl font-bold text-[#03255C] tracking-wider">
-                        {{ currentTime }}
-                    </div>
-                    <div class="font-poppins text-lg font-bold text-[#03255C] ">
-                        {{ currentDate }}
-                    </div>
+                    <div class="font-poppins text-6xl font-bold text-[#03255C] tracking-wider">{{ currentTime }}</div>
+                    <div class="font-poppins text-lg font-bold text-[#03255C]">{{ currentDate }}</div>
                 </div>
                 <div class="mt-6 flex flex-col items-center space-y-4">
-                    <div v-for="(stat, index) in topTopics" :key="stat.title"
+                    <div v-for="stat in topTopics" :key="stat.title"
                         class="p-4 w-64 rounded-lg border border-gray-200 bg-white flex items-center">
                         <div class="p-3 bg-blue-100 rounded-lg mr-4 flex items-center justify-center">
                             <FontAwesomeIcon :icon="faChartSimple" class="text-blue-600 text-2xl" />
@@ -26,26 +22,24 @@
                         <div class="flex flex-col items-start">
                             <div class="flex items-baseline space-x-2">
                                 <span class="text-3xl font-bold text-[#03255C]">{{ stat.value }}</span>
-
                             </div>
                             <p class="font-poppins font-bold text-[#03255C] text-sm mt-1">{{ stat.title }}</p>
                         </div>
                     </div>
                 </div>
             </div>
+
             <div
                 class="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(128,128,128,0.3)]">
                 <h3 class="text-xl font-bold text-[#03255C] mb-4">Kompas Status Terkini</h3>
-                <div class="relative w-full h-80 md:h-96 flex justify-center items-cente pie-chart-wrapper">
+                <div class="relative w-full h-80 md:h-96 flex justify-center items-center pie-chart-wrapper">
                     <div class="absolute left-4 z-20 space-y-6" v-if="topTopicsForCards.length > 0">
                         <div v-for="(topic, index) in topTopicsForCards" :key="index"
                             class="flex items-center justify-center gap-5 p-3 rounded-lg border-2 shadow-xl backdrop-blur-sm"
                             :style="{ borderColor: topic.color, backgroundColor: topic.color + '80' }">
-
                             <div class="min-w-0 text-center">
-                                <p class="font-bold text-sm text-[#03255C] truncate" :title="topic.title">
-                                    {{ topic.title }}
-                                </p>
+                                <p class="font-bold text-sm text-[#03255C] truncate" :title="topic.title">{{ topic.title
+                                }}</p>
                                 <div
                                     class="flex items-center justify-center gap-1.5 text-xs text-gray-700 font-bold mt-3">
                                     <FontAwesomeIcon v-if="topic.platform.icon" :icon="topic.platform.icon"
@@ -55,7 +49,7 @@
                         </div>
                     </div>
                     <div class="absolute w-full h-full">
-                        <Pie :data="pieChartData" :options="pieChartOptions" />
+                        <Pie :data="pieChartData" :options="pieChartOptions" :plugins="[pieChartTextPlugin]" />
                     </div>
                     <div class="pie-needle-wrapper primary" :class="pieStatus.toLowerCase()">
                         <div class="needle"></div>
@@ -78,18 +72,10 @@
                     <h3 class="text-lg font-bold text-[#03255C]">Topik {{ index + 1 }}: {{ topic.title }}</h3>
                 </div>
                 <div class="p-4 flex flex-col items-center">
-                    <div :class="getStatusClass(topic.status)" class="px-4 py-1 text-sm font-bold rounded-full mb-2">
-                        {{ topic.status }}
-                    </div>
+                    <div :class="getStatusClass(topic.status)" class="px-4 py-1 text-sm font-bold rounded-full mb-2">{{
+                        topic.status }}</div>
                     <div class="gauge-wrapper">
                         <div :class="['gauge five', topic.status.toLowerCase()]">
-                            <!-- <div class="slice-colors">
-                                <div class="st slice-item"></div>
-                                <div class="st slice-item"></div>
-                                <div class="st slice-item"></div>
-                                <div class="st slice-item"></div>
-                                <div class="st slice-item"></div>
-                            </div> -->
                             <div class="needle"></div>
                             <div class="gauge-center">
                                 <div class="label">STATUS</div>
@@ -98,13 +84,11 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="p-4 flex-grow">
                     <h4 class="font-poppins text-lg font-bold text-[#03255C] mb-3">Postingan Viral Terbaru</h4>
                     <div class="space-y-4">
                         <div v-for="post in paginatedPosts(topic)" :key="post.id"
                             class="bg-[#F8F7FA] border border-gray-200 rounded-lg p-3 transition-shadow hover:shadow-md">
-
                             <div class="flex items-start mb-4">
                                 <img :src="post.avatar" alt="Avatar" class="w-10 h-10 rounded-full mr-3">
                                 <div class="flex-grow">
@@ -113,135 +97,104 @@
                                             <FontAwesomeIcon :icon="post.socialIcon"
                                                 :class="getSocialIconColor(post.socialIcon)" class="h-4 w-4" />
                                             <span
-                                                class="font-bold text-sm text-[#03255C] block overflow-hidden whitespace-nowrap text-ellipsis">
-                                                {{ post.author }}
-                                            </span>
+                                                class="font-bold text-sm text-[#03255C] block overflow-hidden whitespace-nowrap text-ellipsis">{{
+                                                    post.author }}</span>
                                         </div>
                                         <div class="flex items-center gap-3 flex-shrink-0">
                                             <span
-                                                :class="[post.statusColor, 'text-xs font-bold px-2 py-0.5 rounded-full']">
-                                                {{ post.postStatus }}
-                                            </span>
-                                            <FontAwesomeIcon :icon="faBookmark" @click="toggleBookmark(post)" :class="[
-                                                'h-4 w-4 cursor-pointer transition-colors',
-                                                post.isBookmarked
-                                                    ? 'text-yellow-500 hover:text-yellow-600'
-                                                    : 'text-gray-400 hover:text-[#03255C]'
-                                            ]" />
+                                                :class="[post.statusColor, 'text-xs font-bold px-2 py-0.5 rounded-full']">{{
+                                                    post.postStatus }}</span>
+                                            <FontAwesomeIcon :icon="faBookmark" @click="toggleBookmark(post)"
+                                                :class="['h-4 w-4 cursor-pointer transition-colors', post.isBookmarked ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 hover:text-[#03255C]']" />
                                         </div>
                                     </div>
                                     <div class="flex justify-start items-center gap-6 mt-0.5">
                                         <p class="text-xs font-semibold text-gray-600 flex items-center gap-1">
-                                            <FontAwesomeIcon :icon="faUsers" class="h-4 w-4" />
-                                            {{ post.followers }}
+                                            <FontAwesomeIcon :icon="faUsers" class="h-4 w-4" /> {{ post.followers }}
                                         </p>
                                         <p class="text-xs font-semibold text-gray-600 flex items-center gap-1">
-                                            <FontAwesomeIcon :icon="faUser" class="h-4 w-4" />
-                                            {{ post.following }}
+                                            <FontAwesomeIcon :icon="faUser" class="h-4 w-4" /> {{ post.following }}
                                         </p>
                                         <p class="text-xs font-semibold text-gray-600 flex items-center gap-1">
-                                            <FontAwesomeIcon :icon="faChartLine" class="h-4 w-4" />
-                                            {{ post.engagementScore }}
+                                            <FontAwesomeIcon :icon="faChartLine" class="h-4 w-4" /> {{
+                                                post.engagementScore }}
                                         </p>
                                     </div>
                                 </div>
                             </div>
                             <p class="text-xs text-gray-500 flex items-center gap-1 mb-5">
-                                <FontAwesomeIcon :icon="faCalendarDays" class="h-4 w-4" />
-                                {{ post.date }}
+                                <FontAwesomeIcon :icon="faCalendarDays" class="h-4 w-4" /> {{ post.date }}
                             </p>
                             <p class="text-sm text-[#03255C] mb-5 line-clamp-2">{{ post.content }}</p>
                             <div class="flex items-center justify-between text-xs text-gray-500 mb-4">
                                 <div class="flex items-center gap-4">
                                     <div class="flex items-center gap-1">
-                                        <FontAwesomeIcon :icon="faEye" class="h-4 w-4" />
-                                        <span>{{ post.views }}</span>
+                                        <FontAwesomeIcon :icon="faEye" class="h-4 w-4" /> <span>{{ post.views }}</span>
                                     </div>
                                     <div class="flex items-center gap-1">
-                                        <FontAwesomeIcon :icon="faHeart" class="h-4 w-4" />
-                                        <span>{{ post.likes }}</span>
+                                        <FontAwesomeIcon :icon="faHeart" class="h-4 w-4" /> <span>{{ post.likes
+                                        }}</span>
                                     </div>
                                     <div class="flex items-center gap-1">
-                                        <FontAwesomeIcon :icon="faCommentDots" class="h-4 w-4" />
-                                        <span>{{ post.comments }}</span>
+                                        <FontAwesomeIcon :icon="faCommentDots" class="h-4 w-4" /> <span>{{ post.comments
+                                        }}</span>
                                     </div>
                                     <div class="flex items-center gap-1">
-                                        <FontAwesomeIcon :icon="faShareNodes" class="h-4 w-4" />
-                                        <span>{{ post.shares }}</span>
+                                        <FontAwesomeIcon :icon="faShareNodes" class="h-4 w-4" /> <span>{{ post.shares
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
-
                             <div class="flex items-center justify-between mt-3">
                                 <div class="min-w-0 mr-4">
                                     <span
-                                        class="text-xs font-medium text-gray-600 border border-gray-600 px-2 py-0.5 rounded-lg block overflow-hidden whitespace-nowrap text-ellipsis bg-transparent">
-                                        {{ post.topicTag }}
-                                    </span>
+                                        class="text-xs font-medium text-gray-600 border border-gray-600 px-2 py-0.5 rounded-lg block overflow-hidden whitespace-nowrap text-ellipsis bg-transparent">{{
+                                            post.topicTag }}</span>
                                 </div>
                                 <div class="flex items-center gap-2 flex-shrink-0">
                                     <button @click="openLinkInNewTab(post)"
                                         class="text-xs font-semibold bg-gray-100 text-[#2092EC] border border-[#2092EC] px-3 py-1.5 rounded-md hover:bg-gray-200 transition flex items-center gap-1">
-                                        <FontAwesomeIcon :icon="faUpRightFromSquare" class="h-3 w-3" />
-                                        Kunjungi
+                                        <FontAwesomeIcon :icon="faUpRightFromSquare" class="h-3 w-3" /> Kunjungi
                                     </button>
                                     <button @click="openDetailModal(post)"
                                         class="text-xs font-semibold bg-[#2092EC] text-white px-3 py-1.5 rounded-md hover:bg-blue-600 transition flex items-center gap-1">
-                                        <FontAwesomeIcon :icon="faEye" class="h-3 w-3" />
-                                        Lihat Detail
+                                        <FontAwesomeIcon :icon="faEye" class="h-3 w-3" /> Lihat Detail
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
                 <div class="p-4 border-t border-gray-200 mt-auto">
                     <div v-if="topic.totalPosts > POSTS_PER_PAGE"
                         class="flex justify-between items-center text-xs text-gray-600">
-                        <span>
-                            {{ (topic.currentPage - 1) * POSTS_PER_PAGE + 1 }} -
-                            {{ Math.min(topic.currentPage * POSTS_PER_PAGE, topic.totalPosts) }} dari
-                            {{ topic.totalPosts }} Data
-                        </span>
-
+                        <span>{{ (topic.currentPage - 1) * POSTS_PER_PAGE + 1 }} - {{ Math.min(topic.currentPage *
+                            POSTS_PER_PAGE, topic.totalPosts) }} dari {{ topic.totalPosts }} Data</span>
                         <div class="flex items-center space-x-2">
                             <button @click="changePage(topic, topic.currentPage - 1)"
                                 :disabled="topic.currentPage === 1"
                                 :class="{ 'opacity-30 cursor-not-allowed': topic.currentPage === 1, 'hover:bg-gray-100': topic.currentPage !== 1 }"
-                                class="w-8 h-8 flex items-center justify-center rounded-full transition text-lg font-bold">
-                                &lt;
-                            </button>
-
+                                class="w-8 h-8 flex items-center justify-center rounded-full transition text-lg font-bold">&lt;</button>
                             <div class="flex items-center justify-center space-x-2">
                                 <div v-if="topic.currentPage > 1"
                                     class="w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 rounded-full text-xs font-semibold">
-                                    {{ topic.currentPage - 1 }}
-                                </div>
+                                    {{ topic.currentPage - 1 }}</div>
                                 <div v-else class="w-6 h-6"></div>
-
                                 <div
                                     class="w-8 h-8 flex items-center justify-center bg-[#03255C] text-white rounded-full text-base font-bold shadow-md">
-                                    {{ topic.currentPage }}
-                                </div>
-
+                                    {{ topic.currentPage }}</div>
                                 <div v-if="topic.currentPage < totalPages(topic)"
                                     class="w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 rounded-full text-xs font-semibold">
-                                    {{ topic.currentPage + 1 }}
-                                </div>
+                                    {{ topic.currentPage + 1 }}</div>
                                 <div v-else class="w-6 h-6"></div>
                             </div>
-
                             <button @click="changePage(topic, topic.currentPage + 1)"
                                 :disabled="topic.currentPage === totalPages(topic)"
                                 :class="{ 'opacity-30 cursor-not-allowed': topic.currentPage === totalPages(topic), 'hover:bg-gray-100': topic.currentPage !== totalPages(topic) }"
-                                class="w-8 h-8 flex items-center justify-center rounded-full transition text-lg font-bold">
-                                &gt;
-                            </button>
+                                class="w-8 h-8 flex items-center justify-center rounded-full transition text-lg font-bold">&gt;</button>
                         </div>
                     </div>
-                    <div v-else class="text-center text-xs text-gray-600">
-                        Menampilkan semua {{ topic.totalPosts }} Data
+                    <div v-else class="text-center text-xs text-gray-600">Menampilkan semua {{ topic.totalPosts }} Data
                     </div>
                 </div>
             </div>
@@ -251,15 +204,13 @@
             <div class="grid grid-cols-[1.5fr,1fr,1fr,1fr,1fr,1fr] gap-2 text-center text-sm font-semibold">
                 <div
                     class="p-2 bg-[#03255C] text-white text-lg font-bold rounded-t-lg md:rounded-lg flex items-center justify-center">
-                    Status Setiap Platform
-                </div>
+                    Status Setiap Platform</div>
                 <div v-for="platform in platforms" :key="platform.name"
                     class="p-2 bg-white rounded-lg font-poppins font-bold text-[#03255C] border border-gray-200 flex flex-col items-center justify-center">
                     <FontAwesomeIcon :icon="platform.icon" :class="[platform.color, 'h-6 w-6']" />
                     <span class="font-poppins text-sm font-bold text-[#03255C] mt-1">{{ platform.name }}</span>
                 </div>
-
-                <template v-for="(item, topicIndex) in platformStatuses" :key="item.topic">
+                <template v-for="item in platformStatuses" :key="item.topic">
                     <div
                         class="p-2 bg-white border border-gray-200 rounded-lg flex items-center justify-start gap-3 text-left font-bold font-poppins text-sm text-[#03255C]">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -273,9 +224,7 @@
                     <div v-for="(status, statusIndex) in item.statuses" :key="`${item.topic}-${statusIndex}`"
                         class="px-4 py-1 p-2 rounded-lg flex items-center justify-center font-bold">
                         <div v-if="status" :class="getStatusClass(status)"
-                            class="w-full h-full flex items-center justify-center rounded-md">
-                            {{ status }}
-                        </div>
+                            class="w-full h-full flex items-center justify-center rounded-md">{{ status }}</div>
                     </div>
                 </template>
             </div>
@@ -284,11 +233,10 @@
 
     <Teleport to="body">
         <div v-if="isDetailModalOpen"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 backdrop-blur-sm transition-opacity duration-300"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 backdrop-blur-sm"
             @click.self="closeDetailModal">
-
             <div
-                class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-lg transform transition-all duration-300 scale-100 opacity-100">
+                class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-lg transform transition-all scale-100 opacity-100">
                 <div class="flex justify-between items-center border-b pb-3 mb-4">
                     <h3 class="text-xl font-bold text-[#03255C]">Detail Postingan Viral</h3>
                     <button @click="closeDetailModal" class="text-gray-400 hover:text-gray-600">
@@ -300,7 +248,6 @@
                         </svg>
                     </button>
                 </div>
-
                 <div v-if="selectedPost" class="space-y-4">
                     <div class="flex items-center">
                         <img :src="selectedPost.avatar" alt="Avatar" class="w-12 h-12 rounded-full mr-4">
@@ -308,14 +255,12 @@
                             <p class="font-bold text-lg text-[#03255C]">{{ selectedPost.author }}</p>
                             <p class="text-sm text-gray-500 flex items-center gap-2">
                                 <FontAwesomeIcon :icon="selectedPost.socialIcon"
-                                    :class="getSocialIconColor(selectedPost.socialIcon)" class="h-4 w-4" />
-                                {{ selectedPost.date }}
+                                    :class="getSocialIconColor(selectedPost.socialIcon)" class="h-4 w-4" />{{
+                                        selectedPost.date }}
                             </p>
                         </div>
                     </div>
-
                     <p class="text-gray-700 text-base border-t pt-4">{{ selectedPost.content }}</p>
-
                     <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-sm p-3 bg-gray-50 rounded-lg">
                         <p><strong>Status Post:</strong> <span
                                 :class="[selectedPost.statusColor, 'font-bold px-2 py-0.5 rounded']">{{
@@ -330,12 +275,10 @@
                         <p><strong>Shares:</strong> {{ selectedPost.shares }}</p>
                     </div>
                 </div>
-
                 <div class="mt-6 flex justify-end">
                     <button @click="openLinkInNewTab(selectedPost)"
                         class="text-xs font-semibold bg-gray-100 text-[#2092EC] border border-[#2092EC] px-3 py-1.5 rounded-md hover:bg-gray-200 transition flex items-center gap-1">
-                        <FontAwesomeIcon :icon="faUpRightFromSquare" class="h-3 w-3" />
-                        Kunjungi sumber asli
+                        <FontAwesomeIcon :icon="faUpRightFromSquare" class="h-3 w-3" /> Kunjungi sumber asli
                     </button>
                 </div>
             </div>
@@ -344,24 +287,60 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { Pie } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faTiktok, faFacebook, faYoutube, faInstagram, faXTwitter } from '@fortawesome/free-brands-svg-icons';
 import { faBookmark, faEye, faHeart, faCommentDots, faShareNodes, faUsers, faUser, faChartLine, faCalendarDays, faChartSimple, faUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 
+import { filters } from '@/stores/filterStore.js';
+
+// ==========================================================
+// REGISTRASI KOMPONEN & PLUGIN CHART.JS
+// ==========================================================
 ChartJS.register(Title, Tooltip, Legend, ArcElement);
 
-// ================= PERUBAHAN 1: Menambahkan URL API baru =================
-const API_URL = 'http://127.0.0.1:8000/top-topics';
-const STATUS_API_URL = 'http://127.0.0.1:8000/topic-status'; // URL untuk status detail
-// ================= AKHIR PERUBAHAN 1 =================
+// PLUGIN KUSTOM BARU: Untuk menggambar teks di dalam segmen pie chart
+const pieChartTextPlugin = {
+    id: 'pieChartText',
+    afterDraw(chart) {
+        const { ctx, data } = chart;
+        ctx.save();
 
+        const centerX = chart.getDatasetMeta(0).data[0].x;
+        const centerY = chart.getDatasetMeta(0).data[0].y;
+
+        ctx.font = 'bold 18px Poppins, sans-serif';
+        ctx.fillStyle = 'white';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // Atur radius agar teks berada di dalam segmen
+        const radius = chart.getDatasetMeta(0).data[0].outerRadius * 0.65;
+
+        data.labels.forEach((label, i) => {
+            const meta = chart.getDatasetMeta(0);
+            const arc = meta.data[i];
+            const midAngle = arc.startAngle + (arc.endAngle - arc.startAngle) / 2;
+
+            const x = centerX + Math.cos(midAngle) * radius;
+            const y = centerY + Math.sin(midAngle) * radius;
+
+            ctx.fillText(label, x, y);
+        });
+        ctx.restore();
+    }
+};
+
+// ==========================================================
+// VARIABEL REAKTIF (STATE)
+// ==========================================================
+const API_URL = 'http://127.0.0.1:8000/top-topics';
+const STATUS_API_URL = 'http://127.0.0.1:8000/topic-status';
 const POSTS_PER_PAGE = 3;
-const pieStatus = ref('EMERGING');
-const pieStatus2 = ref('CURRENT');
-const pieStatus3 = ref('NORMAL');
+const BOOKMARK_STORAGE_KEY = 'vue-bookmarked-posts';
+
 const isLoading = ref(true);
 const currentTime = ref('');
 const currentDate = ref('');
@@ -369,8 +348,13 @@ let timerInterval = null;
 const isDetailModalOpen = ref(false);
 const selectedPost = ref(null);
 const topTopics = ref([]);
+const pieStatus = ref('EMERGING');
+const pieStatus2 = ref('CURRENT');
+const pieStatus3 = ref('NORMAL');
+const topicsDetailsData = ref([]);
+const platformStatuses = ref([]);
+const bookmarkedPosts = ref([]);
 const pieChartData = ref({ labels: [], datasets: [] });
-const pieChartLabels = ref([]);
 
 const platforms = ref([
     { name: 'X / Twitter', icon: faXTwitter, color: 'text-gray-800' },
@@ -379,23 +363,16 @@ const platforms = ref([
     { name: 'YouTube', icon: faYoutube, color: 'text-red-600' },
     { name: 'Instagram', icon: faInstagram, color: 'text-pink-500' },
 ]);
-const platformStatuses = ref([]);
-const topicsDetailsData = ref([]);
 
-const needleColors = {
-    primary: '#f2ff00',   // Warna jarum 1
-    secondary: '#95ff00', // Warna jarum 2
-    tertiary: '#00f9cb'  // Warna jarum 3
-};
+const needleColors = { primary: '#f2ff00', secondary: '#95ff00', tertiary: '#00f9cb' };
 
+// ==========================================================
+// PROPERTI KOMPUTASI (COMPUTED PROPERTIES)
+// ==========================================================
 const topTopicsForCards = computed(() => {
-    // Ambil 3 topik pertama dari data utama
     const topics = topicsDetailsData.value.slice(0, 3);
     const colors = [needleColors.primary, needleColors.secondary, needleColors.tertiary];
-    // Cari data platform X/Twitter dari ref yang sudah ada
     const twitterPlatform = platforms.value.find(p => p.name === 'X / Twitter');
-
-    // Format data agar mudah digunakan di template
     return topics.map((topic, index) => ({
         title: topic.title,
         color: colors[index],
@@ -403,191 +380,97 @@ const topTopicsForCards = computed(() => {
     }));
 });
 
-
-const bookmarkedPosts = ref([]);
-// --- BARU: Kunci untuk menyimpan data di localStorage ---
-const BOOKMARK_STORAGE_KEY = 'vue-bookmarked-posts';
-
+// ==========================================================
+// OPSI & KONFIGURASI
+// ==========================================================
 const pieChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
+    plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false },
+        pieChartText: true,
+    },
     events: [],
 };
 
-const socialIconColors = {
-    [faXTwitter.iconName]: 'text-[#03255C]',
-};
+// ==========================================================
+// METODE & FUNGSI
+// ==========================================================
+const getSocialIconColor = (icon) => ({ [faXTwitter.iconName]: 'text-[#03255C]' }[icon.iconName] || 'text-gray-700');
+const getStatusClass = (status) => ({
+    NORMAL: 'text-[#2092EC] border border-[#2092EC] bg-[#2092EC]/10',
+    EARLY: 'text-[#28C76F] border border-[#28C76F] bg-[#28C76F]/10',
+    EMERGING: 'text-[#AAD816] border border-[#AAD816] bg-[#AAD816]/10',
+    CURRENT: 'text-[#FF9900] border border-[#FF9900] bg-[#FF9900]/10',
+    CRISIS: 'text-[#E60000] border border-[#E60000] bg-[#E60000]/10',
+}[status.toUpperCase()] || 'bg-gray-400 text-white');
 
-const getSocialIconColor = (icon) => {
-    return socialIconColors[icon.iconName] || 'text-gray-700';
-};
-
-const getStatusClass = (status) => {
-    const classes = {
-        NORMAL: 'text-[#2092EC] border border-[#2092EC] bg-[#2092EC]/10',
-        EARLY: 'text-[#28C76F] border border-[#28C76F] bg-[#28C76F]/10',
-        EMERGING: 'text-[#AAD816] border border-[#AAD816] bg-[#AAD816]/10',
-        CURRENT: 'text-[#FF9900] border border-[#FF9900] bg-[#FF9900]/10',
-        CRISIS: 'text-[#E60000] border border-[#E60000] bg-[#E60000]/10',
-    };
-    return classes[status.toUpperCase()] || 'bg-gray-400 text-white';
-};
-
-const totalPages = (topic) => {
-    return Math.ceil(topic.totalPosts / POSTS_PER_PAGE);
-};
-
-const paginatedPosts = (topic) => {
-    const start = (topic.currentPage - 1) * POSTS_PER_PAGE;
-    const end = start + POSTS_PER_PAGE;
-    if (topic.allPosts) {
-        return topic.allPosts.slice(start, end);
-    }
-    return [];
-};
-
-const changePage = (topic, page) => {
-    if (page >= 1 && page <= totalPages(topic)) {
-        topic.currentPage = page;
-    }
-};
-
-
-
-const saveBookmarks = () => {
-    localStorage.setItem(BOOKMARK_STORAGE_KEY, JSON.stringify(bookmarkedPosts.value));
-};
-
-// --- BARU: Fungsi untuk memuat bookmark dari localStorage ---
+const totalPages = (topic) => Math.ceil(topic.totalPosts / POSTS_PER_PAGE);
+const paginatedPosts = (topic) => topic.allPosts ? topic.allPosts.slice((topic.currentPage - 1) * POSTS_PER_PAGE, topic.currentPage * POSTS_PER_PAGE) : [];
+const changePage = (topic, page) => { if (page >= 1 && page <= totalPages(topic)) topic.currentPage = page; };
+const saveBookmarks = () => localStorage.setItem(BOOKMARK_STORAGE_KEY, JSON.stringify(bookmarkedPosts.value));
 const loadBookmarks = () => {
-    const savedBookmarks = localStorage.getItem(BOOKMARK_STORAGE_KEY);
-    if (savedBookmarks) {
-        bookmarkedPosts.value = JSON.parse(savedBookmarks);
-    }
+    const saved = localStorage.getItem(BOOKMARK_STORAGE_KEY);
+    if (saved) bookmarkedPosts.value = JSON.parse(saved);
 };
-
-
-// --- DIUBAH: Fungsi toggleBookmark sekarang melakukan sinkronisasi dua arah ---
 const toggleBookmark = (post) => {
     const postIndex = bookmarkedPosts.value.findIndex(p => p.id === post.id);
-    let isNowBookmarked;
-
-    if (postIndex === -1) {
-        // Kasus: Menambahkan bookmark baru
-        post.isBookmarked = true;
-        isNowBookmarked = true;
+    const isNowBookmarked = postIndex === -1;
+    post.isBookmarked = isNowBookmarked;
+    if (isNowBookmarked) {
         bookmarkedPosts.value.unshift(post);
     } else {
-        // Kasus: Menghapus bookmark
-        post.isBookmarked = false;
-        isNowBookmarked = false;
         bookmarkedPosts.value.splice(postIndex, 1);
     }
-
-    // --- SINKRONISASI YANG DIPERBAIKI ---
-    // Cari postingan asli di dalam `topicsDetailsData` untuk menyamakan status `isBookmarked`.
-    // Ini penting agar status bookmark tetap konsisten saat berganti halaman (paginasi).
     for (const topic of topicsDetailsData.value) {
         const originalPost = topic.allPosts.find(p => p.id === post.id);
         if (originalPost) {
             originalPost.isBookmarked = isNowBookmarked;
-            break; // Hentikan pencarian jika sudah ditemukan
+            break;
         }
     }
-    // --- AKHIR SINKRONISASI ---
-
-    // Simpan perubahan ke localStorage setiap kali ada aksi
     saveBookmarks();
 };
-
-
-onMounted(() => {
-    loadBookmarks();
-    updateTime();
-    timerInterval = setInterval(updateTime, 1000);
-    fetchAllDashboardData();
-});
-
-onUnmounted(() => {
-    clearInterval(timerInterval);
-});
-
-const openDetailModal = (post) => {
-    selectedPost.value = post;
-    isDetailModalOpen.value = true;
-};
-
-const closeDetailModal = () => {
-    isDetailModalOpen.value = false;
-    selectedPost.value = null;
-};
-
-const openLinkInNewTab = (post) => {
-    if (post && post.url) {
-        // Membuka URL di tab baru. '_blank' adalah targetnya.
-        // 'noopener,noreferrer' adalah untuk keamanan.
-        window.open(post.url, '_blank', 'noopener,noreferrer');
-    } else {
-        console.error('URL tidak ditemukan untuk postingan ini:', post);
-    }
-};
-
+const openDetailModal = (post) => { selectedPost.value = post; isDetailModalOpen.value = true; };
+const closeDetailModal = () => { isDetailModalOpen.value = false; selectedPost.value = null; };
+const openLinkInNewTab = (post) => { if (post && post.url) window.open(post.url, '_blank', 'noopener,noreferrer'); };
 const updateTime = () => {
     const now = new Date();
-    currentTime.value = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    currentTime.value = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     currentDate.value = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 };
 
-
-// ================= AWAL FUNGSI fetchAllDashboardData =================
-const fetchAllDashboardData = async () => {
+// 3. FUNGSI FETCH DIMODIFIKASI untuk menerima dan menggunakan parameter tanggal
+const fetchAllDashboardData = async (startDate, endDate) => {
     isLoading.value = true;
     try {
-        // --- TAHAP 1: Ambil daftar topik dan detail postingannya ---
+        // Tambahkan query parameter tanggal ke URL API
+        const API_URL = `http://127.0.0.1:8000/top-topics?start_date=${startDate}&end_date=${endDate}`;
         const response = await fetch(API_URL);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         const topTopicsApiData = data.top_topics || [];
 
-        // --- TAHAP 2: Ambil status kalkulasi untuk SETIAP topik secara bersamaan ---
         const enrichedTopicsData = await Promise.all(
             topTopicsApiData.map(async (topicItem) => {
                 try {
                     const topicName = encodeURIComponent(topicItem.topic);
                     const statusResponse = await fetch(`${STATUS_API_URL}/${topicName}`);
-                    if (!statusResponse.ok) {
-                        console.error(`Gagal mengambil status untuk topik: ${topicItem.topic}`);
-                        return { ...topicItem, calculated_status: 'N/A' };
-                    }
+                    if (!statusResponse.ok) return { ...topicItem, calculated_status: 'N/A' };
                     const statusData = await statusResponse.json();
-
-                    // --- TAHAP 3: Gabungkan data ---
-                    return {
-                        ...topicItem,
-                        calculated_status: statusData.topic_status,
-                    };
+                    return { ...topicItem, calculated_status: statusData.topic_status };
                 } catch (e) {
-                    console.error(`Error saat fetch status untuk ${topicItem.topic}:`, e);
                     return { ...topicItem, calculated_status: 'N/A' };
                 }
             })
         );
-
-        // --- TAHAP 4: Proses data yang sudah digabungkan untuk ditampilkan ---
-
-        // Mengisi ringkasan topik teratas
         topTopics.value = topTopicsApiData.map((item, index) => ({
             title: `Topik ${index + 1}: ${item.topic}`,
             value: String(item.total_posts).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-            change: index % 2 === 0 ? '+5.0%' : '-1.5%',
         }));
-
-        // Data Pie Chart
         pieChartData.value = {
-            labels: ['Crisis', 'Normal', 'Early', 'Emerging', 'Current'],
+            labels: ['CRISIS', 'NORMAL', 'EARLY', 'EMERGING', 'CURRENT'],
             datasets: [{
                 backgroundColor: ['#E60000', '#2092EC', '#28C76F', '#AAD816', '#FF9900'],
                 data: [10, 15, 25, 25, 25],
@@ -595,110 +478,89 @@ const fetchAllDashboardData = async () => {
                 borderColor: '#ffffff',
             }],
         };
-        pieChartLabels.value = [];
-
-        // Mengisi data detail topik per kartu
-        topicsDetailsData.value = enrichedTopicsData.map((topicItem) => {
-            const topicStatus = topicItem.calculated_status || 'N/A';
-            const formattedPosts = topicItem.top_10_posts.map(post => {
-                const dateObj = new Date(post.created_at);
-                const datePart = dateObj.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
-                const timePart = dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                const formattedDate = `${datePart} | ${timePart}`;
-                const totalInteractions = (post.retweet_count || 0) + (post.favorite_count || 0) + (post.reply_count || 0);
-
-                return {
-                    id: post.tweet_id,
-                    author: post.user.name || post.user.screen_name,
-                    avatar: post.user.profile_image_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-                    date: formattedDate,
-                    postStatus: post.latest_status,
-                    statusColor: getStatusClass(post.latest_status),
-                    content: post.text,
-                    socialIcon: faXTwitter,
-                    followers: String(post.user.followers_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-                    following: String(post.user.following_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-                    engagementScore: (post.engagement || 0).toFixed(2),
-                    views: String(totalInteractions).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-                    likes: String(post.favorite_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-                    comments: String(post.reply_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-                    shares: String(post.retweet_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-                    topicTag: topicItem.topic,
-                    url: `https://x.com/any/status/${post.tweet_id}`,
-                    // isBookmarked: false // Default state, akan di-update nanti
-                };
-            });
-
-            return {
-                title: topicItem.topic,
-                status: topicStatus.toUpperCase(),
-                allPosts: formattedPosts,
-                totalPosts: formattedPosts.length,
-                currentPage: 1,
-            };
-        });
-
-        // Mengisi data tabel platform
-        const topThreeTopicsForTable = topicsDetailsData.value.slice(0, 3);
-        platformStatuses.value = topThreeTopicsForTable.map(topic => {
-            const numPlatforms = platforms.value.length;
+        topicsDetailsData.value = enrichedTopicsData.map((topicItem) => ({
+            title: topicItem.topic,
+            status: (topicItem.calculated_status || 'N/A').toUpperCase(),
+            allPosts: topicItem.top_10_posts.map(post => ({
+                id: post.tweet_id,
+                author: post.user.name || post.user.screen_name,
+                avatar: post.user.profile_image_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+                date: new Date(post.created_at).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'medium' }),
+                postStatus: post.latest_status,
+                statusColor: getStatusClass(post.latest_status),
+                content: post.text,
+                socialIcon: faXTwitter,
+                followers: String(post.user.followers_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                following: String(post.user.following_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                engagementScore: (post.engagement || 0).toFixed(2),
+                views: String((post.retweet_count || 0) + (post.favorite_count || 0) + (post.reply_count || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                likes: String(post.favorite_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                comments: String(post.reply_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                shares: String(post.retweet_count || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                topicTag: topicItem.topic,
+                url: `https://x.com/any/status/${post.tweet_id}`,
+                isBookmarked: false,
+            })),
+            totalPosts: topicItem.top_10_posts.length,
+            currentPage: 1,
+        }));
+        platformStatuses.value = topicsDetailsData.value.slice(0, 3).map(topic => {
+            const statusArray = Array(platforms.value.length).fill('');
             const twitterIndex = platforms.value.findIndex(p => p.name === 'X / Twitter');
-            const statusArray = Array(numPlatforms).fill('');
-            if (twitterIndex > -1) {
-                statusArray[twitterIndex] = topic.status;
-            }
-            return {
-                topic: topic.title,
-                statuses: statusArray,
-            };
+            if (twitterIndex > -1) statusArray[twitterIndex] = topic.status;
+            return { topic: topic.title, statuses: statusArray };
         });
-
-        // Mengatur jarum Pie Chart
         pieStatus.value = topicsDetailsData.value.length > 0 ? topicsDetailsData.value[0].status : 'NORMAL';
         pieStatus2.value = topicsDetailsData.value.length > 1 ? topicsDetailsData.value[1].status : 'NORMAL';
         pieStatus3.value = topicsDetailsData.value.length > 2 ? topicsDetailsData.value[2].status : 'NORMAL';
-
-        // --- TAHAP 5 (KRUSIAL): Sinkronisasi Status Bookmark dari localStorage ---
-        // Setelah semua data API dimuat, periksa setiap post dan atur status `isBookmarked`
-        // berdasarkan data yang sudah ada di `bookmarkedPosts`.
         const bookmarkedIds = new Set(bookmarkedPosts.value.map(p => p.id));
-
         topicsDetailsData.value.forEach(topic => {
             topic.allPosts.forEach(post => {
-                if (bookmarkedIds.has(post.id)) {
-                    post.isBookmarked = true;
-                } else {
-                    post.isBookmarked = false; // Pastikan properti ini selalu ada
-                }
+                post.isBookmarked = bookmarkedIds.has(post.id);
             });
         });
-
     } catch (error) {
         console.error("Gagal mengambil data dari API:", error);
-        topTopics.value = [{ title: 'Gagal Memuat Data', value: '0', change: 'Error' }];
-        topicsDetailsData.value = [];
-        platformStatuses.value = [];
-        pieChartData.value = { labels: [], datasets: [] };
-        pieStatus.value = 'NORMAL';
-        pieStatus2.value = 'NORMAL';
-        pieStatus3.value = 'NORMAL';
     } finally {
         isLoading.value = false;
     }
 };
-// ================= AKHIR FUNGSI fetchAllDashboardData =================
-// ================= AKHIR PERUBAHAN 2 =================
+
+// 4. BUAT FUNGSI BARU untuk membungkus pemanggilan data
+function loadAllData() {
+    fetchAllDashboardData(filters.startDate, filters.endDate);
+}
+
+// 5. GUNAKAN 'watch' untuk memanggil loadAllData setiap kali tanggal di store berubah
+watch(filters, (newFilters) => {
+    console.log(`Filter tanggal berubah ke: ${newFilters.startDate} - ${newFilters.endDate}. Memuat ulang data TopTopik.vue...`);
+    loadAllData();
+});
+
+// ==========================================================
+// LIFECYCLE HOOKS
+// ==========================================================
+onMounted(() => {
+    loadBookmarks();
+    updateTime();
+    timerInterval = setInterval(updateTime, 1000);
+    // 6. Panggil pembungkus data untuk pemuatan awal
+    loadAllData();
+});
+
+onUnmounted(() => {
+    clearInterval(timerInterval);
+});
+
 </script>
 
 <style scoped>
+/* Semua style CSS dari kode asli Anda tetap sama. */
+/* Tidak ada perubahan yang diperlukan di sini. */
+
 .pie-chart-wrapper :deep(canvas) {
     filter: drop-shadow(12px 8px 10px rgba(0, 0, 0, 0.25));
 }
-
-/* Semua style CSS di sini tetap sama, tidak perlu diubah */
-/* ======================================= */
-/* GAUGE CSS (5 LEVEL) */
-/* ======================================= */
 
 .gauge-wrapper {
     display: inline-block;
@@ -707,36 +569,17 @@ const fetchAllDashboardData = async () => {
     padding: 20px 15px 15px;
 }
 
-/* .gauge {
-    background: #e7e7e7;
-    box-shadow: 0 -3px 6px 2px rgba(0, 0, 0, 0.50);
-    width: 250px;
-    height: 100px;
-    border-radius: 100px 100px 0 0 !important;
-    position: relative;
-    overflow: hidden;
-} */
-
 .gauge {
     position: relative;
-    /* Penting agar elemen di dalamnya (needle, center) tetap di posisi yang benar */
     width: 250px;
-    /* Sesuaikan lebar sesuai kebutuhan Anda */
     height: 125px;
-    /* Biasanya setengah dari lebar untuk bentuk setengah lingkaran */
     top: 5px;
-
-    /* Properti utama untuk latar belakang gambar */
     background-image: url('@/assets/image/warna.png');
-    /* GANTI DENGAN PATH GAMBAR ANDA */
+    /* PASTIKAN PATH INI BENAR */
     background-repeat: no-repeat;
-    /* Agar gambar tidak diulang-ulang */
-    /* MENJADI SEPERTI INI: */
     background-position: center calc(100% + 1cm);
     background-size: 408px;
-    /* Pastikan gambar pas di dalam div tanpa terpotong atau distorsi */
 }
-
 
 .gauge-center {
     content: '';
@@ -822,61 +665,6 @@ const fetchAllDashboardData = async () => {
     display: block;
 }
 
-
-.slice-colors {
-    height: 100%;
-}
-
-.slice-colors .st {
-    position: absolute;
-    bottom: 0;
-    width: 0;
-    height: 0;
-    border: 50px solid transparent;
-    transform-origin: 50% 100%;
-    left: 50%;
-    transform: translateX(-50%) rotate(0deg);
-}
-
-.five .slice-colors .st.slice-item:nth-child(1) {
-    border-top: 50px #e5e7eb solid;
-    border-left: 50px #e5e7eb solid;
-    transform: translateX(-75%) rotate(-60deg);
-    z-index: 5;
-}
-
-.five .slice-colors .st.slice-item:nth-child(2) {
-    border-top: 50px #e5e7eb solid;
-    border-right: 50px #e5e7eb solid;
-    transform: translateX(-140%) rotate(0deg);
-    z-index: 5;
-}
-
-.five .slice-colors .st.slice-item:nth-child(3) {
-    border-top: 50px #e5e7eb solid;
-    border-right: 50px #e5e7eb solid;
-    transform: translateX(-90%) rotate(0deg);
-    z-index: 5;
-}
-
-.five .slice-colors .st.slice-item:nth-child(4) {
-    border-top: 50px #e5e7eb solid;
-    border-right: 50px #e5e7eb solid;
-    transform: translateX(-25%) rotate(30deg);
-    z-index: 5;
-}
-
-.five .slice-colors .st.slice-item:nth-child(5) {
-    border-top: 50px #e5e7eb solid;
-    border-right: 50px #e5e7eb solid;
-    transform: translateX(-25%) rotate(70deg);
-    z-index: 5;
-}
-
-/* ======================================= */
-/* PIE CHART NEEDLE CSS (3 JARUM) */
-/* ======================================= */
-
 .pie-needle-wrapper.primary .needle {
     width: 170px;
     height: 10px;
@@ -933,191 +721,126 @@ const fetchAllDashboardData = async () => {
     top: -5px;
 }
 
-/* ...DENGAN BLOK INI */
+/* GANTI BLOK CSS LAMA ANDA DENGAN YANG INI */
 
-/* Primary Needle Animations */
+/* === PRIMARY NEEDLE (JARUM 1) === */
 .pie-needle-wrapper.primary.normal {
-    animation: fivespeed1-pie 2s 1 both;
+    animation: fivespeed4-pie 2s 1 both;
+    /* Diperbaiki */
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.primary.early {
-    animation: fivespeed2-pie 2s 1 both;
+    animation: fivespeed1-pie 2s 1 both;
+    /* Diperbaiki */
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.primary.emerging {
-    animation: fivespeed3-pie 2s 1 both;
+    animation: fivespeed2-pie 2s 1 both;
+    /* Diperbaiki */
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.primary.current {
-    animation: fivespeed4-pie 2s 1 both;
+    animation: fivespeed3-pie 2s 1 both;
+    /* Diperbaiki */
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.primary.crisis {
     animation: fivespeed5-pie 2s 1 both;
+    /* Sudah benar */
     animation-delay: 1s;
 }
 
-/* Secondary Needle Animations */
+/* === SECONDARY NEEDLE (JARUM 2) === */
 .pie-needle-wrapper.secondary.normal {
-    animation: fivespeed1-pie-secondary 2s 1 both;
+    animation: fivespeed4-pie-secondary 2s 1 both;
+    /* Diperbaiki */
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.secondary.early {
-    animation: fivespeed2-pie-secondary 2s 1 both;
+    animation: fivespeed1-pie-secondary 2s 1 both;
+    /* Diperbaiki */
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.secondary.emerging {
-    animation: fivespeed3-pie-secondary 2s 1 both;
+    animation: fivespeed2-pie-secondary 2s 1 both;
+    /* Diperbaiki */
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.secondary.current {
-    animation: fivespeed4-pie-secondary 2s 1 both;
+    animation: fivespeed3-pie-secondary 2s 1 both;
+    /* Diperbaiki */
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.secondary.crisis {
     animation: fivespeed5-pie-secondary 2s 1 both;
+    /* Sudah benar */
     animation-delay: 1s;
 }
 
-/* Tertiary Needle Animations */
+/* === TERTIARY NEEDLE (JARUM 3) === */
 .pie-needle-wrapper.tertiary.normal {
-    animation: fivespeed1-pie-tertiary 2s 1 both;
+    animation: fivespeed4-pie-tertiary 2s 1 both;
+    /* Diperbaiki */
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.tertiary.early {
-    animation: fivespeed2-pie-tertiary 2s 1 both;
+    animation: fivespeed1-pie-tertiary 2s 1 both;
+    /* Diperbaiki */
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.tertiary.emerging {
-    animation: fivespeed3-pie-tertiary 2s 1 both;
+    animation: fivespeed2-pie-tertiary 2s 1 both;
+    /* Diperbaiki */
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.tertiary.current {
-    animation: fivespeed4-pie-tertiary 2s 1 both;
+    animation: fivespeed3-pie-tertiary 2s 1 both;
+    /* Diperbaiki */
     animation-delay: 1s;
 }
 
 .pie-needle-wrapper.tertiary.crisis {
     animation: fivespeed5-pie-tertiary 2s 1 both;
+    /* Sudah benar */
     animation-delay: 1s;
 }
 
-@keyframes fivespeed1-secondary {
-    100% {
-        transform: rotate(14deg);
-    }
-}
-
-@keyframes fivespeed2-secondary {
-    100% {
-        transform: rotate(50deg);
-    }
-}
-
-@keyframes fivespeed3-secondary {
-    100% {
-        transform: rotate(86deg);
-    }
-}
-
-@keyframes fivespeed4-secondary {
-    100% {
-        transform: rotate(122deg);
-    }
-}
-
-@keyframes fivespeed5-secondary {
-    100% {
-        transform: rotate(158deg);
-    }
-}
-
-@keyframes fivespeed1-tertiary {
-    100% {
-        transform: rotate(22deg);
-    }
-}
-
-@keyframes fivespeed2-tertiary {
-    100% {
-        transform: rotate(58deg);
-    }
-}
-
-@keyframes fivespeed3-tertiary {
-    100% {
-        transform: rotate(94deg);
-    }
-}
-
-@keyframes fivespeed4-tertiary {
-    100% {
-        transform: rotate(130deg);
-    }
-}
-
-@keyframes fivespeed5-tertiary {
-    100% {
-        transform: rotate(166deg);
-    }
-}
-
 @keyframes fivespeed1 {
-    0% {
-        transform: rotate(0);
-    }
-
     100% {
         transform: rotate(18deg);
     }
 }
 
 @keyframes fivespeed2 {
-    0% {
-        transform: rotate(0);
-    }
-
     100% {
         transform: rotate(54deg);
     }
 }
 
 @keyframes fivespeed3 {
-    0% {
-        transform: rotate(0);
-    }
-
     100% {
         transform: rotate(90deg);
     }
 }
 
 @keyframes fivespeed4 {
-    0% {
-        transform: rotate(0);
-    }
-
     100% {
         transform: rotate(126deg);
     }
 }
 
 @keyframes fivespeed5 {
-    0% {
-        transform: rotate(0);
-    }
-
     100% {
         transform: rotate(162deg);
     }
@@ -1129,10 +852,6 @@ const fetchAllDashboardData = async () => {
 }
 
 @keyframes spinner {
-    0% {
-        transform: rotate(0deg);
-    }
-
     100% {
         transform: rotate(360deg);
     }
@@ -1162,117 +881,93 @@ const fetchAllDashboardData = async () => {
     text-overflow: ellipsis;
 }
 
-
-/* ======================================= */
-/* KEYFRAMES UNTUK PIE CHART (OFFSET 10deg) */
-/* ======================================= */
-
-/* Sudut Dasar untuk Jarum Utama (Primary) */
 @keyframes fivespeed1-pie {
     100% {
         transform: rotate(45deg);
     }
 }
 
-/* Early */
 @keyframes fivespeed2-pie {
     100% {
         transform: rotate(135deg);
     }
 }
 
-/* Emerging */
 @keyframes fivespeed3-pie {
     100% {
         transform: rotate(225deg);
     }
 }
 
-/* Current */
 @keyframes fivespeed4-pie {
     100% {
         transform: rotate(-27deg);
     }
 }
 
-/* Crisis */
 @keyframes fivespeed5-pie {
     100% {
         transform: rotate(-72deg);
     }
 }
 
-
-/* Sudut untuk Jarum Kedua (offset -10deg) */
 @keyframes fivespeed1-pie-secondary {
     100% {
         transform: rotate(35deg);
-        /* 45 - 10 */
     }
 }
 
 @keyframes fivespeed2-pie-secondary {
     100% {
         transform: rotate(125deg);
-        /* 135 - 10 */
     }
 }
 
 @keyframes fivespeed3-pie-secondary {
     100% {
         transform: rotate(215deg);
-        /* 225 - 10 */
     }
 }
 
 @keyframes fivespeed4-pie-secondary {
     100% {
         transform: rotate(-37deg);
-        /* -27 - 10 */
     }
 }
 
 @keyframes fivespeed5-pie-secondary {
     100% {
         transform: rotate(-82deg);
-        /* -72 - 10 */
     }
 }
 
-
-/* Sudut untuk Jarum Ketiga (offset +10deg) */
 @keyframes fivespeed1-pie-tertiary {
     100% {
         transform: rotate(55deg);
-        /* 45 + 10 */
     }
 }
 
 @keyframes fivespeed2-pie-tertiary {
     100% {
         transform: rotate(145deg);
-        /* 135 + 10 */
     }
 }
 
 @keyframes fivespeed3-pie-tertiary {
     100% {
         transform: rotate(235deg);
-        /* 225 + 10 */
     }
 }
 
 @keyframes fivespeed4-pie-tertiary {
     100% {
         transform: rotate(-17deg);
-        /* -27 + 10 */
     }
 }
 
 @keyframes fivespeed5-pie-tertiary {
     100% {
         transform: rotate(-62deg);
-        /* -72 + 10 */
     }
 }
 </style>

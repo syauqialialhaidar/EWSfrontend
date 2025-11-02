@@ -69,11 +69,11 @@
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
-            <div v-if="isLoading.status" class="text-gray-500 col-span-5 text-center">Memuat status posts...</div>
-            <div v-else-if="error.status" class="text-red-500 col-span-5 text-center">Gagal memuat status posts: {{
-                error.status }}</div>
+            <div v-if="isLoading.analysis" class="text-gray-500 col-span-5 text-center">Memuat status posts...</div>
+            <div v-else-if="error.analysis" class="text-red-500 col-span-5 text-center">Gagal memuat status posts: {{
+                error.analysis }}</div>
 
-            <div v-else v-for="card in statusCards" :key="card.title" :class="[card.bgColor,
+            <div v-else v-for="card in analysisCards" :key="card.title" :class="[card.bgColor,
                 'p-4 rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-transform duration-300 text-white flex flex-col justify-center items-center aspect-square md:aspect-auto md:h-40'
             ]">
                 <p class="text-base font-medium text-center">{{ card.title }}</p>
@@ -84,9 +84,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, computed } from 'vue';
+import { ref, onMounted, reactive, computed, watch } from 'vue';
 import { Pie } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement, CategoryScale } from 'chart.js';
+
+import { filters } from '@/stores/filterStore.js';
 
 ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale);
 
@@ -96,9 +98,11 @@ const viralApiData = ref(null);
 // TAMBAHAN: State untuk data status posts
 const statusApiData = ref(null);
 
+const analysisApiData = ref(null);
+
 // Memperbarui reactive state untuk loading dan error
-const isLoading = reactive({ total: true, viral: true, status: true });
-const error = reactive({ total: null, viral: null, status: null });
+const isLoading = reactive({ total: true, viral: true, status: true, analysis: true });
+const error = reactive({ total: null, viral: null, status: null, analysis: null });
 
 // ... Chart data (leftChartData dan rightChartData) TIDAK BERUBAH ...
 const leftChartData = ref({
@@ -144,6 +148,7 @@ const summaryStatistics = computed(() => [
 
 // FUNGSI BARU: Memetakan data status API ke format kartu tampilan
 const statusCards = computed(() => {
+    // Jika data API belum siap, kembalikan array kosong
     if (!statusApiData.value || !statusApiData.value.distribution) return [];
 
     const colorMap = {
@@ -162,58 +167,55 @@ const statusCards = computed(() => {
         'crisis': 'Total Crisis Posts',
     };
 
-    // Urutan yang diinginkan: Normal, Early, Emerging, Current, Crisis
+    // Ini adalah daftar semua status yang HARUS selalu ditampilkan
     const desiredOrder = ['normal', 'early', 'emerging', 'current', 'crisis'];
 
-    // Map data API
-    const mappedData = statusApiData.value.distribution.map(item => ({
-        title: titleMap[item.status] || item.status,
-        value: item.count,
-        bgColor: colorMap[item.status] || 'bg-gray-400',
-        order: desiredOrder.indexOf(item.status) // Tambahkan indeks untuk sorting
-    }));
+    // LOGIKA BARU:
+    // Kita akan melakukan map pada `desiredOrder`, bukan pada data API.
+    // Ini memastikan kelima kartu selalu dibuat.
+    return desiredOrder.map(status => {
+        // Cari data untuk status saat ini dari respons API
+        const apiItem = statusApiData.value.distribution.find(item => item.status === status);
 
-    // Urutkan data
-    return mappedData.sort((a, b) => a.order - b.order);
+        // Jika data dari API ditemukan, gunakan 'count'-nya. Jika tidak, nilainya adalah 0.
+        const count = apiItem ? apiItem.count : 0;
+
+        // Buat objek kartu
+        return {
+            title: titleMap[status] || status,
+            value: count,
+            bgColor: colorMap[status] || 'bg-gray-400',
+        };
+    });
 });
 
 
-// Fungsi untuk mengambil data total (DISESUAIKAN UNTUK MENGAMBIL SENTIMEN DARI API)
-async function fetchTotalData() {
+async function fetchTotalData(startDate, endDate) {
     let totalPostsData = null;
     let sentimentData = null;
-
     try {
-        // Panggilan API 1: Total Posts
-        const totalResponse = await fetch('http://127.0.0.1:8000/total-posts');
-        if (!totalResponse.ok) throw new Error(`HTTP error fetching total posts! status: ${totalResponse.status}`);
+        // DIUBAH: Endpoint diubah ke /total-unique-posts
+        const totalUrl = `http://127.0.0.1:8000/total-unique-posts?start_date=${startDate}&end_date=${endDate}`;
+        const sentimentUrl = `http://127.0.0.1:8000/sentiment-distribution?start_date=${startDate}&end_date=${endDate}`;
+
+        const totalResponse = await fetch(totalUrl);
+        // DIUBAH: Pesan error disesuaikan (opsional, tapi praktik yang baik)
+        if (!totalResponse.ok) throw new Error(`HTTP error fetching total unique posts! status: ${totalResponse.status}`);
         totalPostsData = await totalResponse.json();
 
-        // Panggilan API 2: Distribusi Sentimen
-        const sentimentResponse = await fetch('http://127.0.0.1:8000/sentiment-distribution');
+        const sentimentResponse = await fetch(sentimentUrl);
         if (!sentimentResponse.ok) throw new Error(`HTTP error fetching sentiment! status: ${sentimentResponse.status}`);
         sentimentData = await sentimentResponse.json();
 
         const sentiment = sentimentData.sentiment_distribution;
-
-        // Memetakan data gabungan
         totalApiData.value = {
-            total: totalPostsData.total_posts,
+            // DIUBAH: Kunci respons disesuaikan dari total_posts menjadi total_unique_posts
+            total: totalPostsData.total_unique_posts,
             negative: sentiment.negative,
             positive: sentiment.positive,
             neutral: sentiment.neutral
         };
-
-        // Mengisi chart data dengan sentimen
-        leftChartData.value.labels = ['Positif', 'Negatif', 'Netral'];
-        leftChartData.value.datasets[0].data = [
-            sentiment.positive,
-            sentiment.negative,
-            sentiment.neutral
-        ];
-        leftChartData.value.datasets[0].backgroundColor = ['#22c55e', '#ef4444', '#3b82f6'];
-
-
+        leftChartData.value.datasets[0].data = [sentiment.positive, sentiment.negative, sentiment.neutral];
     } catch (err) {
         console.error("Gagal memuat data total/sentimen:", err);
         error.total = err.message;
@@ -222,44 +224,21 @@ async function fetchTotalData() {
     }
 }
 
-// Fetch viral data (TIDAK BERUBAH)
-// ... kode di atas ...
-
-// Fetch viral data (DIUBAH)
-async function fetchViralData() {
+async function fetchViralData(startDate, endDate) {
     try {
-        // 1. Ganti URL API
-        const response = await fetch('http://127.0.0.1:8000/viral-posts');
+        const url = `http://127.0.0.1:8000/viral-posts?start_date=${startDate}&end_date=${endDate}`;
+        const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
         const data = await response.json();
-
-        // Data dari API baru
         const totalViral = data.total_viral_posts;
-        const normalPosts = data.by_status.normal; // Mengambil nilai dari 'normal'
-
-        // 2. Memetakan data (sesuai permintaan user)
+        const normalPosts = data.by_status.normal;
         viralApiData.value = {
             total: totalViral,
-            negative: 0, // DITETAPKAN KE 0 (Total Post Negatif Viral)
-            // Tambahkan properti lain yang mungkin dibutuhkan, misalnya untuk chart:
+            negative: 0,
             normal: normalPosts,
             viral: totalViral
         };
-
-        // 3. Mengisi chart data (sesuai permintaan user)
-        // Post Normal > "by_status": di "normal"
-        // Post Viral > total_viral_posts
-        // Negatif Viral > di 0 kan dlu
-        rightChartData.value.labels = ['Post Normal', 'Post Viral', 'Negatif Viral'];
-        rightChartData.value.datasets[0].data = [
-            normalPosts, // Post Normal
-            totalViral,  // Post Viral
-            0            // Negatif Viral (ditetapkan ke 0)
-        ];
-        // Atur ulang warna latar belakang (jika perlu disesuaikan dengan 3 label baru)
-        rightChartData.value.datasets[0].backgroundColor = ['#22c55e', '#ef4444', '#3b82f6'];
-
+        rightChartData.value.datasets[0].data = [normalPosts, totalViral, 0];
     } catch (err) {
         console.error("Gagal memuat data viral:", err);
         error.viral = err.message;
@@ -268,18 +247,13 @@ async function fetchViralData() {
     }
 }
 
-// ... kode di bawah ...
-
-// FUNGSI BARU: Ambil data untuk kartu Status
-async function fetchStatusData() {
+async function fetchStatusData(startDate, endDate) {
     try {
-        // URL API status-distribution
-        const response = await fetch('http://127.0.0.1:8000/status-distribution');
+        const url = `http://127.0.0.1:8000/status-distribution?start_date=${startDate}&end_date=${endDate}`;
+        const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
         const data = await response.json();
-        statusApiData.value = data; // Menyimpan respons penuh
-
+        statusApiData.value = data;
     } catch (err) {
         console.error("Gagal memuat data status:", err);
         error.status = err.message;
@@ -289,12 +263,85 @@ async function fetchStatusData() {
 }
 
 
-// Mount
+
+async function fetchAnalysisData(startDate, endDate) {
+    isLoading.analysis = true; // Pastikan 'analysis' ada di state isLoading
+    try {
+        const url = `http://127.0.0.1:8000/analysis-summary?topic=all&start_date=${startDate}&end_date=${endDate}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        analysisApiData.value = data; // Simpan ke state BARU
+    } catch (err) {
+        console.error("Gagal memuat data analysis summary:", err);
+        error.analysis = err.message; // Pastikan 'analysis' ada di state error
+    } finally {
+        isLoading.analysis = false;
+    }
+}
+
+// 3. TAMBAHKAN COMPUTED PROPERTY BARU
+const analysisCards = computed(() => {
+    // Cek state BARU
+    if (!analysisApiData.value) return [];
+
+    const colorMap = {
+        'normal': 'bg-blue-500', // Warna dibedakan agar terlihat bedanya
+        'early': 'bg-green-500',
+        'emerging': 'bg-yellow-500',
+        'current': 'bg-orange-500',
+        'crisis': 'bg-red-600',
+    };
+
+    const titleMap = {
+        'normal': 'Analysis Normal', // Judul dibedakan
+        'early': 'Analysis Early',
+        'emerging': 'Analysis Emerging',
+        'current': 'Analysis Current',
+        'crisis': 'Analysis Crisis',
+    };
+
+    const desiredOrder = ['normal', 'early', 'emerging', 'current', 'crisis'];
+
+    return desiredOrder.map(status => {
+        // Ambil data 'count' langsung dari objek
+        const count = analysisApiData.value[status] || 0;
+
+        return {
+            title: titleMap[status] || status,
+            value: count,
+            bgColor: colorMap[status] || 'bg-gray-400',
+        };
+    });
+});
+
+
+
+// 4. BUAT FUNGSI BARU untuk memuat semua data sekaligus
+function loadAllData() {
+    // Set status loading sebelum fetch
+    isLoading.total = true;
+    isLoading.viral = true;
+    isLoading.status = true;
+    isLoading.analysis = true;
+
+    // Panggil semua fungsi fetch dengan tanggal dari store
+    fetchTotalData(filters.startDate, filters.endDate);
+    fetchViralData(filters.startDate, filters.endDate);
+    fetchStatusData(filters.startDate, filters.endDate);
+    fetchAnalysisData(filters.startDate, filters.endDate);
+}
+
+// 5. GUNAKAN 'watch' untuk memanggil loadAllData setiap kali tanggal di store berubah
+watch(filters, (newFilters) => {
+    console.log(`Filter tanggal berubah ke: ${newFilters.startDate} - ${newFilters.endDate}. Memuat ulang data Post.vue...`);
+    loadAllData();
+});
+
+// 6. onMounted sekarang hanya memanggil loadAllData untuk pemuatan awal
 onMounted(() => {
-    console.log('Komponen dimuat sekali ✅');
-    fetchTotalData();
-    fetchViralData();
-    fetchStatusData(); // Panggil fungsi baru
+    console.log('Komponen Post.vue dimuat, mengambil data awal...');
+    loadAllData();
 });
 
 // ... chartOptions (TIDAK BERUBAH) ...

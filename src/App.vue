@@ -5,7 +5,9 @@
     <main class="flex-1 p-6 transition-all duration-300" :class="mainContentClass">
       <div class="max-w-7xl mx-auto space-y-5">
         <AppHeader />
-        <FilterBar />
+
+        <FilterBar v-if="!$route.meta.hideFilterBar" />
+
         <router-view />
       </div>
     </main>

@@ -187,7 +187,7 @@
                   selectedPost.postStatus
                 }}</span></p>
             <p><strong>Topik:</strong> <span class="font-semibold text-blue-600">{{ selectedPost.topicTag
-            }}</span></p>
+                }}</span></p>
             <p><strong>Followers:</strong> {{ selectedPost.stats.followers }}</p>
             <p><strong>Following:</strong> {{ selectedPost.stats.following }}</p>
             <p><strong>Engagement Total:</strong> {{ selectedPost.stats.engagement }}</p>
@@ -213,7 +213,7 @@
 import {
   ref,
   onMounted,
-  computed
+  computed, watch
 } from 'vue';
 import {
   FontAwesomeIcon
@@ -230,6 +230,7 @@ import {
   faCalendarDays
 } from '@fortawesome/free-solid-svg-icons';
 
+import { filters } from '@/stores/filterStore.js';
 
 const isLoading = ref(true);
 const apiError = ref(null);
@@ -374,28 +375,13 @@ const createDummyPost = (id, social) => {
   const status = 'Normal';
   const statusData = STATUS_MAPPING[status];
   return {
-    id,
-    author: `Dummy-${social}-${id}`,
-    avatar: 'https://placehold.co/40x40/E2E8F0/4A5568?text=DA',
+    id, author: `Dummy-${social}-${id}`, avatar: 'https://placehold.co/40x40/E2E8F0/4A5568?text=DA',
     socialIcon: ICONS[social],
-    stats: {
-      followers: `${id}K`,
-      following: 'N/A',
-      retweets: 'N/A',
-      favorites: 'N/A',
-      replies: 'N/A',
-      views: 'N/A',
-      engagement: 'N/A',
-    },
-    date: new Date().toLocaleDateString('id-ID'),
-    postStatus: statusData.title,
-    statusColor: statusData.color,
-    content: `Ini adalah postingan dummy #${id} untuk mengisi kolom karena API gagal terhubung.`,
-    topicTag: 'FallBack-Data',
-    isBookmarked: false,
+    stats: { followers: `${id}K`, following: 'N/A', retweets: 'N/A', favorites: 'N/A', replies: 'N/A', views: 'N/A', engagement: 'N/A', },
+    date: new Date().toLocaleDateString('id-ID'), postStatus: statusData.title, statusColor: statusData.color,
+    content: `Ini adalah postingan dummy #${id} untuk mengisi kolom karena API gagal terhubung.`, topicTag: 'FallBack-Data', isBookmarked: false,
   };
 };
-
 const mapApiPostToLocalPost = (apiPost, postId) => {
   const statusKey = apiPost.latest_status || 'N/A';
   const statusData = STATUS_MAPPING[statusKey] || STATUS_MAPPING['N/A'];
@@ -405,43 +391,18 @@ const mapApiPostToLocalPost = (apiPost, postId) => {
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
     return num.toLocaleString('en-US');
   };
-  const dateString = apiPost.created_at ? new Date(apiPost.created_at).toLocaleDateString('id-ID', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  }) : 'Tanggal tidak tersedia';
+  const dateString = apiPost.created_at ? new Date(apiPost.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Tanggal tidak tersedia';
   return {
-    id: apiPost.tweet_id || postId,
-    author: apiPost.user?.screen_name || 'Anonim',
-    avatar: apiPost.user?.profile_image_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-    socialIcon: ICONS.x,
-    stats: {
-      followers: formatNumber(apiPost.user?.followers_count),
-      following: formatNumber(apiPost.user?.following_count),
-      retweets: formatNumber(apiPost.retweet_count),
-      favorites: formatNumber(apiPost.favorite_count),
-      replies: formatNumber(apiPost.reply_count),
-      views: formatNumber(apiPost.views_count),
-      engagement: formatNumber(apiPost.engagement),
-    },
-    date: dateString,
-    postStatus: statusData.title,
-    statusColor: statusData.color,
-    content: apiPost.text || 'Tidak ada konten.',
-    topicTag: apiPost.topik || 'N/A',
-    isBookmarked: false,
-    url: `https://x.com/any/status/${apiPost.tweet_id}`
+    id: apiPost.tweet_id || postId, author: apiPost.user?.screen_name || 'Anonim', avatar: apiPost.user?.profile_image_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+    socialIcon: ICONS.x, stats: { followers: formatNumber(apiPost.user?.followers_count), following: formatNumber(apiPost.user?.following_count), retweets: formatNumber(apiPost.retweet_count), favorites: formatNumber(apiPost.favorite_count), replies: formatNumber(apiPost.reply_count), views: formatNumber(apiPost.views_count), engagement: formatNumber(apiPost.engagement), },
+    date: dateString, postStatus: statusData.title, statusColor: statusData.color, content: apiPost.text || 'Tidak ada konten.',
+    topicTag: apiPost.topik || 'N/A', isBookmarked: false, url: `https://x.com/any/status/${apiPost.tweet_id}`
   };
 };
-
 const callApi = async (url) => {
   try {
     const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP Error: ${response.status} for ${url}`);
-    }
+    if (!response.ok) throw new Error(`HTTP Error: ${response.status} for ${url}`);
     return await response.json();
   } catch (error) {
     console.error(`Failed to fetch data from ${url}:`, error);
@@ -449,9 +410,11 @@ const callApi = async (url) => {
   }
 };
 
-const fetchPostsData = async () => {
-  const ENGAGEMENT_URL = 'http://127.0.0.1:8000/posts-by-engagement';
-  const FOLLOWERS_URL = 'http://127.0.0.1:8000/posts-by-followers';
+const fetchPostsData = async (startDate, endDate) => {
+  // Bangun URL dengan parameter tanggal
+  const ENGAGEMENT_URL = `http://127.0.0.1:8000/posts-by-engagement?start_date=${startDate}&end_date=${endDate}`;
+  const FOLLOWERS_URL = `http://127.0.0.1:8000/posts-by-followers?start_date=${startDate}&end_date=${endDate}`;
+
   let engagementPosts = [];
   let followersPosts = [];
   let errorMessages = [];
@@ -466,11 +429,8 @@ const fetchPostsData = async () => {
     }
   } catch (e) {
     errorMessages.push(`Engagement: ${e.message}`);
-    engagementPosts = Array.from({
-      length: 10
-    }, (_, i) => createDummyPost(i + 1, 'x'));
+    engagementPosts = Array.from({ length: 10 }, (_, i) => createDummyPost(i + 1, 'x'));
   }
-
   try {
     const data = await callApi(FOLLOWERS_URL);
     const apiPostsArray = data.posts_by_followers;
@@ -479,36 +439,37 @@ const fetchPostsData = async () => {
     }
   } catch (e) {
     errorMessages.push(`Followers: ${e.message}`);
-    followersPosts = Array.from({
-      length: 10
-    }, (_, i) => createDummyPost(i + 1, 'facebook'));
+    followersPosts = Array.from({ length: 10 }, (_, i) => createDummyPost(i + 1, 'facebook'));
   }
 
   if (errorMessages.length > 0) {
     apiError.value = errorMessages.join(' | ');
   }
 
-  // --- BARU: Sinkronisasi status bookmark setelah data API diterima ---
   const bookmarkedIds = new Set(bookmarkedPosts.value.map(p => p.id));
-  engagementPosts.forEach(p => {
-    if (bookmarkedIds.has(p.id)) p.isBookmarked = true;
-  });
-  followersPosts.forEach(p => {
-    if (bookmarkedIds.has(p.id)) p.isBookmarked = true;
-  });
-
+  engagementPosts.forEach(p => { if (bookmarkedIds.has(p.id)) p.isBookmarked = true; });
+  followersPosts.forEach(p => { if (bookmarkedIds.has(p.id)) p.isBookmarked = true; });
 
   columnsData.value = [{
-    title: 'Posts From Highest Engagement',
-    posts: engagementPosts,
+    title: 'Posts From Highest Engagement', posts: engagementPosts,
     pagination: { total: engagementPosts.length, currentPage: 1, perPage: 5 }
   }, {
-    title: 'Posts From Highest Followers',
-    posts: followersPosts,
+    title: 'Posts From Highest Followers', posts: followersPosts,
     pagination: { total: followersPosts.length, currentPage: 1, perPage: 5 }
   }];
   isLoading.value = false;
 };
+
+// 4. BUAT FUNGSI BARU untuk membungkus pemanggilan data
+function loadAllData() {
+  fetchPostsData(filters.startDate, filters.endDate);
+}
+
+// 5. GUNAKAN 'watch' untuk memanggil loadAllData setiap kali tanggal di store berubah
+watch(filters, (newFilters) => {
+  console.log(`Filter tanggal berubah ke: ${newFilters.startDate} - ${newFilters.endDate}. Memuat ulang data Hight.vue...`);
+  loadAllData();
+});
 
 const allColumns = computed(() => {
   const bookmarkedColumn = {
@@ -527,7 +488,8 @@ const allColumns = computed(() => {
 // --- DIUBAH: onMounted sekarang memuat data dari localStorage terlebih dahulu ---
 onMounted(() => {
   loadBookmarks();
-  fetchPostsData();
+  console.log('Komponen Hight.vue dimuat, mengambil data awal...');
+  loadAllData();
 });
 </script>
 
