@@ -1,134 +1,147 @@
 <template>
-  <div class="bg-white rounded-xl border border-gray-200 shadow-[4px_4px_6px_rgba(128,128,128,0.3)] p-6">
-    <h2 class="text-lg font-bold text-[#03255C] mb-6">Flagged Account from Post</h2>
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+    <div class="mb-6">
+      <h2 class="text-xl font-bold text-[#03255C]">Akun yang Ditandai</h2>
+      <p class="text-sm text-gray-500">Akun yang sering muncul dalam postingan berstatus tinggi.</p>
+    </div>
 
     <div v-if="isLoading" class="flex justify-center items-center min-h-[20rem]">
       <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-10 w-10"></div>
-      <p class="text-md font-semibold text-gray-600 ml-4">Memuat akun yang ditandai...</p>
+      <p class="text-md font-semibold text-gray-600 ml-4">Memuat akun...</p>
     </div>
 
     <div v-else class="animate-fade-in">
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-        <div v-for="column in flaggedData" :key="column.status" class="flex flex-col">
-          <div :class="[column.color, 'text-white font-bold py-2 px-4 rounded-t-lg text-center text-sm']">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 items-stretch">
+
+        <div v-for="column in flaggedData" :key="column.status"
+          :class="[column.bgColor, 'rounded-xl flex flex-col']">
+
+          <div :class="[column.textColor, 'font-bold py-3 px-4 text-center text-sm border-b', column.borderColor]">
             {{ column.status }}
           </div>
 
-          <div
-            class="bg-white border-x border-b border-gray-200 rounded-b-lg p-3 flex-grow flex flex-col justify-between">
+          <div class="p-3 flex-grow flex flex-col justify-between">
             <div class="space-y-3">
-              <div v-for="account in column.accounts" :key="account.id"
-                class="bg-[#F8F7FA] rounded-lg p-4 border border-gray-200 shadow-sm">
-                <div class="flex items-center mb-2">
-                  <div
-                    class="w-8 h-8 rounded-full mr-3 bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                    <i :class="[account.socialIcon, 'text-base']"></i>
-                  </div>
+              <div v-for="account in paginatedAccounts(column)" :key="account.id"
+                class="bg-white rounded-lg p-3 border border-gray-200 shadow-sm transition-all hover:shadow-lg hover:border-blue-400">
+                <div class="flex items-center mb-3">
+                  <img :src="account.avatar" alt="Avatar" class="w-10 h-10 rounded-full mr-3 border-2 border-white">
                   <div>
                     <p class="font-bold text-sm text-[#03255C]">{{ account.author }}</p>
-                    <div class="flex items-center gap-1 text-xs text-gray-600">
+                    <div class="flex items-center gap-1.5 text-xs text-gray-500">
+                      <FontAwesomeIcon :icon="account.socialIcon" :class="[account.iconColor, 'h-3 w-3']" />
                       <span>{{ account.platform }}</span>
                     </div>
                   </div>
                 </div>
-                <div class="flex items-center justify-between text-xs text-gray-500 mb-2 px-1">
-                  <span class="flex items-center gap-1">
-                    <i class="fa-solid fa-heart text-red-500 text-sm"></i>
-                    {{ account.stats.followers }}
-                  </span>
-                  <span class="flex items-center gap-1">
-                    <i class="fa-solid fa-comment text-gray-400 text-sm"></i>
-                    {{ account.stats.comments }}
-                  </span>
-                  <span class="flex items-center gap-1">
-                    <i class="fa-solid fa-bookmark text-blue-500 text-sm"></i>
-                    {{ account.stats.bookmarks }}
-                  </span>
+                <div class="grid grid-cols-3 gap-2 text-center text-xs text-gray-600 mb-3">
+                  <div>
+                    <p class="font-bold text-sm text-[#03255C]">{{ account.stats.followers }}</p>
+                    <p class="text-gray-400">Posts</p>
+                  </div>
+                  <div>
+                    <p class="font-bold text-sm text-[#03255C]">{{ account.stats.comments }}</p>
+                    <p class="text-gray-400">Followers</p>
+                  </div>
+                  <div>
+                    <p class="font-bold text-sm text-[#03255C]">{{ account.stats.bookmarks }}</p>
+                    <p class="text-gray-400">Following</p>
+                  </div>
                 </div>
-                <div class="flex items-center text-xs text-gray-500">
-                  <svg class="h-3 w-3 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                  </svg>
-                  <span>{{ account.date }}</span>
-                </div>
+                <button
+                  class="w-full text-xs font-semibold bg-gray-100 text-[#03255C] border border-gray-300 px-3 py-1.5 rounded-md hover:bg-gray-200 transition">
+                  Lihat Profil
+                </button>
               </div>
             </div>
-            <div class="mt-4 pt-3 flex justify-center items-center text-xs text-gray-600 space-x-1">
-              <button class="pagination-arrow-btn disabled:opacity-50">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd"
-                    d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                    clip-rule="evenodd" />
-                </svg>
+            <div v-if="column.accounts.length > ACCOUNTS_PER_PAGE" class="mt-4 pt-3 flex justify-between items-center text-xs text-gray-600">
+              <button @click="changePage(column, column.currentPage - 1)" :disabled="column.currentPage === 1" class="pagination-arrow-btn">
+                 <FontAwesomeIcon :icon="faChevronLeft" />
               </button>
-              <span class="pagination-number active">1</span>
-              <span class="pagination-number">2</span>
-              <span class="pagination-number">8</span>
-              <button class="pagination-arrow-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd"
-                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                    clip-rule="evenodd" />
-                </svg>
+              <span class="font-semibold">Hal {{ column.currentPage }} dari {{ totalPages(column) }}</span>
+              <button @click="changePage(column, column.currentPage + 1)" :disabled="column.currentPage === totalPages(column)" class="pagination-arrow-btn">
+                <FontAwesomeIcon :icon="faChevronRight" />
               </button>
             </div>
           </div>
         </div>
+
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { faYoutube, faInstagram, faTiktok } from '@fortawesome/free-brands-svg-icons';
+import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+
 
 const isLoading = ref(true);
 const flaggedData = ref([]);
+const ACCOUNTS_PER_PAGE = 3;
 
-// ICONS sekarang menggunakan kelas Font Awesome
 const ICONS = {
-  youtube: 'fab fa-youtube text-red-500',
-  instagram: 'fab fa-instagram text-pink-600',
-  tiktok: 'fab fa-tiktok text-blue-500',
+  youtube: { icon: faYoutube, color: 'text-red-500' },
+  instagram: { icon: faInstagram, color: 'text-pink-600' },
+  tiktok: { icon: faTiktok, color: 'text-black' },
 };
 
+// PERUBAHAN: Menambahkan state paginasi ke setiap kolom
 const createDummyAccount = (id, platform) => ({
   id,
   author: 'fachryAlamsyah',
   platform: platform.charAt(0).toUpperCase() + platform.slice(1),
-  socialIcon: ICONS[platform],
-  stats: { followers: '15,5K', comments: 5, bookmarks: 300 },
+  socialIcon: ICONS[platform].icon,
+  iconColor: ICONS[platform].color,
+  avatar: `https://i.pravatar.cc/40?u=${id}`,
+  stats: { followers: '1.2K', comments: '5.5M', bookmarks: '300K' },
   date: '02 Juni 2024 12:00:15',
 });
+
+const totalPages = (column) => Math.ceil(column.accounts.length / ACCOUNTS_PER_PAGE);
+
+const paginatedAccounts = computed(() => (column) => {
+  const start = (column.currentPage - 1) * ACCOUNTS_PER_PAGE;
+  const end = start + ACCOUNTS_PER_PAGE;
+  return column.accounts.slice(start, end);
+});
+
+const changePage = (column, newPage) => {
+  if (newPage > 0 && newPage <= totalPages(column)) {
+    column.currentPage = newPage;
+  }
+};
+
 
 const fetchFlaggedData = () => {
   setTimeout(() => {
     flaggedData.value = [
       {
-        status: 'Normal (Akun Ditandai)',
-        color: 'bg-blue-500',
-        accounts: [createDummyAccount(1, 'youtube'), createDummyAccount(2, 'instagram'), createDummyAccount(3, 'tiktok')],
+        status: 'Normal',
+        bgColor: 'bg-blue-50', textColor: 'text-blue-800', borderColor: 'border-blue-200',
+        accounts: Array.from({ length: 5 }, (_, i) => createDummyAccount(i + 1, 'youtube')), currentPage: 1,
       },
       {
         status: 'Early',
-        color: 'bg-green-500',
-        accounts: [createDummyAccount(4, 'youtube'), createDummyAccount(5, 'instagram'), createDummyAccount(6, 'tiktok')],
+        bgColor: 'bg-green-50', textColor: 'text-green-800', borderColor: 'border-green-200',
+        accounts: Array.from({ length: 7 }, (_, i) => createDummyAccount(i + 6, 'instagram')), currentPage: 1,
       },
       {
         status: 'Emerging',
-        color: 'bg-lime-500',
-        accounts: [createDummyAccount(7, 'youtube'), createDummyAccount(8, 'instagram'), createDummyAccount(9, 'tiktok')],
+        bgColor: 'bg-lime-50', textColor: 'text-lime-800', borderColor: 'border-lime-200',
+        accounts: Array.from({ length: 4 }, (_, i) => createDummyAccount(i + 13, 'tiktok')), currentPage: 1,
       },
       {
         status: 'Current',
-        color: 'bg-orange-500',
-        accounts: [createDummyAccount(10, 'youtube'), createDummyAccount(11, 'instagram'), createDummyAccount(12, 'tiktok')],
+        bgColor: 'bg-orange-50', textColor: 'text-orange-800', borderColor: 'border-orange-200',
+        accounts: Array.from({ length: 8 }, (_, i) => createDummyAccount(i + 17, 'youtube')), currentPage: 1,
       },
       {
         status: 'Crisis',
-        color: 'bg-red-500',
-        accounts: [createDummyAccount(13, 'youtube'), createDummyAccount(14, 'instagram'), createDummyAccount(15, 'tiktok')],
+        bgColor: 'bg-red-50', textColor: 'text-red-800', borderColor: 'border-red-200',
+        accounts: Array.from({ length: 2 }, (_, i) => createDummyAccount(i + 25, 'instagram')), currentPage: 1,
       },
     ];
     isLoading.value = false;
@@ -139,47 +152,13 @@ onMounted(fetchFlaggedData);
 </script>
 
 <style scoped>
-.loader {
-  border-top-color: #3b82f6;
-  animation: spinner 1.5s linear infinite;
-}
-
-@keyframes spinner {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.5s ease-out forwards;
-}
-
-/* Style untuk Pagination */
-.pagination-number {
-  @apply px-2 py-1 rounded-md text-gray-600 font-bold cursor-pointer hover:bg-gray-100;
-}
-
-.pagination-number.active {
-  @apply bg-blue-600 text-white hover:bg-blue-600;
-}
+/* (Style untuk loader & fade-in tetap sama) */
+.loader { border-top-color: #3b82f6; animation: spinner 1.5s linear infinite; }
+@keyframes spinner { 100% { transform: rotate(360deg); } }
+@keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
 
 .pagination-arrow-btn {
-  @apply p-1.5 rounded-md text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply p-2 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-800 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent;
 }
 </style>

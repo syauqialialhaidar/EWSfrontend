@@ -2,7 +2,12 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import CrisisCompass from '../views/CrisisCompass.vue';
 import Pengaturan from '@/views/pengaturan.vue';
-import CrisisRules from '../views/Rules.vue' 
+import CrisisRules from '../views/Rules.vue' ;
+
+// VVV TAMBAHKAN IMPOR INI VVV
+import TopicDetail from '../views/TopicDetails.vue';
+
+
 
 const routes = [
   {
@@ -25,6 +30,13 @@ const routes = [
     component: CrisisRules,
     meta: { hideFilterBar: true }
   },
+
+    // VVV TAMBAHKAN BLOK ROUTE BARU INI VVV
+    {
+      path: '/topik/:topicName', // :topicName adalah parameter dinamis
+      name: 'TopicDetail',     // Nama ini HARUS SAMA dengan di fungsi goToTopicPage
+      component: TopicDetail   // Komponen yang baru Anda buat
+    },
 ];
 
 const router = createRouter({
