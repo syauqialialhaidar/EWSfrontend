@@ -269,11 +269,17 @@ watch(bookmarkedPosts, (newPosts) => {
 }, { deep: true });
 
 
+<<<<<<< HEAD
 
 
 const ICONS = {
   twitter: 'fab fa-x-twitter text-[#03255C]',
   instagram: 'fab fa-instagram text-pink-600',
+=======
+const ICONS = {
+  x: 'fab fa-x-twitter text-[#03255C]',
+  facebook: 'fab fa-facebook-f text-blue-600',
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
   tiktok: 'fab fa-tiktok text-[#03255C]',
 };
 
@@ -386,6 +392,7 @@ const createDummyPost = (id, social) => {
   };
 };
 const mapApiPostToLocalPost = (apiPost, postId) => {
+<<<<<<< HEAD
   const platformKey = apiPost.platform?.toLowerCase();
   const socialIcon = ICONS[platformKey];
   let url = apiPost.url;
@@ -400,6 +407,10 @@ const mapApiPostToLocalPost = (apiPost, postId) => {
     let favorites = metrics.favorites || metrics.likes || 'N/A'; // Likes untuk IG/TikTok
     let replies = metrics.replies || metrics.comments || metrics.coments || 'N/A'; // Comments untuk IG/TikTok
     let retweets = metrics.retweets || metrics.reposts || metrics.shares || 'N/A'; // Reposts/Shares untuk IG/TikTok
+=======
+  const statusKey = apiPost.latest_status || 'N/A';
+  const statusData = STATUS_MAPPING[statusKey] || STATUS_MAPPING['N/A'];
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
   const formatNumber = (num) => {
     if (typeof num !== 'number') return '0';
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
@@ -407,6 +418,7 @@ const mapApiPostToLocalPost = (apiPost, postId) => {
     return num.toLocaleString('en-US');
   };
   const dateString = apiPost.created_at ? new Date(apiPost.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Tanggal tidak tersedia';
+<<<<<<< HEAD
   
   return {
         id: apiPost.post_id, // Gunakan ID Kanonik yang dikembalikan API
@@ -433,6 +445,14 @@ const mapApiPostToLocalPost = (apiPost, postId) => {
         isBookmarked: false, 
         url: url
     };
+=======
+  return {
+    id: apiPost.tweet_id || postId, author: apiPost.user?.screen_name || 'Anonim', avatar: apiPost.user?.profile_image_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+    socialIcon: ICONS.x, stats: { followers: formatNumber(apiPost.user?.followers_count), following: formatNumber(apiPost.user?.following_count), retweets: formatNumber(apiPost.retweet_count), favorites: formatNumber(apiPost.favorite_count), replies: formatNumber(apiPost.reply_count), views: formatNumber(apiPost.views_count), engagement: formatNumber(apiPost.engagement), },
+    date: dateString, postStatus: statusData.title, statusColor: statusData.color, content: apiPost.text || 'Tidak ada konten.',
+    topicTag: apiPost.topik || 'N/A', isBookmarked: false, url: `https.x.com/any/status/${apiPost.tweet_id}`
+  };
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
 };
 const callApi = async (url) => {
   try {

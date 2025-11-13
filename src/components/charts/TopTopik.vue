@@ -8,14 +8,24 @@
   <div v-else class="space-y-6 animate-fade-in">
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<<<<<<< HEAD
 
       <div class="lg:col-span-1 space-y-6">
 
+=======
+      
+      <div class="lg:col-span-1 space-y-6">
+        
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
         <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm text-center">
           <div class="text-5xl font-bold text-[#03255C] tracking-tight">{{ currentTime }}</div>
           <div class="text-base font-semibold text-gray-500">{{ currentDate }}</div>
         </div>
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col h-[700px]">
           <div class="p-4 border-b border-gray-100">
             <h3 class="text-lg font-bold text-[#03255C]">Postingan Viral Terbaru</h3>
@@ -23,6 +33,7 @@
           </div>
           <div class="p-4 space-y-3 flex-grow overflow-y-auto">
             <div class="flex flex-wrap gap-2 mb-4">
+<<<<<<< HEAD
               <button v-for="topic in availableTopics" :key="topic" @click="selectedTopic = topic" :class="[
                 'px-3 py-1.5 text-xs font-semibold rounded-full border transition',
                 selectedTopic === topic
@@ -37,6 +48,30 @@
                   ? 'bg-blue-600 text-white border-blue-600'
                   : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'
               ]">
+=======
+              <button
+                v-for="topic in availableTopics"
+                :key="topic"
+                @click="selectedTopic = topic"
+                :class="[
+                  'px-3 py-1.5 text-xs font-semibold rounded-full border transition',
+                  selectedTopic === topic
+                    ? 'bg-[#03255C] text-white border-[#03255C]'
+                    : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'
+                ]"
+              >
+                {{ topic }}
+              </button>
+              <button
+                @click="selectedTopic = 'All'"
+                :class="[
+                  'px-3 py-1.5 text-xs font-semibold rounded-full border transition',
+                  selectedTopic === 'All'
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'
+                ]"
+              >
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
                 Semua
               </button>
             </div>
@@ -44,25 +79,40 @@
             <div v-if="paginatedFeedPosts.length === 0" class="text-center text-sm text-gray-500 pt-10">
               Tidak ada postingan viral{{ selectedTopic === 'All' ? '' : ' untuk topik ini' }}.
             </div>
+<<<<<<< HEAD
 
+=======
+            
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
             <div v-for="post in paginatedFeedPosts" :key="post.id"
               class="bg-gray-50 border border-gray-200 rounded-lg p-3 transition-shadow hover:shadow-md hover:border-blue-300">
               <div class="flex items-start">
                 <img :src="post.avatar" alt="Avatar" class="w-10 h-10 rounded-full mr-3">
                 <div class="flex-grow min-w-0">
+<<<<<<< HEAD
 
                   <div class="flex justify-between items-center">
                     <span class="font-bold text-sm text-gray-800 truncate">{{ post.author }}</span>
                     <span
                       :class="[getStatusClass(post.postStatus).badge, 'text-xs font-bold px-2 py-0.5 rounded-full']">
+=======
+                  
+                  <div class="flex justify-between items-center">
+                    <span class="font-bold text-sm text-gray-800 truncate">{{ post.author }}</span>
+                    <span :class="[getStatusClass(post.postStatus).badge, 'text-xs font-bold px-2 py-0.5 rounded-full']">
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
                       {{ post.postStatus }}
                     </span>
                   </div>
                   <p class="text-xs text-gray-500">{{ post.date }}</p>
 
                   <div class="mt-1">
+<<<<<<< HEAD
                     <span class="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded"
                       :title="post.topicTag">
+=======
+                    <span class="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded" :title="post.topicTag">
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
                       {{ post.topicTag }}
                     </span>
                   </div>
@@ -81,6 +131,7 @@
                   <FontAwesomeIcon :icon="faEye" /> Detail
                 </button>
               </div>
+<<<<<<< HEAD
 
             </div>
           </div>
@@ -95,6 +146,19 @@
                 </button>
                 <button @click="changeFeedPage(pagination.currentPage + 1)"
                   :disabled="pagination.currentPage === totalFeedPages" class="pagination-arrow-btn">
+=======
+              
+            </div>
+            </div>
+          <div v-if="pagination.total > pagination.perPage" class="p-4 border-t border-gray-200 mt-auto">
+            <div class="flex justify-between items-center text-xs text-gray-600">
+              <span>{{ (pagination.currentPage - 1) * pagination.perPage + 1 }} - {{ Math.min(pagination.currentPage * pagination.perPage, pagination.total) }} dari {{ pagination.total }}</span>
+              <div class="flex items-center space-x-1">
+                <button @click="changeFeedPage(pagination.currentPage - 1)" :disabled="pagination.currentPage === 1" class="pagination-arrow-btn">
+                  <FontAwesomeIcon :icon="faChevronLeft" class="h-3 w-3" />
+                </button>
+                <button @click="changeFeedPage(pagination.currentPage + 1)" :disabled="pagination.currentPage === totalFeedPages" class="pagination-arrow-btn">
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
                   <FontAwesomeIcon :icon="faChevronRight" class="h-3 w-3" />
                 </button>
               </div>
@@ -104,6 +168,7 @@
       </div>
 
       <div class="lg:col-span-2 space-y-6">
+<<<<<<< HEAD
 
         <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <h3 class="text-xl font-bold text-[#03255C] mb-2">Kompas Status Terkini</h3>
@@ -111,6 +176,17 @@
 
           <div class="relative w-full h-80 md:h-96 flex justify-center items-center pie-chart-wrapper"
             @mouseleave="hidePieTooltip">
+=======
+        
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+          <h3 class="text-xl font-bold text-[#03255C] mb-2">Kompas Status Terkini</h3>
+          <p class="text-sm text-gray-500 mb-4">Posisi 3 topik teratas berdasarkan status.</p>
+          
+          <div 
+            class="relative w-full h-80 md:h-96 flex justify-center items-center pie-chart-wrapper"
+            @mouseleave="hidePieTooltip" 
+          >
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
             <div class="absolute w-full h-full">
               <Pie :data="pieChartData" :options="pieChartOptions" :plugins="[pieChartTextPlugin]" />
             </div>
@@ -135,10 +211,16 @@
             </div>
           </div>
         </div>
+<<<<<<< HEAD
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div v-for="stat in topTopics" :key="stat.title"
             :class="[getStatusClass(stat.status).border, 'p-4 rounded-lg bg-white border-l-4 shadow-sm']">
+=======
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div v-for="stat in topTopics" :key="stat.title" :class="[getStatusClass(stat.status).border, 'p-4 rounded-lg bg-white border-l-4 shadow-sm']">
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
             <p class="text-xs font-semibold text-gray-500 line-clamp-1">{{ stat.title }}</p>
             <span class="text-3xl font-bold text-gray-800">{{ stat.value }}</span>
             <span class="text-sm font-medium text-gray-500 ml-1">posts</span>
@@ -159,10 +241,19 @@
         <div class="p-4 border-b border-gray-200">
           <h3 class="text-lg font-bold text-[#03255C] line-clamp-1">Topik {{ index + 1 }}: {{ topic.title }}</h3>
         </div>
+<<<<<<< HEAD
 
         <div class="relative p-4 flex flex-col items-center bg-gray-50/50 cursor-help"
           @mouseenter="hoveredStatusRef = { topic: topic.title, status: topic.status }"
           @mouseleave="hoveredStatusRef = { topic: null, status: null }">
+=======
+        
+        <div 
+          class="relative p-4 flex flex-col items-center bg-gray-50/50 cursor-help"
+          @mouseenter="hoveredStatusRef = { topic: topic.title, status: topic.status }"
+          @mouseleave="hoveredStatusRef = { topic: null, status: null }"
+        >
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
           <div class="gauge-container">
             <div class="gauge-semi-circle" :style="getGaugeStyle(topic.status)">
               <div class="gauge-needle"></div>
@@ -172,6 +263,7 @@
               <div class="gauge-value" :class="getStatusClass(topic.status).text">{{ topic.status }}</div>
             </div>
           </div>
+<<<<<<< HEAD
 
           <div v-if="hoveredStatusRef.topic === topic.title && hoveredStatusRef.status === topic.status"
             class="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-72 bg-white border border-gray-300 rounded-lg shadow-xl p-3 z-20 max-h-64 overflow-y-auto">
@@ -179,6 +271,20 @@
             <div v-if="postsInHoveredStatus.length > 0" class="space-y-2">
               <div v-for="p in postsInHoveredStatus" :key="p.id"
                 class="text-xs text-gray-700 border-b border-gray-100 last:border-none pb-2 mb-2">
+=======
+          
+          <div
+            v-if="hoveredStatusRef.topic === topic.title && hoveredStatusRef.status === topic.status"
+            class="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-72 bg-white border border-gray-300 rounded-lg shadow-xl p-3 z-20 max-h-64 overflow-y-auto"
+          >
+            <h5 class="text-sm font-bold text-gray-900 mb-2">Postingan dengan status "{{ topic.status }}"</h5>
+            <div v-if="postsInHoveredStatus.length > 0" class="space-y-2">
+              <div
+                v-for="p in postsInHoveredStatus"
+                :key="p.id"
+                class="text-xs text-gray-700 border-b border-gray-100 last:border-none pb-2 mb-2"
+              >
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
                 <span class="font-bold text-gray-800 block truncate">{{ p.author }}</span>
                 <p class="text-gray-600 line-clamp-2">{{ p.content }}</p>
               </div>
@@ -187,7 +293,11 @@
               (Tidak ada postingan di daftar ini)
             </div>
           </div>
+<<<<<<< HEAD
         </div>
+=======
+          </div>
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
 
         <div class="p-4 flex-grow h-96 overflow-y-auto">
           <h4 class="text-base font-bold text-[#03255C] mb-3">Postingan Teratas Topik Ini</h4>
@@ -202,6 +312,7 @@
                 <div class="flex-grow min-w-0">
                   <div class="flex justify-between items-start mb-1">
                     <div class="flex items-center gap-2 max-w-[calc(100%-4rem)]">
+<<<<<<< HEAD
                       <FontAwesomeIcon :icon="post.socialIcon" :class="getSocialIconColor(post.socialIcon)"
                         class="h-4 w-4" />
                       <span
@@ -212,6 +323,17 @@
                     <FontAwesomeIcon :icon="faBookmark" @click="toggleBookmark(post)" :class="['h-4 w-4 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-125',
                       post.isBookmarked ? 'text-yellow-500' : 'text-gray-300 group-hover:text-yellow-400'
                     ]" />
+=======
+                      <FontAwesomeIcon :icon="post.socialIcon" :class="getSocialIconColor(post.socialIcon)" class="h-4 w-4" />
+                      <span class="font-bold text-sm text-gray-800 block truncate group-hover:text-blue-600 transition-colors">
+                        {{ post.author }}
+                      </span>
+                    </div>
+                    <FontAwesomeIcon :icon="faBookmark" @click="toggleBookmark(post)"
+                      :class="['h-4 w-4 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-125', 
+                        post.isBookmarked ? 'text-yellow-500' : 'text-gray-300 group-hover:text-yellow-400'
+                      ]" />
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
                   </div>
                   <p class="text-xs text-gray-500 flex items-center gap-1.5">
                     <FontAwesomeIcon :icon="faCalendarDays" class="h-3 w-3" />
@@ -220,6 +342,7 @@
                 </div>
               </div>
               <p class="text-sm text-gray-700 mb-3 line-clamp-2">{{ post.content }}</p>
+<<<<<<< HEAD
 
               <div class="flex items-center justify-between text-xs text-gray-500 mb-3 border-t border-gray-100 pt-3">
                 <div class="flex items-center gap-3">
@@ -232,6 +355,14 @@
                   <span class="flex items-center gap-1" title="Shares">
                     <FontAwesomeIcon :icon="faShareNodes" /> {{ post.shares }}
                   </span>
+=======
+              
+              <div class="flex items-center justify-between text-xs text-gray-500 mb-3 border-t border-gray-100 pt-3">
+                <div class="flex items-center gap-3">
+                  <span class="flex items-center gap-1" title="Likes"><FontAwesomeIcon :icon="faHeart" /> {{ post.likes }}</span>
+                  <span class="flex items-center gap-1" title="Comments"><FontAwesomeIcon :icon="faCommentDots" /> {{ post.comments }}</span>
+                  <span class="flex items-center gap-1" title="Shares"><FontAwesomeIcon :icon="faShareNodes" /> {{ post.shares }}</span>
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
                 </div>
                 <span :class="[getStatusClass(post.postStatus).badge, 'text-xs font-bold px-2 py-0.5 rounded-full']">
                   {{ post.postStatus }}
@@ -269,6 +400,7 @@
           <tbody>
             <tr v-for="item in platformStatuses" :key="item.topic" class="bg-white border-b border-gray-100">
               <th scope="row" class="px-6 py-4 font-bold text-gray-800 whitespace-nowrap">{{ item.topic }}</th>
+<<<<<<< HEAD
 
               <td v-for="(status, statusIndex) in item.statuses" :key="`${item.topic}-${statusIndex}`"
                 class="px-6 py-4 text-center">
@@ -286,6 +418,31 @@
                     <div v-if="postsInHoveredStatus.length > 0" class="space-y-2">
                       <div v-for="p in postsInHoveredStatus" :key="p.id"
                         class="text-xs text-gray-700 border-b border-gray-100 last:border-none pb-2 mb-2">
+=======
+              
+              <td v-for="(status, statusIndex) in item.statuses" :key="`${item.topic}-${statusIndex}`" class="px-6 py-4 text-center">
+                <div 
+                  v-if="status" 
+                  class="relative inline-block"
+                  @mouseenter="hoveredStatusRef = { topic: item.topic, status: status }"
+                  @mouseleave="hoveredStatusRef = { topic: null, status: null }"
+                >
+                  <span :class="getStatusClass(status).badge" class="px-2.5 py-1 text-xs font-bold rounded-full cursor-help">
+                    {{ status }}
+                  </span>
+                  
+                  <div
+                    v-if="hoveredStatusRef.topic === item.topic && hoveredStatusRef.status === status"
+                    class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-72 bg-white border border-gray-300 rounded-lg shadow-xl p-3 z-20 max-h-64 overflow-y-auto text-left"
+                  >
+                    <h5 class="text-sm font-bold text-gray-900 mb-2">Postingan dengan status "{{ status }}"</h5>
+                    <div v-if="postsInHoveredStatus.length > 0" class="space-y-2">
+                      <div
+                        v-for="p in postsInHoveredStatus"
+                        :key="p.id"
+                        class="text-xs text-gray-700 border-b border-gray-100 last:border-none pb-2 mb-2"
+                      >
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
                         <span class="font-bold text-gray-800 block truncate">{{ p.author }}</span>
                         <p class="text-gray-600 line-clamp-2">{{ p.content }}</p>
                       </div>
@@ -294,16 +451,24 @@
                       (Tidak ada postingan di daftar ini)
                     </div>
                   </div>
+<<<<<<< HEAD
                 </div>
                 <span v-else class="text-gray-400">-</span>
               </td>
             </tr>
+=======
+                  </div>
+                <span v-else class="text-gray-400">-</span>
+              </td>
+              </tr>
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
           </tbody>
         </table>
       </div>
     </div>
 
     <Teleport to="body">
+<<<<<<< HEAD
       <div v-if="isDetailModalOpen"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4 animate-fade-in"
         @click.self="closeDetailModal">
@@ -371,6 +536,79 @@
         <div v-if="pieTooltip.posts.length > 0" class="space-y-2">
           <div v-for="p in pieTooltip.posts.slice(0, 10)" :key="p.id"
             class="text-xs text-gray-700 border-b border-gray-100 last:border-none pb-2 mb-2">
+=======
+      <div v-if="isDetailModalOpen" 
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4 animate-fade-in" 
+        @click.self="closeDetailModal">
+        
+        <div v-if="selectedPost" class="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            
+            <div class="flex justify-between items-center p-4 border-b border-gray-200">
+                <div class="flex items-center min-w-0">
+                  <img :src="selectedPost.avatar" alt="Avatar" class="w-10 h-10 rounded-full mr-3 flex-shrink-0">
+                  <div class="min-w-0">
+                    <h3 class="font-bold text-lg text-gray-800 truncate">{{ selectedPost.author }}</h3>
+                    <p class="text-xs text-gray-500">{{ selectedPost.date }}</p>
+                  </div>
+                </div>
+                <button @click="closeDetailModal" class="text-gray-400 hover:text-gray-600 ml-4 flex-shrink-0">
+                  <FontAwesomeIcon :icon="faXmark" class="h-6 w-6" />
+                </button>
+            </div>
+            
+            <div class="p-5 overflow-y-auto">
+                <p class="text-base text-gray-700 whitespace-pre-wrap">{{ selectedPost.content }}</p>
+                
+                <div class="mt-4 pt-4 border-t border-gray-100">
+                  <span class="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">
+                    Topik: {{ selectedPost.topicTag }}
+                  </span>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap justify-around items-center p-4 border-t border-gray-200 bg-gray-50">
+                <div class="text-center p-2">
+                  <span class="text-sm text-gray-500">Status</span>
+                  <span :class="[getStatusClass(selectedPost.postStatus).badge, 'text-sm font-bold px-3 py-1 rounded-full block mt-1']">
+                    {{ selectedPost.postStatus }}
+                  </span>
+                </div>
+                <div class="text-center p-2">
+                  <span class="text-sm text-gray-500">Likes</span>
+                  <span class="text-lg font-bold text-gray-800 block">{{ selectedPost.likes }}</span>
+                </div>
+                <div class="text-center p-2">
+                  <span class="text-sm text-gray-500">Comments</span>
+                  <span class="text-lg font-bold text-gray-800 block">{{ selectedPost.comments }}</span>
+                </div>
+                <div class="text-center p-2">
+                  <span class="text-sm text-gray-500">Shares</span>
+                  <span class="text-lg font-bold text-gray-800 block">{{ selectedPost.shares }}</span>
+                </div>
+            </div>
+            
+            <div class="p-4 bg-gray-100 border-t border-gray-200">
+              <button @click="openLinkInNewTab(selectedPost)" 
+                  class="w-full text-sm font-semibold bg-[#03255C] text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition flex items-center justify-center gap-2">
+                <FontAwesomeIcon :icon="faUpRightFromSquare" /> Kunjungi Postingan Asli
+              </button>
+            </div>
+        </div>
+      </div>
+
+      <div
+        v-if="pieTooltip.show"
+        :style="pieTooltip.style"
+        class="fixed z-[60] w-72 bg-white border border-gray-300 rounded-lg shadow-xl p-3 max-h-64 overflow-y-auto animate-fade-in-fast"
+      >
+        <h5 class="text-sm font-bold text-gray-900 mb-2">Postingan dengan status "{{ pieTooltip.status }}"</h5>
+        <div v-if="pieTooltip.posts.length > 0" class="space-y-2">
+          <div
+            v-for="p in pieTooltip.posts.slice(0, 10)"
+            :key="p.id"
+            class="text-xs text-gray-700 border-b border-gray-100 last:border-none pb-2 mb-2"
+          >
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
             <span class="font-bold text-gray-800 block truncate" :title="p.author">{{ p.author }}</span>
             <p class="text-gray-600 line-clamp-2">{{ p.content }}</p>
           </div>
@@ -391,10 +629,17 @@ import { ref, onMounted, onUnmounted, computed, watch, reactive } from 'vue';
 import { Pie } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+<<<<<<< HEAD
 import { faTiktok, faInstagram, faXTwitter } from '@fortawesome/free-brands-svg-icons';
 import {
   faBookmark, faEye, faHeart, faCommentDots, faShareNodes,
   faCalendarDays, faUpRightFromSquare, faXmark, faChevronLeft, faChevronRight
+=======
+import { faTiktok, faFacebook, faYoutube, faInstagram, faXTwitter } from '@fortawesome/free-brands-svg-icons';
+import { 
+  faBookmark, faEye, faHeart, faCommentDots, faShareNodes, 
+  faCalendarDays, faUpRightFromSquare, faXmark, faChevronLeft, faChevronRight 
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
 } from '@fortawesome/free-solid-svg-icons';
 
 import { filters } from '@/stores/filterStore.js';
@@ -476,6 +721,11 @@ const pagination = reactive({
 const platforms = ref([
   { name: 'X / Twitter', icon: faXTwitter, color: 'text-gray-800' },
   { name: 'TikTok', icon: faTiktok, color: 'text-black' },
+<<<<<<< HEAD
+=======
+  { name: 'Facebook', icon: faFacebook, color: 'text-blue-600' },
+  { name: 'YouTube', icon: faYoutube, color: 'text-red-600' },
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
   { name: 'Instagram', icon: faInstagram, color: 'text-pink-500' },
 ]);
 
@@ -532,17 +782,30 @@ const handlePieHover = (event, activeElements, chart) => {
   if (activeElements.length > 0) {
     const firstElement = activeElements[0];
     const label = chart.data.labels[firstElement.index];
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
     pieTooltip.show = true;
     pieTooltip.status = label;
     // Filter SEMUA post, bukan per topik
     pieTooltip.posts = allViralPosts.value.filter(p => (p.postStatus || 'N/A').toUpperCase() === label.toUpperCase());
+<<<<<<< HEAD
 
     const nativeEvent = event.native;
     if (nativeEvent) {
       // Atur posisi awal
       pieTooltip.style = {
         top: `${nativeEvent.clientY + 10}px`,
+=======
+    
+    const nativeEvent = event.native; 
+    if (nativeEvent) {
+      // Atur posisi awal
+      pieTooltip.style = { 
+        top: `${nativeEvent.clientY + 10}px`, 
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
         left: `${nativeEvent.clientX + 10}px`,
         right: 'auto',
         bottom: 'auto'
@@ -572,10 +835,17 @@ const hidePieTooltip = () => {
 // Opsi Chart
 const pieChartOptions = {
   responsive: true, maintainAspectRatio: false,
+<<<<<<< HEAD
   plugins: {
     legend: { display: false },
     tooltip: { enabled: false }, // Penting: Matikan tooltip bawaan
     pieChartText: true
+=======
+  plugins: { 
+    legend: { display: false }, 
+    tooltip: { enabled: false }, // Penting: Matikan tooltip bawaan
+    pieChartText: true 
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
   },
   events: ['mousemove', 'mouseout', 'touchstart', 'touchmove'],
   onHover: handlePieHover, // Gunakan handler kustom kita
@@ -682,6 +952,7 @@ const fetchAllDashboardData = async (startDate, endDate) => {
 
     const enrichedTopicsData = topTopicsApiData.map(topicItem => {
       const topicPosts = (topicItem.top_10_posts || []).map(post => ({
+<<<<<<< HEAD
         id: post.post_id || post.tweet_id || post.id_video,
         url: post.url,
 
@@ -717,13 +988,41 @@ const fetchAllDashboardData = async (startDate, endDate) => {
 
       const calculated_status = getHighestPriorityStatus(topicPosts);
 
+=======
+        id: post.tweet_id,
+        author: post.user.name || post.user.screen_name,
+        avatar: post.user.profile_image_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+        dateRaw: post.created_at,
+        date: new Date(post.created_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+        postStatus: (post.latest_status || 'N/A').toUpperCase(),
+        socialIcon: faXTwitter,
+        followers: String(post.user.followers_count || 0),
+        following: String(post.user.following_count || 0),
+        engagementScore: (post.engagement || 0).toFixed(2),
+        views: String((post.retweet_count || 0) + (post.favorite_count || 0) + (post.reply_count || 0)),
+        likes: String(post.favorite_count || 0),
+        comments: String(post.reply_count || 0),
+        shares: String(post.retweet_count || 0),
+        topicTag: topicItem.topic,
+        url: `https://x.com/any/status/${post.tweet_id}`,
+        isBookmarked: false,
+        content: post.text
+      }));
+      
+      const calculated_status = getHighestPriorityStatus(topicPosts);
+      
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
       return {
         ...topicItem,
         calculated_status: calculated_status,
         mapped_posts: topicPosts
       };
     });
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
     // 1. Mengisi topTopics
     topTopics.value = enrichedTopicsData.slice(0, 3).map((item) => ({
       title: item.topic,
@@ -741,18 +1040,30 @@ const fetchAllDashboardData = async (startDate, endDate) => {
         borderColor: '#ffffff',
       }],
     };
+<<<<<<< HEAD
 
     // 3. Siapkan data untuk DUA list
     const bookmarkedIds = new Set(bookmarkedPosts.value.map(p => p.id));
     let collectedPosts = [];
 
+=======
+    
+    // 3. Siapkan data untuk DUA list
+    const bookmarkedIds = new Set(bookmarkedPosts.value.map(p => p.id));
+    let collectedPosts = [];
+    
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
     // 4. Mengisi data Kartu Detail Topik
     topicsDetailsData.value = enrichedTopicsData.slice(0, 3).map((topicItem) => {
       const topicPostsWithBookmark = topicItem.mapped_posts.map(post => ({
         ...post,
         isBookmarked: bookmarkedIds.has(post.id)
       }));
+<<<<<<< HEAD
       collectedPosts.push(...topicPostsWithBookmark);
+=======
+      collectedPosts.push(...topicPostsWithBookmark); 
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
       return {
         title: topicItem.topic,
         status: (topicItem.calculated_status || 'N/A').toUpperCase(),
@@ -761,6 +1072,7 @@ const fetchAllDashboardData = async (startDate, endDate) => {
     });
 
     // 5. Mengisi data Tabel Platform
+<<<<<<< HEAD
     // Di dalam fetchAllDashboardData, ganti logic platformStatuses.value
     platformStatuses.value = topicsDetailsData.value.map(topic => {
       const statusArray = Array(platforms.value.length).fill('');
@@ -791,6 +1103,12 @@ const fetchAllDashboardData = async (startDate, endDate) => {
         }
       });
 
+=======
+    platformStatuses.value = topicsDetailsData.value.map(topic => {
+      const statusArray = Array(platforms.value.length).fill('');
+      const twitterIndex = platforms.value.findIndex(p => p.name === 'X / Twitter');
+      if (twitterIndex > -1) statusArray[twitterIndex] = topic.status;
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
       return { topic: topic.title, statuses: statusArray };
     });
 
@@ -842,7 +1160,10 @@ onUnmounted(() => {
   overflow: hidden;
   margin-bottom: 1rem;
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
 .gauge-semi-circle {
   width: 200px;
   height: 200px;
@@ -850,6 +1171,7 @@ onUnmounted(() => {
   position: absolute;
   top: 0;
   left: 0;
+<<<<<<< HEAD
   background: conic-gradient(from 180deg,
       #E60000 0deg 36deg,
       #FF9900 36deg 72deg,
@@ -859,6 +1181,18 @@ onUnmounted(() => {
       #f0f0f0 180deg 360deg);
 }
 
+=======
+  background: conic-gradient(
+    from 180deg,
+    #E60000 0deg 36deg,
+    #FF9900 36deg 72deg,
+    #AAD816 72deg 108deg,
+    #28C76F 108deg 144deg,
+    #2092EC 144deg 180deg,
+    #f0f0f0 180deg 360deg
+  );
+}
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
 .gauge-needle {
   content: '';
   position: absolute;
@@ -869,12 +1203,20 @@ onUnmounted(() => {
   top: 100px;
   left: 5px;
   transform-origin: 95px 3px;
+<<<<<<< HEAD
   transform: rotate(var(--gauge-angle, 162deg));
   transition: transform 1.5s cubic-bezier(0.19, 1, 0.22, 1);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   z-index: 10;
 }
 
+=======
+  transform: rotate(var(--gauge-angle, 162deg)); 
+  transition: transform 1.5s cubic-bezier(0.19, 1, 0.22, 1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  z-index: 10;
+}
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
 .gauge-inner-circle {
   width: 160px;
   height: 160px;
@@ -890,7 +1232,10 @@ onUnmounted(() => {
   padding-bottom: 1rem;
   z-index: 5;
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
 .gauge-label {
   font-size: 0.75rem;
   color: #6b7280;
@@ -898,7 +1243,10 @@ onUnmounted(() => {
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
 .gauge-value {
   font-size: 1.5rem;
   font-weight: 700;
@@ -909,15 +1257,21 @@ onUnmounted(() => {
 .pie-chart-wrapper :deep(canvas) {
   filter: drop-shadow(8px 8px 12px rgba(0, 0, 0, 0.15));
 }
+<<<<<<< HEAD
 
 .pie-needle-wrapper {
   position: absolute;
   top: 50%;
   left: 50%;
+=======
+.pie-needle-wrapper {
+  position: absolute; top: 50%; left: 50%;
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
   transform-origin: 0 0;
   transform: rotate(0deg);
   transition: transform 2s cubic-bezier(0.19, 1, 0.22, 1);
 }
+<<<<<<< HEAD
 
 .pie-center-dot {
   content: '';
@@ -951,12 +1305,37 @@ onUnmounted(() => {
   top: -4px;
 }
 
+=======
+.pie-center-dot {
+  content: ''; width: 20px; height: 20px;
+  background: #1f2937;
+  border: 4px solid #fff;
+  border-radius: 50%; position: absolute;
+  top: -10px; left: -10px; z-index: 13;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+.pie-needle-wrapper .needle {
+  border-radius: 4px; position: absolute;
+  top: -7px; left: 0;
+  transform-origin: 0% 50%; display: block;
+  box-shadow: 0 2px 2px 1px rgba(0, 0, 0, 0.2);
+  height: 8px;
+}
+.pie-needle-wrapper.primary .needle {
+  width: 170px;
+  background: #D97706;
+  z-index: 12; top: -4px;
+}
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
 .pie-needle-wrapper.secondary .needle {
   width: 170px;
   background: #059669;
   z-index: 11;
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
 .pie-needle-wrapper.tertiary .needle {
   width: 170px;
   background: #2563EB;
@@ -964,6 +1343,7 @@ onUnmounted(() => {
 }
 
 /* Animasi untuk kelas status jarum */
+<<<<<<< HEAD
 .pie-needle-wrapper.normal {
   transform: rotate(-27deg);
 }
@@ -983,12 +1363,20 @@ onUnmounted(() => {
 .pie-needle-wrapper.crisis {
   transform: rotate(-72deg);
 }
+=======
+.pie-needle-wrapper.normal    { transform: rotate(-27deg); }
+.pie-needle-wrapper.early     { transform: rotate(45deg); }
+.pie-needle-wrapper.emerging  { transform: rotate(135deg); }
+.pie-needle-wrapper.current   { transform: rotate(225deg); }
+.pie-needle-wrapper.crisis    { transform: rotate(-72deg); }
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
 
 /* Loader & Animasi Fade */
 .loader {
   border-top-color: #3B82F6;
   animation: spinner 1.5s linear infinite;
 }
+<<<<<<< HEAD
 
 @keyframes spinner {
   100% {
@@ -1025,6 +1413,20 @@ onUnmounted(() => {
   to {
     opacity: 1;
   }
+=======
+@keyframes spinner { 100% { transform: rotate(360deg); } }
+.animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* [REVISI BARU] Animasi untuk tooltip kompas */
+.animate-fade-in-fast { animation: fadeInFast 0.1s ease-out forwards; }
+@keyframes fadeInFast {
+  from { opacity: 0; }
+  to { opacity: 1; }
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
 }
 
 
@@ -1036,7 +1438,10 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -1049,12 +1454,18 @@ onUnmounted(() => {
 .pagination-arrow-btn {
   @apply p-2 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-800 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent;
 }
+<<<<<<< HEAD
 
 .platform-table th,
 .platform-table td {
   @apply px-6 py-4;
 }
 
+=======
+.platform-table th, .platform-table td {
+  @apply px-6 py-4;
+}
+>>>>>>> a843de81552e536688b99911de97e75e86baab73
 .platform-table tbody tr:last-child {
   @apply border-b-0;
 }
