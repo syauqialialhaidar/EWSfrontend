@@ -7,7 +7,7 @@
             <PostCard />
         </div>
         <div class="mt-10">
-            <TopTopik />
+            <TopTopikMain />
         </div>
         <div class="mt-10">
             <Hight />
@@ -26,7 +26,7 @@
 <script setup>
 import { ref } from 'vue'
 import PostCard from '@/components/charts/Post.vue'
-import TopTopik from '@/components/charts/TopTopik.vue'
+import TopTopikMain from '@/components/top-topik/TopTopikMain.vue'
 import Hight from '@/components/charts/Hight.vue'
 import Analisis from '@/components/charts/Analisis.vue'
 import Flagged from '@/components/charts/Flagged.vue'

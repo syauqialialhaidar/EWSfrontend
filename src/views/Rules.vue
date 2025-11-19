@@ -53,7 +53,16 @@
 
             </div>
 
-            <div>
+            <div class="relative">
+                <!-- Loading Overlay -->
+                <div v-if="isLoadingThreshold"
+                    class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
+                    <div class="text-center">
+                        <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
+                        <p class="text-sm font-semibold text-gray-600">Memuat data threshold...</p>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-5 gap-2 mb-2">
                     <div v-for="def in thresholdDefinitions" :key="def.label" class="text-center">
                         <span :class="[def.color, def.textColor]"
@@ -64,21 +73,22 @@
                 </div>
                 <div class="grid grid-cols-5 gap-4">
                     <div v-for="(cell, index) in thresholdGrid" :key="index" class="text-center">
-                        <input type="number" v-model="cell.value"
-                            class="w-full bg-gray-200 border-none font-bold text-gray-600 rounded-lg h-10 text-center focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                        <input type="number" v-model="cell.value" :disabled="isLoadingThreshold"
+                            class="w-full bg-gray-200 border-none font-bold text-gray-600 rounded-lg h-10 text-center focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50" />
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="flex justify-end items-center space-x-4 mt-10">
-            <button @click="cancelChanges"
-                class="px-10 py-2.5 text-sm font-bold text-gray-800 bg-gray-300 hover:bg-gray-400 rounded-lg focus:outline-none transition-colors">
+            <button @click="cancelChanges" :disabled="isSaving"
+                class="px-10 py-2.5 text-sm font-bold text-gray-800 bg-gray-300 hover:bg-gray-400 rounded-lg focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 Batal
             </button>
-            <button @click="saveRules"
-                class="px-8 py-2.5 text-sm font-bold text-white bg-green-500 hover:bg-green-600 rounded-lg focus:outline-none transition-colors">
-                Simpan
+            <button @click="saveRules" :disabled="isSaving || isLoadingThreshold"
+                class="px-8 py-2.5 text-sm font-bold text-white bg-green-500 hover:bg-green-600 rounded-lg focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                <span v-if="isSaving" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                {{ isSaving ? 'Menyimpan...' : 'Simpan' }}
             </button>
         </div>
 
@@ -142,7 +152,7 @@
 
 
 <script setup>
-import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue'; // Tambahkan onBeforeUnmount
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import {
     Dialog,
     DialogPanel,
@@ -153,171 +163,45 @@ import {
 import { MagnifyingGlassIcon } from '@heroicons/vue/20/solid'
 import { XMarkIcon } from '@heroicons/vue/24/outline'
 
-// --- State untuk Modal FAQ ---
-const isFaqModalOpen = ref(false)
-// ... (closeFaqModal, openFaqModal) ...
-function closeFaqModal() {
-    isFaqModalOpen.value = false
-}
-function openFaqModal() {
-    isFaqModalOpen.value = true
-}
+// ===================================
+// COMPOSABLES & API
+// ===================================
+import { useApi } from '@/composables/useApi'
+import { ewsApi } from '@/api/ews.api'
+import { logger } from '@/utils/logger'
 
-// --- State Pencarian Proyek ---
+const {
+  loading: isLoadingProjects,
+  error: projectsError,
+  execute: executeProjectsApi
+} = useApi()
+
+const {
+  loading: isLoadingThreshold,
+  error: thresholdError,
+  execute: executeThresholdApi
+} = useApi()
+
+const {
+  loading: isSaving,
+  error: saveError,
+  execute: executeSaveApi
+} = useApi()
+
+// ===================================
+// STATE MANAGEMENT
+// ===================================
+// Modal FAQ
+const isFaqModalOpen = ref(false);
+
+// Project Search
 const selectedProject = ref('');
 const availableProjects = ref([]);
 const filteredProjects = ref([]);
 const showDropdown = ref(false);
-
-// Tambahkan ref untuk elemen DOM input/dropdown
 const projectInputRef = ref(null);
 
-
-// Fungsi untuk memuat data unik topik + ID Project dari API
-const fetchUniqueTopics = async () => {
-    try {
-        const response = await fetch('http://127.0.0.1:8000/all-unique-topics');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        availableProjects.value = data.topics || [];
-        filteredProjects.value = availableProjects.value;
-    } catch (error) {
-        console.error("Gagal memuat topik unik:", error);
-    }
-};
-
-
-// Fungsi pencarian yang dipanggil saat input berubah
-const searchProject = () => {
-    const query = selectedProject.value.toLowerCase();
-    showDropdown.value = true; // Selalu tampilkan dropdown saat mengetik
-
-    if (!query) {
-        filteredProjects.value = availableProjects.value;
-        return;
-    }
-
-    // Filter berdasarkan id_project ATAU topik
-    filteredProjects.value = availableProjects.value.filter(project => {
-        const idMatch = project.id_project && project.id_project.toLowerCase().includes(query);
-        const topicMatch = project.topik && project.topik.toLowerCase().includes(query);
-        return idMatch || topicMatch;
-    });
-};
-
-// Fungsi yang dipanggil saat user memilih dari dropdown
-// --- Fungsi baru untuk memuat threshold ---
-const fetchThresholdData = async (projectId) => {
-    try {
-        const response = await fetch(`http://127.0.0.1:8000/threshold/${projectId}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        
-        // Ambil array threshold. Ini mungkin array kosong jika tidak ada data.
-        const thresholds = data.threshold || [];
-        
-        const newGrid = [];
-        
-        // Asumsi: Kita hanya menampilkan nilai persentase (early, emerging, current, crisis)
-        // dan mengabaikan threshold awal (yg before: null) dan nilai before-nya sendiri
-        
-        // Urutan kolom: NORMAL, EARLY, EMERGING, CURRENT, CRISIS
-        const keys = ['before', 'early', 'emerging', 'current', 'crisis']; // Gunakan 'before' untuk kolom pertama (NORMAL)
-
-        // Kita akan loop melalui threshold yang ada
-        thresholds.forEach((item, index) => {
-            // Kita hanya mengisi 5 kolom (NORMAL, EARLY, EMERGING, CURRENT, CRISIS)
-            // Normal (index 0) adalah batas bawah (sebelum EARLY)
-            // Jika item pertama (index 0) adalah threshold awal (before: null)
-            if (index === 0 && item.before === null) {
-                // Baris pertama (Threshold Awal - Engagement Absolut)
-                newGrid.push({ value: 0 }); // NORMAL dimulai dari 0
-                newGrid.push({ value: item.early });
-                newGrid.push({ value: item.emerging });
-                newGrid.push({ value: item.current });
-                newGrid.push({ value: item.crisis });
-            } 
-            // Threshold Persentase
-            else if (item.before !== undefined) { 
-                // NORMAL di baris ini adalah nilai 'before' dari threshold
-                newGrid.push({ value: item.before }); // Threshold batas Bawah Engagement
-                newGrid.push({ value: item.early });  // Persentase EARLY
-                newGrid.push({ value: item.emerging }); // Persentase EMERGING
-                newGrid.push({ value: item.current });  // Persentase CURRENT
-                newGrid.push({ value: item.crisis });   // Persentase CRISIS
-            }
-            // Lanjutkan hingga grid terisi (jika data threshold < 10 baris)
-        });
-
-
-        // Isi sisa grid dengan nilai kosong (jika threshold yang ditemukan kurang dari 10 baris * 5 kolom)
-        while (newGrid.length < 50) {
-            newGrid.push({ value: '' });
-        }
-        
-        // Ambil hanya 50 sel pertama jika terlalu banyak
-        thresholdGrid.value = newGrid.slice(0, 50);
-
-    } catch (error) {
-        console.error("Gagal memuat data threshold:", error);
-        alert("Gagal memuat data threshold. Grid diinisialisasi kosong.");
-        initializeGrid();
-    }
-}
-
-
-const selectProject = (project) => {
-    // 1. Menetapkan ID Project yang dipilih ke input
-    selectedProject.value = project.id_project;
-    showDropdown.value = false; // Sembunyikan dropdown setelah memilih
-
-    console.log(`Project dipilih: ID=${project.id_project}, Topik=${project.topik}`);
-    
-    // 2. Panggil fungsi untuk memuat data threshold
-    fetchThresholdData(project.id_project);
-};
-
-// Pastikan Anda juga memodifikasi Watcher (jika Anda ingin memuat data saat mengetik ID)
-watch(selectedProject, (newProjectId) => {
-    if (!newProjectId) {
-        initializeGrid();
-    } else {
-        // Jika ID Project diketik dan sudah lengkap (misalnya 5 karakter), 
-        // Anda bisa memicu pemuatan data di sini juga
-        // fetchThresholdData(newProjectId); // Optional: Aktifkan jika ingin auto-load saat mengetik
-    }
-    console.log(`Input Project ID berubah: ${newProjectId}`);
-});
-
-// =======================================================
-// LOGIKA AUTO-HIDE DROPDOWN
-// =======================================================
-
-// Handler untuk mendeteksi klik di luar area input/dropdown
-const handleClickOutside = (event) => {
-    // Cek apakah elemen yang diklik BUKAN merupakan bagian dari div input/dropdown
-    if (projectInputRef.value && !projectInputRef.value.contains(event.target)) {
-        showDropdown.value = false;
-    }
-};
-
-onMounted(() => {
-    fetchUniqueTopics();
-    // Tambahkan event listener saat komponen dimuat
-    document.addEventListener('click', handleClickOutside);
-});
-
-onBeforeUnmount(() => {
-    // Hapus event listener saat komponen dihancurkan
-    document.removeEventListener('click', handleClickOutside);
-});
-// =======================================================
-
-// --- State Grid Thresholds ---
+// Threshold Grid
 const thresholdDefinitions = ref([
     { label: 'NORMAL', color: 'bg-[#2092EC]', textColor: 'text-white' },
     { label: 'EARLY', color: 'bg-[#28C76F]', textColor: 'text-white' },
@@ -325,10 +209,11 @@ const thresholdDefinitions = ref([
     { label: 'CURRENT', color: 'bg-[#FF9900]', textColor: 'text-white' },
     { label: 'CRISIS', color: 'bg-[#E60000]', textColor: 'text-white' }
 ]);
-
 const thresholdGrid = ref([]);
 
-// Fungsi untuk inisialisasi grid (mengisi 50 sel kosong)
+// ===================================
+// UTILITY FUNCTIONS
+// ===================================
 const initializeGrid = () => {
     const newGrid = [];
     for (let i = 0; i < 50; i++) {
@@ -337,40 +222,189 @@ const initializeGrid = () => {
     thresholdGrid.value = newGrid;
 };
 
-initializeGrid();
+// ===================================
+// API FUNCTIONS (WITH ERROR HANDLING!)
+// ===================================
+const fetchUniqueTopics = async () => {
+    await executeProjectsApi(
+        async () => {
+            const data = await ewsApi.topics.getAllUniqueTopics()
+            availableProjects.value = data.topics || []
+            filteredProjects.value = availableProjects.value
+            logger.info('Rules', 'Loaded unique topics:', data.topics?.length || 0)
+        },
+        {
+            showErrorNotification: true,
+            onError: () => {
+                availableProjects.value = []
+                filteredProjects.value = []
+            }
+        }
+    )
+}
 
-// Watcher untuk membersihkan grid jika input project dikosongkan
+const fetchThresholdData = async (projectId) => {
+    await executeThresholdApi(
+        async () => {
+            const data = await ewsApi.topics.getThreshold(projectId)
+            const thresholds = data.threshold || []
+            const newGrid = []
+
+            thresholds.forEach((item, index) => {
+                if (index === 0 && item.before === null) {
+                    newGrid.push({ value: 0 })
+                    newGrid.push({ value: item.early })
+                    newGrid.push({ value: item.emerging })
+                    newGrid.push({ value: item.current })
+                    newGrid.push({ value: item.crisis })
+                } else if (item.before !== undefined) {
+                    newGrid.push({ value: item.before })
+                    newGrid.push({ value: item.early })
+                    newGrid.push({ value: item.emerging })
+                    newGrid.push({ value: item.current })
+                    newGrid.push({ value: item.crisis })
+                }
+            })
+
+            while (newGrid.length < 50) {
+                newGrid.push({ value: '' })
+            }
+
+            thresholdGrid.value = newGrid.slice(0, 50)
+            logger.info('Rules', `Loaded threshold for project: ${projectId}`)
+        },
+        {
+            showErrorNotification: true,
+            onError: () => {
+                initializeGrid()
+            }
+        }
+    )
+}
+
+const saveRulesToBackend = async () => {
+    // Validations
+    if (!selectedProject.value) {
+        logger.warn('Rules', 'No project selected')
+        return
+    }
+
+    const hasData = thresholdGrid.value.some(cell => cell.value !== '' && cell.value !== null)
+    if (!hasData) {
+        logger.warn('Rules', 'No threshold data filled')
+        return
+    }
+
+    await executeSaveApi(
+        async () => {
+            // Transform grid data
+            const thresholdRows = []
+            for (let i = 0; i < 50; i += 5) {
+                const row = thresholdGrid.value.slice(i, i + 5)
+                if (row.some(cell => cell.value !== '' && cell.value !== null)) {
+                    thresholdRows.push({
+                        before: row[0].value === '' ? null : Number(row[0].value),
+                        early: row[1].value === '' ? null : Number(row[1].value),
+                        emerging: row[2].value === '' ? null : Number(row[2].value),
+                        current: row[3].value === '' ? null : Number(row[3].value),
+                        crisis: row[4].value === '' ? null : Number(row[4].value)
+                    })
+                }
+            }
+
+            const payload = {
+                id_project: selectedProject.value,
+                threshold: thresholdRows
+            }
+
+            logger.debug('Rules', 'Saving threshold:', payload)
+
+            const result = await ewsApi.topics.saveThreshold(payload)
+
+            logger.info('Rules', 'Threshold saved successfully')
+            return result
+        },
+        {
+            showErrorNotification: true,
+            showSuccessNotification: true,
+            successMessage: 'Rules berhasil disimpan!'
+        }
+    )
+}
+
+// ===================================
+// EVENT HANDLERS
+// ===================================
+const searchProject = () => {
+    const query = selectedProject.value.toLowerCase();
+    showDropdown.value = true;
+
+    if (!query) {
+        filteredProjects.value = availableProjects.value;
+        return;
+    }
+
+    filteredProjects.value = availableProjects.value.filter(project => {
+        const idMatch = project.id_project && project.id_project.toLowerCase().includes(query);
+        const topicMatch = project.topik && project.topik.toLowerCase().includes(query);
+        return idMatch || topicMatch;
+    });
+};
+
+const selectProject = (project) => {
+    selectedProject.value = project.id_project;
+    showDropdown.value = false;
+    console.log(`Project dipilih: ID=${project.id_project}, Topik=${project.topik}`);
+    fetchThresholdData(project.id_project);
+};
+
+const handleClickOutside = (event) => {
+    if (projectInputRef.value && !projectInputRef.value.contains(event.target)) {
+        showDropdown.value = false;
+    }
+};
+
+const cancelChanges = () => {
+    if (confirm('Anda yakin ingin membatalkan perubahan?')) {
+        selectedProject.value = '';
+        showDropdown.value = false;
+        initializeGrid();
+    }
+};
+
+const saveRules = () => {
+    saveRulesToBackend();
+};
+
+const closeFaqModal = () => {
+    isFaqModalOpen.value = false;
+};
+
+const openFaqModal = () => {
+    isFaqModalOpen.value = true;
+};
+
+// ===================================
+// WATCHERS
+// ===================================
 watch(selectedProject, (newProjectId) => {
     if (!newProjectId) {
         initializeGrid();
     }
-    console.log(`Input Project ID berubah: ${newProjectId}`);
 });
 
-// Fungsi untuk tombol "Batal"
-const cancelChanges = () => {
-    selectedProject.value = '';
-    showDropdown.value = false;
-    console.log('Perubahan dibatalkan');
-};
+// ===================================
+// LIFECYCLE HOOKS
+// ===================================
+onMounted(() => {
+    initializeGrid();
+    fetchUniqueTopics();
+    document.addEventListener('click', handleClickOutside);
+});
 
-// Fungsi untuk tombol "Simpan"
-const saveRules = () => {
-    if (!selectedProject.value) {
-        alert('Harap masukkan atau cari Project ID terlebih dahulu.');
-        return;
-    }
-    const ruleData = {
-        projectId: selectedProject.value,
-        thresholdValues: thresholdGrid.value.map(cell => cell.value)
-    };
-    console.log('Data yang akan disimpan:', ruleData);
-    alert('Rules berhasil disimpan!');
-};
-
-
-
-
+onBeforeUnmount(() => {
+    document.removeEventListener('click', handleClickOutside);
+});
 </script>
 
 <style scoped>
@@ -385,19 +419,19 @@ input[type=number]::-webkit-outer-spin-button {
 input[type=number] {
     -moz-appearance: textfield;
 }
-</style>
 
-
-<style scoped>
-/* Sembunyikan panah di Chrome, Safari, Edge, Opera */
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+/* Loader Animation */
+.loader {
+    border-top-color: #3B82F6;
+    animation: spinner 1.5s linear infinite;
 }
 
-/* Sembunyikan panah di Firefox */
-input[type=number] {
-    -moz-appearance: textfield;
+@keyframes spinner {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 </style>

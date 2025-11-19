@@ -11,6 +11,9 @@
         <router-view />
       </div>
     </main>
+
+    <!-- Global Notifications -->
+    <AppNotifications />
   </div>
 </template>
 
@@ -19,39 +22,53 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import Sidebar from './components/Sidebar.vue'
 import AppHeader from './components/AppHeader.vue'
 import FilterBar from './components/FilterBar.vue'
+import AppNotifications from './components/AppNotifications.vue'
+import { useThemeStore } from '@/stores'
 
+// ===================================
+// STORE INITIALIZATION
+// ===================================
+const themeStore = useThemeStore()
+
+// ===================================
+// SIDEBAR STATE
+// ===================================
 const isOpen = ref(true)
 const isMobile = ref(false)
 
 const checkMobile = () => {
   isMobile.value = window.innerWidth < 768;
   if (isMobile.value) {
-    isOpen.value = false; // Di mobile, sidebar defaultnya tertutup
+    isOpen.value = false;
   } else {
-    isOpen.value = true; // Di desktop, sidebar defaultnya terbuka
+    isOpen.value = true;
   }
 }
 
-// Cek ukuran layar saat komponen dimuat dan saat di-resize
+const toggleSidebar = () => {
+  isOpen.value = !isOpen.value
+}
+
+const mainContentClass = computed(() => {
+  if (isMobile.value) {
+    return 'ml-0';
+  }
+  return isOpen.value ? 'ml-64' : 'ml-20';
+})
+
+// ===================================
+// LIFECYCLE HOOKS
+// ===================================
 onMounted(() => {
+  // Initialize theme
+  themeStore.initTheme()
+
+  // Check mobile
   checkMobile()
   window.addEventListener('resize', checkMobile)
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', checkMobile)
-})
-
-// Fungsi untuk menangani event dari Sidebar
-const toggleSidebar = () => {
-  isOpen.value = !isOpen.value
-}
-
-// --- Computed property untuk kelas dinamis ---
-const mainContentClass = computed(() => {
-  if (isMobile.value) {
-    return 'ml-0'; // Di mobile, tidak ada margin
-  }
-  return isOpen.value ? 'ml-64' : 'ml-20'; // Di desktop, margin berubah
 })
 </script>

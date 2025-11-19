@@ -7,7 +7,7 @@
     ]">
       <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
         <h1 v-if="isOpen" class="font-bold text-lg text-blue-600 whitespace-nowrap transition-all">
-          MEDMON APPS
+          EWS Dashboard
         </h1>
         <button @click="$emit('toggleSidebar')"
           class="hidden md:flex items-center justify-center text-gray-500 hover:text-blue-600 transition">
@@ -105,15 +105,12 @@ defineProps({
 
 const openDropdowns = ref({})
 
-// BARU: Fungsi 'toggleDropdown' diubah menjadi 'openDropdown'
 const openDropdown = (itemName) => {
-  // Hanya atur ke 'true', jangan toggle
   openDropdowns.value[itemName] = true
 }
 
 const route = useRoute()
 
-// Fungsi 'isActive' dan 'isParentActive' tetap sama
 const isActive = (path, currentPath = route.path) => {
   return currentPath === path
 }
@@ -127,36 +124,18 @@ const isParentActive = (item, currentPath = route.path) => {
 }
 
 const menuItems = [
-  { name: 'Dasbor', icon: Home, route: '/dasbor' },
-  { name: 'Berita & Postingan', icon: FileText, route: '/berita' },
-  { name: 'Akun & Media', icon: User, route: '/akun' },
-  { name: 'Pencarian', icon: Search, route: '/pencarian' },
-  { name: 'Pembersihan Data', icon: Database, route: '/pembersihan' },
+  { name: 'Crisis Compass', icon: Home, route: '/crisis-compass' },
   { name: 'Analitik', icon: BarChart2, route: '/analitik' },
   { name: 'Tren', icon: TrendingUp, route: '/tren' },
-  { name: 'Siaran Pers', icon: Mic, route: '/siaran-pers' },
-  { name: 'Ekspor Data', icon: Download, route: '/ekspor' },
-  { name: 'Data Terhapus', icon: Trash2, route: '/data-terhapus' },
-  { name: 'Pengaturan', icon: Settings, route: '/pengaturan' },
-  {
-    name: 'Virality System',
-    icon: Settings,
-    route: '/crisis-compass',
-    children: [
-      { name: 'Rules', route: '/rules' },
-    ],
-  },
+  { name: 'Rules', icon: Settings, route: '/rules' },
 ]
 
-// Logika 'watch' tetap sama, ini yang akan menangani penutupan dropdown
 watch(
   () => route.path,
   (newPath) => {
     for (const itemName in openDropdowns.value) {
       if (openDropdowns.value[itemName]) {
         const item = menuItems.find((m) => m.name === itemName)
-
-        // Jika route baru BUKAN bagian dari item ini, tutup dropdown
         if (item && !isParentActive(item, newPath)) {
           openDropdowns.value[itemName] = false
         }

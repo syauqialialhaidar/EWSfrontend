@@ -6,7 +6,7 @@
   </div>
 
   <div v-else class="space-y-6 animate-fade-in">
-    
+
     <div
       class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-start gap-4">
       <h3 class="text-sm font-bold text-[#03255C] dark:text-gray-100 whitespace-nowrap">Filter Analisis:</h3>
@@ -53,7 +53,7 @@
         </transition>
       </div>
     </div>
-    
+
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
       <div v-for="card in summaryCards" :key="card.key" :class="[card.gradient,
         'relative p-5 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-white flex flex-col justify-between h-40 overflow-hidden'
@@ -88,24 +88,36 @@ import { Line } from 'vue-chartjs';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faTiktok, faFacebook, faYoutube, faInstagram, faXTwitter } from '@fortawesome/free-brands-svg-icons';
-// [BARU] Impor ikon-ikon yang dibutuhkan
 import { faGlobe, faChevronDown, faCheckCircle, faShieldAlt, faExclamationTriangle, faFire, faRadiation } from '@fortawesome/free-solid-svg-icons';
+import { useFilterStore } from '@/stores'
 
-import { filters } from '@/stores/filterStore.js';
+// ===================================
+// NEW: COMPOSABLES & API
+// ===================================
+import { useApi } from '@/composables/useApi'
+import { ewsApi } from '@/api/ews.api'
+import { logger } from '@/utils/logger'
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
-// --- KONFIGURASI API ---
-const API_BASE_URL = 'http://127.0.0.1:8000';
-const TOP_TOPICS_URL = `${API_BASE_URL}/top-topics`;
-const SUMMARY_URL = `${API_BASE_URL}/analysis-summary`;
-const TOPIC_TREND_URL = `${API_BASE_URL}/topic-trend-analysis`;
+// ===================================
+// STORES
+// ===================================
+const filterStore = useFilterStore()
 
-// --- STATE UTAMA ---
+// ===================================
+// API COMPOSABLES
+// ===================================
+const { loading: loadingSummary, execute: executeSummaryApi } = useApi()
+const { loading: loadingTrend, execute: executeTrendApi } = useApi()
+const { loading: loadingTopics, execute: executeTopicsApi } = useApi()
+
+// ===================================
+// STATE
+// ===================================
 const isLoading = ref(true);
 const lineChartData = ref({ labels: [], datasets: [] });
 
-// [REVISI] State summaryCards diubah untuk menyertakan ikon dan gradien
 const summaryCards = ref([
   { title: 'Normal Posts', value: '...', key: 'normal', icon: faCheckCircle, gradient: 'bg-gradient-to-br from-blue-500 to-blue-600' },
   { title: 'Early Posts', value: '...', key: 'early', icon: faShieldAlt, gradient: 'bg-gradient-to-br from-green-500 to-green-600' },
@@ -114,34 +126,35 @@ const summaryCards = ref([
   { title: 'Crisis Posts', value: '...', key: 'crisis', icon: faRadiation, gradient: 'bg-gradient-to-br from-red-600 to-red-700' },
 ]);
 
-// --- PENGATURAN GRAFIK ---
+// ===================================
+// CHART OPTIONS
+// ===================================
 const lineChartOptions = {
   responsive: true, maintainAspectRatio: false,
   plugins: { legend: { display: false } },
-  scales: { 
-    y: { 
+  scales: {
+    y: {
       beginAtZero: true,
-      ticks: { color: '#6b7280' }, // Warna teks sumbu Y
-      grid: { color: '#e5e7eb' }  // Warna grid sumbu Y
-    }, 
-    x: { 
-      ticks: { color: '#6b7280' }, // Warna teks sumbu X
-      grid: { display: false } 
-    } 
+      ticks: { color: '#6b7280' },
+      grid: { color: '#e5e7eb' }
+    },
+    x: {
+      ticks: { color: '#6b7280' },
+      grid: { display: false }
+    }
   },
   interaction: { intersect: false, mode: 'index' },
 };
-// Opsi dark mode untuk chart (opsional, tapi bagus)
+
 const updateChartOptionsTheme = () => {
   const isDarkMode = document.documentElement.classList.contains('dark');
   const tickColor = isDarkMode ? '#9ca3af' : '#6b7280';
   const gridColor = isDarkMode ? '#374151' : '#e5e7eb';
-  
+
   lineChartOptions.scales.y.ticks.color = tickColor;
   lineChartOptions.scales.y.grid.color = gridColor;
   lineChartOptions.scales.x.ticks.color = tickColor;
 };
-
 
 const categoryStyles = {
   'Crisis': { borderColor: '#E60000' }, 'Current': { borderColor: '#FF9900' },
@@ -149,102 +162,162 @@ const categoryStyles = {
   'Normal': { borderColor: '#2092EC' },
 };
 
-// --- LOGIKA DROPDOWN ---
+// ===================================
+// DROPDOWN STATE
+// ===================================
 const isTopicDropdownOpen = ref(false);
 const selectedTopic = ref('Semua Topik');
 const topicOptions = ref(['Semua Topik']);
 const topicDropdownEl = ref(null);
+
 const isPlatformDropdownOpen = ref(false);
 const platformOptions = ref([
-  { name: 'Semua Platform', icon: faGlobe, color: 'text-gray-500' }, { name: 'Facebook', icon: faFacebook, color: 'text-blue-600' },
-  { name: 'YouTube', icon: faYoutube, color: 'text-red-600' }, { name: 'TikTok', icon: faTiktok, color: 'text-[#03255C]' },
-  { name: 'Instagram', icon: faInstagram, color: 'text-pink-600' }, { name: 'X (Twitter)', icon: faXTwitter, color: 'text-[#03255C]' }
+  { name: 'Semua Platform', icon: faGlobe, color: 'text-gray-500' },
+  { name: 'Facebook', icon: faFacebook, color: 'text-blue-600' },
+  { name: 'YouTube', icon: faYoutube, color: 'text-red-600' },
+  { name: 'TikTok', icon: faTiktok, color: 'text-[#03255C]' },
+  { name: 'Instagram', icon: faInstagram, color: 'text-pink-600' },
+  { name: 'X (Twitter)', icon: faXTwitter, color: 'text-[#03255C]' }
 ]);
 const selectedPlatform = ref(platformOptions.value[0]);
 const platformDropdownEl = ref(null);
 
-// --- FUNGSI PENGAMBILAN DATA ---
-// (Tidak ada perubahan pada logika fetch, hanya pada state `summaryCards` di atas)
+// ===================================
+// FETCH FUNCTIONS (WITH ERROR HANDLING!)
+// ===================================
+
 const fetchSummaryData = async (startDate, endDate) => {
   summaryCards.value.forEach(card => card.value = '...');
   const topicParam = selectedTopic.value === 'Semua Topik' ? 'all' : selectedTopic.value;
-  try {
-    const url = `${SUMMARY_URL}?topic=${encodeURIComponent(topicParam)}&start_date=${startDate}&end_date=${endDate}`;
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const data = await response.json();
-    summaryCards.value.forEach(card => {
-      card.value = data[card.key] !== undefined ? data[card.key] : 'N/A';
-    });
-  } catch (error) {
-    console.error("Gagal memuat data summary:", error);
-    summaryCards.value.forEach(card => card.value = 'N/A');
-  }
+
+  await executeSummaryApi(
+    async () => {
+      logger.info('Analisis', `Fetching summary: topic=${topicParam}, ${startDate} to ${endDate}`)
+
+      const data = await ewsApi.analysis.getSummary({
+        topic: topicParam,
+        start_date: startDate,
+        end_date: endDate
+      })
+
+      summaryCards.value.forEach(card => {
+        card.value = data[card.key] !== undefined ? data[card.key] : 'N/A';
+      });
+
+      logger.info('Analisis', 'Summary data loaded')
+    },
+    {
+      showErrorNotification: true,
+      errorMessage: 'Gagal memuat data ringkasan analisis',
+      onError: (err) => {
+        logger.error('Analisis', 'Failed to fetch summary data:', err)
+        summaryCards.value.forEach(card => card.value = 'N/A');
+      }
+    }
+  )
 };
 
 const fetchLineChartData = async (startDate, endDate) => {
   const topicParam = selectedTopic.value === 'Semua Topik' ? 'all' : selectedTopic.value;
-  try {
-    const url = `${TOPIC_TREND_URL}?topic=${encodeURIComponent(topicParam)}&start_date=${startDate}&end_date=${endDate}`;
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const data = await response.json();
-    const styledDatasets = data.datasets.map(dataset => ({
-      ...dataset,
-      borderColor: categoryStyles[dataset.label]?.borderColor || '#cccccc',
-      backgroundColor: (categoryStyles[dataset.label]?.borderColor || '#cccccc') + '30', // Tambah area fill
-      tension: 0.4,
-      borderWidth: 2.5,
-      fill: true, // Aktifkan fill
-    }));
-    lineChartData.value = {
-      labels: data.labels,
-      datasets: styledDatasets
-    };
-  } catch (error) {
-    console.error("Gagal memuat data line chart:", error);
-    lineChartData.value = { labels: [], datasets: [] };
-  }
+
+  await executeTrendApi(
+    async () => {
+      logger.info('Analisis', `Fetching trend analysis: topic=${topicParam}, ${startDate} to ${endDate}`)
+
+      const data = await ewsApi.analysis.getTrendAnalysis({
+        topic: topicParam,
+        start_date: startDate,
+        end_date: endDate
+      })
+
+      const styledDatasets = data.datasets.map(dataset => ({
+        ...dataset,
+        borderColor: categoryStyles[dataset.label]?.borderColor || '#cccccc',
+        backgroundColor: (categoryStyles[dataset.label]?.borderColor || '#cccccc') + '30',
+        tension: 0.4,
+        borderWidth: 2.5,
+        fill: true,
+      }));
+
+      lineChartData.value = {
+        labels: data.labels,
+        datasets: styledDatasets
+      };
+
+      logger.info('Analisis', 'Trend analysis loaded')
+    },
+    {
+      showErrorNotification: true,
+      errorMessage: 'Gagal memuat data tren analisis',
+      onError: (err) => {
+        logger.error('Analisis', 'Failed to fetch trend data:', err)
+        lineChartData.value = { labels: [], datasets: [] };
+      }
+    }
+  )
 };
 
 const fetchTopicOptions = async (startDate, endDate) => {
-  try {
-    const url = `${TOP_TOPICS_URL}?start_date=${startDate}&end_date=${endDate}`;
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const data = await response.json();
-    const fetchedTopicNames = (data.top_topics || []).map(item => item.topic);
-    topicOptions.value = ['Semua Topik', ...fetchedTopicNames];
-    if (!topicOptions.value.includes(selectedTopic.value)) {
-      selectedTopic.value = 'Semua Topik';
+  await executeTopicsApi(
+    async () => {
+      logger.info('Analisis', `Fetching topic options: ${startDate} to ${endDate}`)
+
+      const data = await ewsApi.topTopics.getTopTopics({
+        start_date: startDate,
+        end_date: endDate
+      })
+
+      const fetchedTopicNames = (data.top_topics || []).map(item => item.topic);
+      topicOptions.value = ['Semua Topik', ...fetchedTopicNames];
+
+      if (!topicOptions.value.includes(selectedTopic.value)) {
+        selectedTopic.value = 'Semua Topik';
+      }
+
+      logger.info('Analisis', `Topic options loaded: ${fetchedTopicNames.length} topics`)
+    },
+    {
+      showErrorNotification: true,
+      errorMessage: 'Gagal memuat daftar topik',
+      onError: (err) => {
+        logger.error('Analisis', 'Failed to fetch topic options:', err)
+        topicOptions.value = ['Semua Topik', 'Gagal memuat...'];
+      }
     }
-  } catch (error) {
-    console.error("Gagal memuat daftar topik dinamis:", error);
-    topicOptions.value = ['Semua Topik', 'Gagal memuat...'];
-  }
+  )
 };
 
+// ===================================
+// LOAD DATA FUNCTION
+// ===================================
 function loadDashboardData() {
   isLoading.value = true;
-  updateChartOptionsTheme(); // Update warna chart
+  updateChartOptionsTheme();
+
+  logger.info('Analisis', 'Loading dashboard data')
+
   Promise.all([
-    fetchSummaryData(filters.startDate, filters.endDate),
-    fetchLineChartData(filters.startDate, filters.endDate)
+    fetchSummaryData(filterStore.startDate, filterStore.endDate),
+    fetchLineChartData(filterStore.startDate, filterStore.endDate)
   ]).finally(() => {
     isLoading.value = false;
   });
 }
 
-// --- EVENT HANDLERS ---
+// ===================================
+// EVENT HANDLERS
+// ===================================
 const selectTopic = (topic) => {
   selectedTopic.value = topic;
   isTopicDropdownOpen.value = false;
 };
-const selectPlatform = (platform) => { 
+
+const selectPlatform = (platform) => {
   selectedPlatform.value = platform;
   isPlatformDropdownOpen.value = false;
-  // (Catatan: Anda belum menambahkan logika filter platform, tapi UI-nya siap)
+  // Note: Platform filter logic not yet implemented
 };
+
 const closeDropdowns = (event) => {
   if (topicDropdownEl.value && !topicDropdownEl.value.contains(event.target)) {
     isTopicDropdownOpen.value = false;
@@ -254,25 +327,30 @@ const closeDropdowns = (event) => {
   }
 };
 
-// --- WATCHERS & LIFECYCLE HOOKS ---
+// ===================================
+// WATCHERS
+// ===================================
 watch(selectedTopic, () => {
-  console.log('Topik berubah. Memuat ulang data Analisis.vue...');
+  logger.info('Analisis', 'Topic filter changed, reloading data...');
   loadDashboardData();
 });
 
-watch(filters, async () => {
-  console.log('Filter tanggal berubah. Memuat ulang OPSI TOPIK dan data Analisis.vue...');
+watch(() => [filterStore.startDate, filterStore.endDate], async () => {
+  logger.info('Analisis', 'Date filter changed, reloading topic options and data...');
   isLoading.value = true;
-  await fetchTopicOptions(filters.startDate, filters.endDate);
+  await fetchTopicOptions(filterStore.startDate, filterStore.endDate);
   loadDashboardData();
 });
 
+// ===================================
+// LIFECYCLE HOOKS
+// ===================================
 onMounted(async () => {
-  await fetchTopicOptions(filters.startDate, filters.endDate);
+  await fetchTopicOptions(filterStore.startDate, filterStore.endDate);
   loadDashboardData();
   document.addEventListener('click', closeDropdowns);
-  
-  // (Opsional) Monitor perubahan dark mode sistem
+
+  // Monitor dark mode changes
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateChartOptionsTheme);
 });
 
@@ -283,7 +361,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* (Style CSS tidak berubah, sudah bagus) */
 .loader {
   border-top-color: #3498db;
   animation: spinner 1.5s linear infinite;

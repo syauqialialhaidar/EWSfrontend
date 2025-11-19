@@ -134,12 +134,38 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div v-for="stat in topTopics" :key="stat.title"
-            :class="[getStatusClass(stat.status).border, 'p-4 rounded-lg bg-white border-l-4 shadow-sm']">
-            <p class="text-xs font-semibold text-gray-500 line-clamp-1">{{ stat.title }}</p>
-            <span class="text-3xl font-bold text-gray-800">{{ stat.value }}</span>
-            <span class="text-sm font-medium text-gray-500 ml-1">posts</span>
+        <div class="relative">
+          <button v-if="topicCarouselPage > 0" @click="topicCarouselPage--"
+            class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-12 h-12 bg-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center text-gray-700 hover:bg-gray-50">
+            <FontAwesomeIcon :icon="faChevronLeft" class="w-5 h-5" />
+          </button>
+
+          <button v-if="(topicCarouselPage + 1) * 3 < allTopicsForCarousel.length" @click="topicCarouselPage++"
+            class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-12 h-12 bg-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center text-gray-700 hover:bg-gray-50">
+            <FontAwesomeIcon :icon="faChevronRight" class="w-5 h-5" />
+          </button>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div v-for="(stat, index) in topicsOnCurrentPage" :key="stat.title"
+              :class="[getTopicCardGradient(topicCarouselPage * 3 + index), 'p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 relative overflow-hidden']">
+              <div class="absolute -right-6 -top-6 w-32 h-32 bg-white opacity-10 rounded-full"></div>
+              <div class="absolute -left-4 -bottom-4 w-24 h-24 bg-white opacity-10 rounded-full"></div>
+              <div class="absolute top-4 right-4 w-10 h-10 bg-white bg-opacity-30 backdrop-blur-sm rounded-full flex items-center justify-center">
+                <span class="text-white font-bold text-lg">{{ topicCarouselPage * 3 + index + 1 }}</span>
+              </div>
+
+              <div class="relative z-10">
+                <p class="text-xl font-bold text-white mb-4 line-clamp-2 min-h-[3.5rem]">{{ stat.title }}</p>
+                <p class="text-6xl font-bold text-white mb-2">{{ stat.value }}</p>
+                <p class="text-lg font-medium text-white text-opacity-90 uppercase tracking-wide">Total Posts</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-center items-center gap-2 mt-6">
+            <button v-for="pageNum in totalTopicPages" :key="pageNum" @click="topicCarouselPage = pageNum - 1"
+              :class="[topicCarouselPage === pageNum - 1 ? 'bg-blue-600 w-8' : 'bg-gray-300 w-2', 'h-2 rounded-full transition-all duration-300 hover:bg-blue-400']">
+            </button>
           </div>
         </div>
 
@@ -395,11 +421,11 @@ import {
   faCalendarDays, faUpRightFromSquare, faXmark, faChevronLeft, faChevronRight
 } from '@fortawesome/free-solid-svg-icons';
 
-import { filters } from '@/stores/filterStore.js';
+import { useFilterStore, useBookmarkStore } from '@/stores'
+ChartJS.register(Title, Tooltip, Legend, ArcElement)
 
-ChartJS.register(Title, Tooltip, Legend, ArcElement);
-
-// Plugin Pie Chart (Tidak Berubah)
+const filterStore = useFilterStore()
+const bookmarkStore = useBookmarkStore()
 const pieChartTextPlugin = {
   id: 'pieChartText',
   afterDraw(chart) {
@@ -424,9 +450,7 @@ const pieChartTextPlugin = {
   }
 };
 
-// --- STATE ---
-const API_URL = 'http://127.0.0.1:8000/top-topics';
-const BOOKMARK_STORAGE_KEY = 'vue-bookmarked-posts';
+const API_URL = 'http://154.26.134.72:8438/top-topics';
 
 const isLoading = ref(true);
 const currentTime = ref('');
@@ -434,23 +458,18 @@ const currentDate = ref('');
 let timerInterval = null;
 const isDetailModalOpen = ref(false);
 const selectedPost = ref(null);
-const topTopics = ref([]); // Untuk kartu stat di bawah kompas
+const topTopics = ref([]); 
+const allTopicsForCarousel = ref([]); 
+const topicCarouselPage = ref(0); 
 const pieStatus = ref('EMERGING');
 const pieStatus2 = ref('CURRENT');
 const pieStatus3 = ref('NORMAL');
-const bookmarkedPosts = ref([]);
 const pieChartData = ref({ labels: [], datasets: [] });
-const topicsDetailsData = ref([]); // Untuk 3 kolom detail
-const platformStatuses = ref([]); // Untuk tabel matriks
-
-// State untuk feed postingan baru
+const topicsDetailsData = ref([]); 
+const platformStatuses = ref([]);
 const allViralPosts = ref([]);
 const selectedTopic = ref('All');
-
-// State untuk tooltip hover (gauge & tabel)
 const hoveredStatusRef = ref({ topic: null, status: null });
-
-// [REVISI BARU] State untuk tooltip Pie Chart
 const pieTooltip = reactive({
   show: false,
   style: { top: '0px', left: '0px' },
@@ -458,16 +477,23 @@ const pieTooltip = reactive({
   posts: []
 });
 
-// Ambil semua topik unik dari post
 const availableTopics = computed(() => {
   const topics = allViralPosts.value.map(p => p.topicTag).filter(Boolean);
   return [...new Set(topics)];
 });
 
-// Agregat semua post
+const topicsOnCurrentPage = computed(() => {
+  const start = topicCarouselPage.value * 3;
+  return allTopicsForCarousel.value.slice(start, start + 3);
+});
+
+const totalTopicPages = computed(() => {
+  return Math.ceil(allTopicsForCarousel.value.length / 3);
+});
+
 const pagination = reactive({
   currentPage: 1,
-  perPage: 5, // Tampilkan 5 post per halaman
+  perPage: 5, 
   total: 0
 });
 
@@ -479,7 +505,6 @@ const platforms = ref([
 
 const needleColors = { primary: '#D97706', secondary: '#059669', tertiary: '#2563EB' };
 
-// --- COMPUTED PROPERTIES ---
 const topTopicsForLegend = computed(() => {
   const topics = topTopics.value.slice(0, 3);
   const colors = [needleColors.primary, needleColors.secondary, needleColors.tertiary];
@@ -492,7 +517,6 @@ const topTopicsForLegend = computed(() => {
   }));
 });
 
-// Computed untuk paginasi feed
 const filteredPosts = computed(() => {
   if (selectedTopic.value === 'All') {
     return allViralPosts.value;
@@ -502,7 +526,7 @@ const filteredPosts = computed(() => {
 
 const totalFeedPages = computed(() => Math.ceil(pagination.total / pagination.perPage));
 const paginatedFeedPosts = computed(() => {
-  pagination.total = filteredPosts.value.length; // update total agar pagination sinkron
+  pagination.total = filteredPosts.value.length; 
   const start = (pagination.currentPage - 1) * pagination.perPage;
   const end = start + pagination.perPage;
   if (start >= pagination.total && pagination.currentPage > 1) {
@@ -512,7 +536,6 @@ const paginatedFeedPosts = computed(() => {
   return filteredPosts.value.slice(start, end);
 });
 
-// Computed untuk tooltip hover (gauge & tabel)
 const postsInHoveredStatus = computed(() => {
   if (!hoveredStatusRef.value.topic || !hoveredStatusRef.value.status) {
     return [];
@@ -523,21 +546,16 @@ const postsInHoveredStatus = computed(() => {
   );
 });
 
-// --- [REVISI BARU] FUNGSI & OPSI CHART ---
-
-// Fungsi untuk menangani hover pada Pie Chart
 const handlePieHover = (event, activeElements, chart) => {
   if (activeElements.length > 0) {
     const firstElement = activeElements[0];
     const label = chart.data.labels[firstElement.index];
     pieTooltip.show = true;
     pieTooltip.status = label;
-    // Filter SEMUA post, bukan per topik
     pieTooltip.posts = allViralPosts.value.filter(p => (p.postStatus || 'N/A').toUpperCase() === label.toUpperCase());
 
     const nativeEvent = event.native;
     if (nativeEvent) {
-      // Atur posisi awal
       pieTooltip.style = {
         top: `${nativeEvent.clientY + 10}px`,
         left: `${nativeEvent.clientX + 10}px`,
@@ -545,13 +563,11 @@ const handlePieHover = (event, activeElements, chart) => {
         bottom: 'auto'
       };
 
-      // Cek jika tooltip keluar layar di kanan
-      if (nativeEvent.clientX + 300 > window.innerWidth) { // 300px ~ w-72
+      if (nativeEvent.clientX + 300 > window.innerWidth) { 
         pieTooltip.style.left = 'auto';
         pieTooltip.style.right = `${window.innerWidth - nativeEvent.clientX + 10}px`;
       }
-      // Cek jika tooltip keluar layar di bawah
-      if (nativeEvent.clientY + 270 > window.innerHeight) { // 270px ~ max-h-64
+      if (nativeEvent.clientY + 270 > window.innerHeight) { 
         pieTooltip.style.top = 'auto';
         pieTooltip.style.bottom = `${window.innerHeight - nativeEvent.clientY + 10}px`;
       }
@@ -561,25 +577,38 @@ const handlePieHover = (event, activeElements, chart) => {
   }
 };
 
-// Fungsi untuk menyembunyikan tooltip Pie Chart
 const hidePieTooltip = () => {
   pieTooltip.show = false;
 };
 
-// Opsi Chart
 const pieChartOptions = {
   responsive: true, maintainAspectRatio: false,
   plugins: {
     legend: { display: false },
-    tooltip: { enabled: false }, // Penting: Matikan tooltip bawaan
+    tooltip: { enabled: false }, 
     pieChartText: true
   },
   events: ['mousemove', 'mouseout', 'touchstart', 'touchmove'],
-  onHover: handlePieHover, // Gunakan handler kustom kita
+  onHover: handlePieHover,
 };
 
-// --- METODE & FUNGSI (Lainnya) ---
 const getSocialIconColor = (icon) => ({ [faXTwitter.iconName]: 'text-gray-700' }[icon.iconName] || 'text-gray-700');
+
+const getTopicCardGradient = (index) => {
+  const gradients = [
+    'bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-700',   
+    'bg-gradient-to-br from-teal-500 via-emerald-600 to-green-600',    
+    'bg-gradient-to-br from-pink-500 via-rose-600 to-red-600',          
+    'bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600',    
+    'bg-gradient-to-br from-blue-500 via-sky-600 to-cyan-600',         
+    'bg-gradient-to-br from-violet-500 via-fuchsia-600 to-purple-600',  
+    'bg-gradient-to-br from-lime-500 via-green-600 to-emerald-700',     
+    'bg-gradient-to-br from-red-500 via-pink-600 to-rose-600',         
+    'bg-gradient-to-br from-indigo-500 via-blue-600 to-sky-600',       
+    'bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-600',     
+  ];
+  return gradients[index % gradients.length];
+};
 
 const getStatusClass = (status) => {
   const upperStatus = (status || 'N/A').toUpperCase();
@@ -611,7 +640,6 @@ const getHighestPriorityStatus = (posts) => {
   return 'NORMAL';
 };
 
-// Metode untuk paginasi feed
 const changeFeedPage = (page) => {
   if (page >= 1 && page <= totalFeedPages.value) {
     pagination.currentPage = page;
@@ -622,42 +650,22 @@ watch(selectedTopic, () => {
   pagination.currentPage = 1;
 });
 
-// Logika Bookmark
-const saveBookmarks = () => localStorage.setItem(BOOKMARK_STORAGE_KEY, JSON.stringify(bookmarkedPosts.value));
-const loadBookmarks = () => {
-  const saved = localStorage.getItem(BOOKMARK_STORAGE_KEY);
-  if (saved) {
-    try {
-      bookmarkedPosts.value = JSON.parse(saved);
-    } catch (e) {
-      console.error('Gagal memuat bookmark', e);
-      bookmarkedPosts.value = [];
-    }
-  }
-};
 const toggleBookmark = (post) => {
-  const postIndex = bookmarkedPosts.value.findIndex(p => p.id === post.id);
-  const isNowBookmarked = postIndex === -1;
-  post.isBookmarked = isNowBookmarked;
-  if (isNowBookmarked) {
-    bookmarkedPosts.value.unshift(post);
-  } else {
-    bookmarkedPosts.value.splice(postIndex, 1);
-  }
-  const postInFeed = allViralPosts.value.find(p => p.id === post.id);
+  const isNowBookmarked = bookmarkStore.toggleBookmark(post)
+  post.isBookmarked = bookmarkStore.isBookmarked(post.id)
+  const postInFeed = allViralPosts.value.find(p => p.id === post.id)
   if (postInFeed) {
-    postInFeed.isBookmarked = isNowBookmarked;
+    postInFeed.isBookmarked = post.isBookmarked
   }
+
   for (const topic of topicsDetailsData.value) {
-    const originalPost = topic.allPosts.find(p => p.id === post.id);
+    const originalPost = topic.allPosts.find(p => p.id === post.id)
     if (originalPost) {
-      originalPost.isBookmarked = isNowBookmarked;
+      originalPost.isBookmarked = post.isBookmarked
     }
   }
-  saveBookmarks();
-};
+}
 
-// Logika Modal & Waktu
 const openDetailModal = (post) => { selectedPost.value = post; isDetailModalOpen.value = true; };
 const closeDetailModal = () => { isDetailModalOpen.value = false; selectedPost.value = null; };
 const openLinkInNewTab = (post) => { if (post && post.url) window.open(post.url, '_blank', 'noopener,noreferrer'); };
@@ -667,7 +675,6 @@ const updateTime = () => {
   currentDate.value = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 };
 
-// Fungsi Fetch Utama
 const fetchAllDashboardData = async (startDate, endDate) => {
   isLoading.value = true;
   try {
@@ -675,41 +682,36 @@ const fetchAllDashboardData = async (startDate, endDate) => {
     const response = await fetch(API_URL_DATED);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data = await response.json();
-    const topTopicsApiData = data.top_topics || [];
+    const topTopicsApiData = data.all_topics_with_top_posts || [];
 
     const enrichedTopicsData = topTopicsApiData.map(topicItem => {
       const topicPosts = (topicItem.top_10_posts || []).map(post => ({
-        id: post.post_id || post.tweet_id || post.id_video,
+        id: post.post_id,
         url: post.url,
-
-        content: post.text_content, // GUNAKAN FIELD 'text_content' KANONIK
+        content: post.text_content,
         postStatus: (post.latest_status || 'N/A').toUpperCase(),
 
-        author: post.user.name || post.user.screen_name,
-        avatar: post.user.profile_image_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+        author: post.user?.name || post.user?.screen_name || 'Unknown',
+        avatar: post.user?.profile_image_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
 
-        platform: post.platform, // Ambil platform
+        platform: post.platform,
         socialIcon: post.platform === 'instagram' ? faInstagram
           : post.platform === 'tiktok' ? faTiktok
             : faXTwitter,
 
         dateRaw: post.created_at,
-        date: new Date(post.created_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
-        postStatus: (post.latest_status || 'N/A').toUpperCase(),
+        date: post.created_at ? new Date(post.created_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A',
 
-        followers: post.user.followers_count,
-        following: post.user.following_count,
+        followers: post.user?.followers_count || 0,
+        following: post.user?.following_count || 0,
 
-        engagementScore: (post.engagement || 0).toFixed(2),
-        views: String((post.retweet_count || 0) + (post.favorite_count || 0) + (post.reply_count || 0)),
-        likes: String(post.metrics_detail[post.platform]?.likes || post.metrics_detail.twitter?.favorites || 0),
-        comments: String(post.metrics_detail[post.platform]?.comments || post.metrics_detail.twitter?.replies || 0),
-        shares: String(post.metrics_detail[post.platform]?.shares || post.metrics_detail.twitter?.retweets || 0),
-        dateRaw: post.created_at,
-        date: new Date(post.created_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+        engagementScore: (post.engagement || 0),
+        likes: String(post.metrics_detail?.[post.platform]?.likes || post.metrics_detail?.twitter?.favorites || 0),
+        comments: String(post.metrics_detail?.[post.platform]?.comments || post.metrics_detail?.twitter?.replies || 0),
+        shares: String(post.metrics_detail?.[post.platform]?.shares || post.metrics_detail?.twitter?.retweets || 0),
+
         topicTag: topicItem.topic,
-        isBookmarked: false,
-        content: post.text
+        isBookmarked: false
       }));
 
       const calculated_status = getHighestPriorityStatus(topicPosts);
@@ -720,14 +722,18 @@ const fetchAllDashboardData = async (startDate, endDate) => {
         mapped_posts: topicPosts
       };
     });
-    // 1. Mengisi topTopics
     topTopics.value = enrichedTopicsData.slice(0, 3).map((item) => ({
       title: item.topic,
-      value: String(item.total_posts).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+      value: String(item.total_unique_posts || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
       status: item.calculated_status || 'N/A'
     }));
 
-    // 2. Mengisi data Pie Chart Kompas
+    allTopicsForCarousel.value = enrichedTopicsData.map((item) => ({
+      title: item.topic,
+      value: String(item.total_unique_posts || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+      status: item.calculated_status || 'N/A'
+    }));
+
     pieChartData.value = {
       labels: ['CRISIS', 'NORMAL', 'EARLY', 'EMERGING', 'CURRENT'],
       datasets: [{
@@ -738,15 +744,11 @@ const fetchAllDashboardData = async (startDate, endDate) => {
       }],
     };
 
-    // 3. Siapkan data untuk DUA list
-    const bookmarkedIds = new Set(bookmarkedPosts.value.map(p => p.id));
     let collectedPosts = [];
-
-    // 4. Mengisi data Kartu Detail Topik
     topicsDetailsData.value = enrichedTopicsData.slice(0, 3).map((topicItem) => {
       const topicPostsWithBookmark = topicItem.mapped_posts.map(post => ({
         ...post,
-        isBookmarked: bookmarkedIds.has(post.id)
+        isBookmarked: bookmarkStore.isBookmarked(post.id)
       }));
       collectedPosts.push(...topicPostsWithBookmark);
       return {
@@ -756,46 +758,43 @@ const fetchAllDashboardData = async (startDate, endDate) => {
       };
     });
 
-    // 5. Mengisi data Tabel Platform
-    // Di dalam fetchAllDashboardData, ganti logic platformStatuses.value
     platformStatuses.value = topicsDetailsData.value.map(topic => {
       const statusArray = Array(platforms.value.length).fill('');
-
-      // Ambil SEMUA post unik untuk topik ini (dari top_10_posts)
       const allPosts = topic.allPosts;
+      const platformCounts = allPosts.reduce((acc, post) => {
+        const platform = post.platform || 'unknown';
+        acc[platform] = (acc[platform] || 0) + 1;
+        return acc;
+      }, {});
+      console.log(`Topic "${topic.title}" - Platform distribution:`, platformCounts);
 
       platforms.value.forEach((platform, index) => {
-        // Filter post hanya untuk platform ini
         const platformPosts = allPosts.filter(p => {
-          // Mapping nama platform di frontend ke nilai platform di post
+          if (!p.platform) return false;
           const platformName = platform.name.toLowerCase().includes('twitter') ? 'twitter'
             : platform.name.toLowerCase().includes('tiktok') ? 'tiktok'
               : platform.name.toLowerCase().includes('instagram') ? 'instagram'
                 : 'unknown';
 
-          return p.platform.toLowerCase() === platformName;
+          const postPlatform = p.platform.toLowerCase();
+          if (platformName === 'twitter' && (postPlatform === 'twitter' || postPlatform === 'x')) {
+            return true;
+          }
+
+          return postPlatform === platformName;
         });
 
-        // Hitung status prioritas tertinggi untuk post di platform ini
         const platformStatus = getHighestPriorityStatus(platformPosts);
-
-        // Isi array status hanya jika statusnya bukan 'N/A' atau 'NORMAL'
-        if (platformStatus !== 'N/A' && platformStatus !== 'NORMAL') {
-          statusArray[index] = platformStatus;
-        } else {
-          statusArray[index] = platformStatus; // Bisa diatur ke '-' jika ingin menyembunyikan 'NORMAL'
-        }
+        console.log(`  Platform "${platform.name}": ${platformPosts.length} posts, status: ${platformStatus}`);
+        statusArray[index] = platformStatus;
       });
 
       return { topic: topic.title, statuses: statusArray };
     });
 
-    // 6. Set status jarum
     pieStatus.value = enrichedTopicsData.length > 0 ? enrichedTopicsData[0].calculated_status.toUpperCase() : 'NORMAL';
     pieStatus2.value = enrichedTopicsData.length > 1 ? enrichedTopicsData[1].calculated_status.toUpperCase() : 'NORMAL';
     pieStatus3.value = enrichedTopicsData.length > 2 ? enrichedTopicsData[2].calculated_status.toUpperCase() : 'NORMAL';
-
-    // 7. Selesaikan Feed Agregat
     const uniquePosts = Array.from(new Map(collectedPosts.map(p => [p.id, p])).values());
     uniquePosts.sort((a, b) => new Date(b.dateRaw) - new Date(a.dateRaw));
     allViralPosts.value = uniquePosts;
@@ -808,17 +807,17 @@ const fetchAllDashboardData = async (startDate, endDate) => {
     isLoading.value = false;
   }
 };
-// Akhir Fungsi Fetch
 
 function loadAllData() {
-  fetchAllDashboardData(filters.startDate, filters.endDate);
+  fetchAllDashboardData(filterStore.startDate, filterStore.endDate);
 }
 
-watch(filters, () => { loadAllData(); });
+watch(() => [filterStore.startDate, filterStore.endDate], () => {
+  console.log('Filters changed, reloading data...');
+  loadAllData();
+});
 
-// --- LIFECYCLE HOOKS ---
 onMounted(() => {
-  loadBookmarks();
   updateTime();
   timerInterval = setInterval(updateTime, 1000);
   loadAllData();
@@ -830,7 +829,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* CSS untuk Gauge Meter Modern */
 .gauge-container {
   position: relative;
   width: 200px;
@@ -955,7 +953,6 @@ onUnmounted(() => {
   z-index: 10;
 }
 
-/* Animasi untuk kelas status jarum */
 .pie-needle-wrapper.normal {
   transform: rotate(-27deg);
 }
@@ -976,7 +973,6 @@ onUnmounted(() => {
   transform: rotate(-72deg);
 }
 
-/* Loader & Animasi Fade */
 .loader {
   border-top-color: #3B82F6;
   animation: spinner 1.5s linear infinite;
@@ -1004,7 +1000,6 @@ onUnmounted(() => {
   }
 }
 
-/* [REVISI BARU] Animasi untuk tooltip kompas */
 .animate-fade-in-fast {
   animation: fadeInFast 0.1s ease-out forwards;
 }
@@ -1020,7 +1015,6 @@ onUnmounted(() => {
 }
 
 
-/* Utility Class */
 .line-clamp-1 {
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -1036,7 +1030,6 @@ onUnmounted(() => {
   text-overflow: ellipsis;
 }
 
-/* Style untuk Paginasi & Tabel */
 .pagination-arrow-btn {
   @apply p-2 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-800 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent;
 }

@@ -7,7 +7,7 @@
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
             <div v-if="isLoading.analysis" class="text-gray-500 col-span-5 text-center py-10">Memuat status posts...</div>
-            <div v-else-if="error.analysis" class="text-red-500 col-span-5 text-center py-10">Gagal memuat status: {{ error.analysis }}</div>
+            <div v-else-if="error.analysis" class="text-red-500 col-span-5 text-center py-10">Gagal memuat status</div>
             <div v-else v-for="card in analysisCards" :key="card.title" :class="[card.gradient, 'relative p-5 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-white flex flex-col justify-between h-40 overflow-hidden']">
                 <FontAwesomeIcon :icon="card.icon" class="absolute -right-4 -bottom-4 text-white/10 text-8xl" />
                 <div><p class="text-lg font-bold">{{ card.title }}</p></div>
@@ -16,11 +16,11 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
+
             <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                 <h3 class="text-lg font-bold text-[#03255C] mb-1">Analisis Sentimen (Semua Post)</h3>
                 <p class="text-sm text-gray-500 mb-4">Distribusi sentimen dari semua postingan unik.</p>
-                
+
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
                     <div class="text-center bg-gray-100 text-gray-800 rounded-lg p-2 border border-gray-300">
                         <p class="text-xs font-semibold">TOTAL POST</p>
@@ -81,25 +81,38 @@
 
 <script setup>
 import { ref, onMounted, reactive, computed, watch } from 'vue';
-// Impor Bar dan Pie
 import { Pie, Bar } from 'vue-chartjs';
-// Impor semua elemen Chart.js yang dibutuhkan
 import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement, CategoryScale, LinearScale, BarElement } from 'chart.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faCheckCircle, faExclamationTriangle, faFire, faRadiation, faShieldAlt } from '@fortawesome/free-solid-svg-icons';
-import { filters } from '@/stores/filterStore.js';
+import { useFilterStore } from '@/stores'
+import { useApi } from '@/composables/useApi'
+import { ewsApi } from '@/api/ews.api'
+import { logger } from '@/utils/logger'
 
-// Daftarkan semua elemen
-ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale, LinearScale, BarElement);
-
-// --- STATE ---
+ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale, LinearScale, BarElement)
+const filterStore = useFilterStore()
+const { loading: loadingTotal, execute: executeTotalApi } = useApi()
+const { loading: loadingViral, execute: executeViralApi } = useApi()
+const { loading: loadingAnalysis, execute: executeAnalysisApi } = useApi()
+const { loading: loadingStatus, execute: executeStatusApi } = useApi()
 const totalApiData = ref(null);
-const viralApiData = ref(null); // Akan berisi { total, viral_positive, viral_negative, by_status: {...} }
+const viralApiData = ref(null);
 const analysisApiData = ref(null);
-const isLoading = reactive({ total: true, viral: true, status: true, analysis: true });
-const error = reactive({ total: null, viral: null, status: null, analysis: null });
+const isLoading = reactive({
+  total: false,
+  viral: false,
+  status: false,
+  analysis: false
+});
 
-// State Chart untuk Sentimen (Pie)
+const error = reactive({
+  total: null,
+  viral: null,
+  status: null,
+  analysis: null
+});
+
 const sentimentChartData = ref({
     labels: ['Positif', 'Negatif', 'Netral'],
     datasets: [{
@@ -110,129 +123,163 @@ const sentimentChartData = ref({
     }]
 });
 
-// [REVISI] State Chart BARU untuk Sentimen Viral (Bar)
 const viralSentimentChartData = ref({
-    labels: [], // Akan diisi: ['Positif', 'Negatif', 'Netral']
+    labels: [],
     datasets: [{
         label: 'Jumlah Post Viral',
-        backgroundColor: ['#22c55e', '#ef4444', '#60a5fa'], // Positif, Negatif, Netral
+        backgroundColor: ['#22c55e', '#ef4444', '#60a5fa'],
         borderColor: '#ffffff',
         borderWidth: 2,
         borderRadius: 5,
-        data: [], // Akan diisi: [10, 5, 11]
+        data: [],
     }]
 });
-
-
-// --- FUNGSI FETCH ---
 
 async function fetchTotalData(startDate, endDate) {
     isLoading.total = true;
     error.total = null;
-    try {
-        const totalUrl = `http://127.0.0.1:8000/total-unique-posts?start_date=${startDate}&end_date=${endDate}`;
-        const sentimentUrl = `http://127.0.0.1:8000/sentiment-distribution?start_date=${startDate}&end_date=${endDate}`;
 
-        const [totalResponse, sentimentResponse] = await Promise.all([
-            fetch(totalUrl),
-            fetch(sentimentUrl)
-        ]);
+    await executeTotalApi(
+        async () => {
+            logger.info('Post', `Fetching total & sentiment data: ${startDate} to ${endDate}`)
+            const [totalData, sentimentData] = await Promise.all([
+                ewsApi.posts.getTotalUniquePosts({ start_date: startDate, end_date: endDate }),
+                ewsApi.posts.getSentimentDistribution({ start_date: startDate, end_date: endDate })
+            ])
 
-        if (!totalResponse.ok) throw new Error(`HTTP error fetching total unique posts! status: ${totalResponse.status}`);
-        if (!sentimentResponse.ok) throw new Error(`HTTP error fetching sentiment! status: ${sentimentResponse.status}`);
+            const sentiment = sentimentData.sentiment_distribution;
+            totalApiData.value = {
+                total: totalData.total_unique_posts,
+                negative: sentiment.negative,
+                positive: sentiment.positive,
+                neutral: sentiment.neutral
+            };
 
-        const totalPostsData = await totalResponse.json();
-        const sentimentData = await sentimentResponse.json();
+            sentimentChartData.value.datasets[0].data = [
+                sentiment.positive,
+                sentiment.negative,
+                sentiment.neutral
+            ];
 
-        const sentiment = sentimentData.sentiment_distribution;
-        totalApiData.value = {
-            total: totalPostsData.total_unique_posts,
-            negative: sentiment.negative,
-            positive: sentiment.positive,
-            neutral: sentiment.neutral
-        };
-        
-        sentimentChartData.value.datasets[0].data = [sentiment.positive, sentiment.negative, sentiment.neutral];
-    } catch (err) {
-        console.error("Gagal memuat data total/sentimen:", err);
-        error.total = err.message;
-    } finally {
-        isLoading.total = false;
-    }
+            logger.info('Post', 'Total & sentiment data loaded')
+        },
+        {
+            showErrorNotification: true,
+            errorMessage: 'Gagal memuat data sentimen',
+            onError: (err) => {
+                logger.error('Post', 'Failed to fetch total/sentiment data:', err)
+                error.total = err.message
+                totalApiData.value = null
+            }
+        }
+    )
+
+    isLoading.total = false;
 }
 
-// [REVISI] fetchViralData sekarang mengisi data untuk Bar Chart Sentimen
 async function fetchViralData(startDate, endDate) {
     isLoading.viral = true;
     error.viral = null;
-    try {
-        const url = `http://127.0.0.1:8000/viral-posts?start_date=${startDate}&end_date=${endDate}`;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        
-        // Simpan data ringkasan
-        viralApiData.value = {
-            total: data.total_viral_posts || 0,
-            by_status: data.by_status || {},
-            viral_positive: data.viral_positive || 0,
-            viral_negative: data.viral_negative || 0
-        };
 
-        // --- INI PERBAIKANNYA ---
-        // Hitung sentimen netral viral
-        const total = viralApiData.value.total;
-        const positive = viralApiData.value.viral_positive;
-        const negative = viralApiData.value.viral_negative;
-        // Pastikan tidak negatif jika API belum lengkap
-        const neutral = Math.max(0, total - positive - negative); 
-        
-        // Update state bar chart
-        viralSentimentChartData.value.labels = ['Viral Positif', 'Viral Negatif', 'Viral Netral'];
-        viralSentimentChartData.value.datasets[0].data = [positive, negative, neutral];
+    await executeViralApi(
+        async () => {
+            logger.info('Post', `Fetching viral posts: ${startDate} to ${endDate}`)
 
-    } catch (err) {
-        console.error("Gagal memuat data viral:", err);
-        error.viral = err.message;
-    } finally {
-        isLoading.viral = false;
-    }
+            const data = await ewsApi.posts.getViralPosts({
+                start_date: startDate,
+                end_date: endDate
+            })
+
+            const sentiment = data.sentiment_distribution || {};
+            viralApiData.value = {
+                total: data.total_viral_posts || 0,
+                by_status: data.by_status || {},
+                viral_positive: sentiment.positive || 0,
+                viral_negative: sentiment.negative || 0
+            };
+
+            const positive = sentiment.positive || 0;
+            const negative = sentiment.negative || 0;
+            const neutral = sentiment.neutral || 0;
+
+            viralSentimentChartData.value.labels = ['Viral Positif', 'Viral Negatif', 'Viral Netral'];
+            viralSentimentChartData.value.datasets[0].data = [positive, negative, neutral];
+
+            logger.info('Post', `Viral posts loaded: ${data.total_viral_posts || 0} posts`)
+        },
+        {
+            showErrorNotification: true,
+            errorMessage: 'Gagal memuat data postingan viral',
+            onError: (err) => {
+                logger.error('Post', 'Failed to fetch viral data:', err)
+                error.viral = err.message
+                viralApiData.value = null
+            }
+        }
+    )
+
+    isLoading.viral = false;
 }
 
 async function fetchAnalysisData(startDate, endDate) {
     isLoading.analysis = true;
     error.analysis = null;
-    try {
-        const url = `http://127.0.0.1:8000/analysis-summary?topic=all&start_date=${startDate}&end_date=${endDate}`;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        analysisApiData.value = await response.json();
-    } catch (err) {
-        console.error("Gagal memuat data analysis summary:", err);
-        error.analysis = err.message;
-    } finally {
-        isLoading.analysis = false;
-    }
+
+    await executeAnalysisApi(
+        async () => {
+            logger.info('Post', `Fetching analysis summary: ${startDate} to ${endDate}`)
+
+            const data = await ewsApi.analysis.getSummary({
+                topic: 'all',
+                start_date: startDate,
+                end_date: endDate
+            })
+
+            analysisApiData.value = data
+
+            logger.info('Post', 'Analysis summary loaded')
+        },
+        {
+            showErrorNotification: true,
+            errorMessage: 'Gagal memuat data ringkasan analisis',
+            onError: (err) => {
+                logger.error('Post', 'Failed to fetch analysis data:', err)
+                error.analysis = err.message
+                analysisApiData.value = null
+            }
+        }
+    )
+
+    isLoading.analysis = false;
 }
 
-// Tidak terpakai, tapi tidak apa-apa
 async function fetchStatusData(startDate, endDate) {
     isLoading.status = true;
-    try {
-        const url = `http://127.0.0.1:8000/status-distribution?start_date=${startDate}&end_date=${endDate}`;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        // statusApiData.value = await response.json(); // Datanya tidak terpakai
-    } catch (err) {
-        console.error("Gagal memuat data status:", err);
-        error.status = err.message;
-    } finally {
-        isLoading.status = false;
-    }
+    error.status = null;
+
+    await executeStatusApi(
+        async () => {
+            logger.debug('Post', `Fetching status distribution: ${startDate} to ${endDate}`)
+
+            await ewsApi.posts.getStatusDistribution({
+                start_date: startDate,
+                end_date: endDate
+            })
+
+            logger.debug('Post', 'Status distribution loaded (unused)')
+        },
+        {
+            showErrorNotification: false, 
+            onError: (err) => {
+                logger.warn('Post', 'Failed to fetch status data (unused):', err)
+                error.status = err.message
+            }
+        }
+    )
+
+    isLoading.status = false;
 }
 
-
-// --- COMPUTED & LIFECYCLE ---
 const analysisCards = computed(() => {
     if (!analysisApiData.value) return [];
     const cardStyles = {
@@ -256,24 +303,24 @@ const analysisCards = computed(() => {
 });
 
 function loadAllData() {
-    // Set loading
-    isLoading.total = true; 
-    isLoading.viral = true; 
-    isLoading.analysis = true; 
-    isLoading.status = true;
-    
-    // Panggil semua API
-    fetchTotalData(filters.startDate, filters.endDate);
-    fetchViralData(filters.startDate, filters.endDate);
-    fetchAnalysisData(filters.startDate, filters.endDate);
-    fetchStatusData(filters.startDate, filters.endDate); // Tidak terpakai, tapi tidak apa-apa
+    logger.info('Post', 'Loading all dashboard data')
+
+    fetchTotalData(filterStore.startDate, filterStore.endDate);
+    fetchViralData(filterStore.startDate, filterStore.endDate);
+    fetchAnalysisData(filterStore.startDate, filterStore.endDate);
+    fetchStatusData(filterStore.startDate, filterStore.endDate);
 }
-watch(filters, () => { loadAllData(); });
-onMounted(() => { loadAllData(); });
 
+watch(() => [filterStore.startDate, filterStore.endDate], () => {
+  logger.info('Post', 'Filters changed, reloading data...');
+  loadAllData();
+});
 
-// --- OPSI CHART ---
-const pieChartOptions = { // Untuk Pie Chart Sentimen
+onMounted(() => {
+    loadAllData();
+});
+
+const pieChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -291,12 +338,12 @@ const pieChartOptions = { // Untuk Pie Chart Sentimen
     }
 };
 
-const barChartOptions = { // Untuk Bar Chart Sentimen Viral
-    indexAxis: 'y', // Membuat chart menjadi horizontal
+const barChartOptions = {
+    indexAxis: 'y',
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-        legend: { display: false }, // Tidak perlu legenda
+        legend: { display: false },
         tooltip: {
             callbacks: {
                 label: function (context) {
@@ -309,7 +356,6 @@ const barChartOptions = { // Untuk Bar Chart Sentimen Viral
         x: {
             beginAtZero: true,
             ticks: {
-                // Pastikan angka di sumbu X adalah bilangan bulat
                 precision: 0
             },
             grid: { display: true }
@@ -322,7 +368,6 @@ const barChartOptions = { // Untuk Bar Chart Sentimen Viral
 </script>
 
 <style scoped>
-/* Style loader dan fade-in */
 .loader {
     border-top-color: #3498db;
     animation: spinner 1.5s linear infinite;

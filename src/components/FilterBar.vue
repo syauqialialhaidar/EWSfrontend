@@ -69,94 +69,88 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'; // PERUBAHAN: 'watch' dihapus
-import { LayoutGrid, CalendarDays } from 'lucide-vue-next';
-import { DatePicker as VDatePicker } from 'v-calendar';
-import 'v-calendar/style.css';
+import { ref, computed } from 'vue'
+import { LayoutGrid, CalendarDays } from 'lucide-vue-next'
+import { DatePicker as VDatePicker } from 'v-calendar'
+import 'v-calendar/style.css'
+import { useFilterStore } from '@/stores'
 
-import { filters, setDateRange } from '@/stores/filterStore.js';
+const filterStore = useFilterStore()
+const showPicker = ref(false)
+const mode = ref('date')
+const pickerRange = ref(null)
 
-// --- State Kalender ---
-const showPicker = ref(false);
-const mode = ref('date');
+const range = computed(() => ({
+  start: new Date(filterStore.startDate + 'T00:00:00'),
+  end: new Date(filterStore.endDate + 'T00:00:00')
+}))
 
-// PERUBAHAN:
-// 'range' adalah state yang SUDAH DITERAPKAN (dari store)
-// 'pickerRange' adalah state SEMENTARA saat picker dibuka
-const range = ref({
-  start: new Date(filters.startDate + 'T00:00:00'),
-  end: new Date(filters.endDate + 'T00:00:00')
-});
-const pickerRange = ref(null); // Akan di-set saat picker dibuka
-
-// PERUBAHAN: 'watch' dihapus. Tidak ada lagi auto-apply.
-
-// Computed (tidak berubah, ini membaca dari 'range' yang sudah diterapkan)
 const formattedDate = computed(() => {
-  if (!range.value || !range.value.start || !range.value.end) return '';
-  const options = { day: 'numeric', month: 'long', year: 'numeric' };
-  const startDate = range.value.start.toLocaleString('id-ID', options);
-  const endDate = range.value.end.toLocaleString('id-ID', options);
-  return `${startDate} - ${endDate}`;
-});
+  const startDate = range.value.start.toLocaleString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+  const endDate = range.value.end.toLocaleString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+  return `${startDate} - ${endDate}`
+})
 
 const rules = ref([
   { hours: 0, minutes: 0, seconds: 0, milliseconds: 0 },
-  { hours: 23, minutes: 59, seconds: 59, milliseconds: 999 },
-]);
+  { hours: 23, minutes: 59, seconds: 59, milliseconds: 999 }
+])
 
-// --- Fungsi Tombol Aksi (BARU) ---
 const openPicker = () => {
-  // Salin 'range' saat ini ke 'pickerRange' saat membuka
-  pickerRange.value = { start: range.value.start, end: range.value.end };
-  showPicker.value = true;
-};
+  pickerRange.value = {
+    start: range.value.start,
+    end: range.value.end
+  }
+  showPicker.value = true
+}
 
 const handleCancel = () => {
-  showPicker.value = false;
-  pickerRange.value = null; // Hapus state sementara
-};
+  showPicker.value = false
+  pickerRange.value = null
+}
 
 const handleApply = () => {
-  if (pickerRange.value && pickerRange.value.start && pickerRange.value.end) {
-    // 1. Terapkan state sementara ke state utama
-    range.value = { ...pickerRange.value };
-    // 2. Kirim state utama ke store
-    setDateRange(range.value.start, range.value.end);
-    // 3. Tutup picker
-    showPicker.value = false;
-    pickerRange.value = null; // Hapus state sementara
+  if (pickerRange.value?.start && pickerRange.value?.end) {
+    filterStore.setDateRange(pickerRange.value.start, pickerRange.value.end)
+    showPicker.value = false
+    pickerRange.value = null
   }
-};
+}
 
-// --- Fungsi Tombol Preset (DIMODIFIKASI) ---
-// Preset sekarang mengubah 'pickerRange', bukan 'range'
 const setToday = () => {
-  const now = new Date();
-  pickerRange.value = { start: now, end: now };
-};
+  const now = new Date()
+  pickerRange.value = { start: now, end: now }
+}
+
 const setLast7Days = () => {
-  const end = new Date();
-  const start = new Date(new Date().setDate(end.getDate() - 6));
-  pickerRange.value = { start, end };
-};
+  const end = new Date()
+  const start = new Date(new Date().setDate(end.getDate() - 6))
+  pickerRange.value = { start, end }
+}
+
 const setLast30Days = () => {
-  const end = new Date();
-  const start = new Date(new Date().setDate(end.getDate() - 29));
-  pickerRange.value = { start, end };
-};
+  const end = new Date()
+  const start = new Date(new Date().setDate(end.getDate() - 29))
+  pickerRange.value = { start, end }
+}
+
 const setThisMonth = () => {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), 1);
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  pickerRange.value = { start, end };
-};
+  const now = new Date()
+  const start = new Date(now.getFullYear(), now.getMonth(), 1)
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+  pickerRange.value = { start, end }
+}
 
-// --- Fungsi Tombol 'Hari Ini' di luar picker (DIMODIFIKASI) ---
 const applyToday = () => {
-  const now = new Date();
-  range.value = { start: now, end: now };
-  setDateRange(range.value.start, range.value.end);
-};
-
+  const now = new Date()
+  filterStore.setDateRange(now, now)
+}
 </script>

@@ -39,8 +39,14 @@
 </template>
 
 <script setup>
-import logo from '../assets/image/logo-min.png';
-// PERUBAHAN: Impor ChevronDown
-import { Moon, Bell, User, ChevronDown, Sun } from 'lucide-vue-next';
-import { theme, toggleTheme } from '@/components/themeStore.js';
+import { computed } from 'vue'
+import logo from '../assets/image/logo-min.png'
+import { Moon, Bell, User, ChevronDown, Sun } from 'lucide-vue-next'
+import { useThemeStore } from '@/stores'
+
+const themeStore = useThemeStore()
+const theme = computed(() => themeStore.currentTheme)
+const toggleTheme = () => {
+  themeStore.toggleTheme()
+}
 </script>

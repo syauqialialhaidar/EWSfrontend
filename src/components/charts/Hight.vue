@@ -208,7 +208,7 @@ import {
   onMounted,
   computed,
   watch,
-  reactive // <-- Diperlukan untuk perbaikan paginasi
+  reactive 
 } from 'vue';
 import {
   FontAwesomeIcon
@@ -223,12 +223,18 @@ import {
   faUser,
   faChartLine,
   faCalendarDays,
-  faUpRightFromSquare // <-- Icon yang hilang sudah ditambah
-} from '@fortawesome/free-solid-svg-icons';
+  faUpRightFromSquare 
+} from '@fortawesome/free-solid-svg-icons'
 
-import { filters } from '@/stores/filterStore.js';
+import { useFilterStore, useBookmarkStore } from '@/stores'
+import { useApi } from '@/composables/useApi'
+import { ewsApi } from '@/api/ews.api'
+import { logger } from '@/utils/logger'
 
-const isLoading = ref(true);
+const filterStore = useFilterStore()
+const bookmarkStore = useBookmarkStore()
+const { loading: loadingPosts, execute: executePostsApi } = useApi()
+const isLoading = ref(true)
 const apiError = ref(null);
 const columnsData = ref([]);
 const isDetailModalOpen = ref(false);
@@ -238,15 +244,13 @@ const openLinkInNewTab = (post) => {
   if (post && post.url) {
     window.open(post.url, '_blank', 'noopener,noreferrer');
   } else {
-    console.error('URL tidak ditemukan untuk postingan ini:', post);
+    logger.error('Hight', 'URL tidak ditemukan untuk postingan ini:', post);
   }
 };
 
 
 const bookmarkedPosts = ref([]);
 const BOOKMARK_STORAGE_KEY = 'vue-bookmarked-posts';
-
-// --- PERBAIKAN: Kolom bookmark dijadikan state reactive ---
 const bookmarkedColumn = reactive({
   title: 'Posts From Marked Accounts',
   posts: [],
@@ -257,7 +261,6 @@ const bookmarkedColumn = reactive({
   }
 });
 
-// --- PERBAIKAN: Sinkronkan data bookmark ke state reactive ---
 watch(bookmarkedPosts, (newPosts) => {
   bookmarkedColumn.posts = newPosts;
   bookmarkedColumn.pagination.total = newPosts.length;
@@ -267,9 +270,6 @@ watch(bookmarkedPosts, (newPosts) => {
     bookmarkedColumn.pagination.currentPage = 1;
   }
 }, { deep: true });
-
-
-
 
 const ICONS = {
   twitter: 'fab fa-x-twitter text-[#03255C]',
@@ -307,11 +307,11 @@ const loadBookmarks = () => {
       if (Array.isArray(parsedData)) {
         bookmarkedPosts.value = parsedData;
       } else {
-        console.warn('Data bookmark yang dimuat bukan array, direset menjadi kosong.');
+        logger.warn('Hight', 'Data bookmark yang dimuat bukan array, direset menjadi kosong.');
         bookmarkedPosts.value = [];
       }
     } catch (error) {
-      console.error('Gagal memuat bookmark dari localStorage. Data mungkin rusak:', error);
+      logger.error('Hight', 'Gagal memuat bookmark dari localStorage. Data mungkin rusak:', error);
       bookmarkedPosts.value = [];
       localStorage.removeItem(BOOKMARK_STORAGE_KEY);
     }
@@ -344,7 +344,6 @@ const toggleBookmark = (post) => {
 };
 
 
-// Logika Paginasi
 const totalPages = (column) => {
   if (!column.pagination || !column.pagination.total) return 1;
   return Math.ceil(column.pagination.total / column.pagination.perPage);
@@ -397,9 +396,9 @@ const mapApiPostToLocalPost = (apiPost, postId) => {
   const metrics = apiPost.metrics_detail[platformKey] || {};
 
   let views = metrics.views || 'N/A';
-    let favorites = metrics.favorites || metrics.likes || 'N/A'; // Likes untuk IG/TikTok
-    let replies = metrics.replies || metrics.comments || metrics.coments || 'N/A'; // Comments untuk IG/TikTok
-    let retweets = metrics.retweets || metrics.reposts || metrics.shares || 'N/A'; // Reposts/Shares untuk IG/TikTok
+    let favorites = metrics.favorites || metrics.likes || 'N/A'; 
+    let replies = metrics.replies || metrics.comments || metrics.coments || 'N/A'; 
+    let retweets = metrics.retweets || metrics.reposts || metrics.shares || 'N/A'; 
   const formatNumber = (num) => {
     if (typeof num !== 'number') return '0';
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
@@ -409,18 +408,15 @@ const mapApiPostToLocalPost = (apiPost, postId) => {
   const dateString = apiPost.created_at ? new Date(apiPost.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Tanggal tidak tersedia';
   
   return {
-        id: apiPost.post_id, // Gunakan ID Kanonik yang dikembalikan API
+        id: apiPost.post_id, 
         author: authorName, 
         avatar: avatarUrl,
         socialIcon: socialIcon,
         
         stats: { 
-            // Ambil dari user object yang sudah di flat di API backend
             followers: formatNumber(apiPost.user.followers_count), 
             following: formatNumber(apiPost.user.following_count), 
-            engagement: formatNumber(apiPost.engagement), // Engagement total dari API
-            
-            // Metrik Spesifik
+            engagement: formatNumber(apiPost.engagement), 
             views: formatNumber(views), 
             favorites: formatNumber(favorites), 
             replies: formatNumber(replies), 
@@ -434,94 +430,105 @@ const mapApiPostToLocalPost = (apiPost, postId) => {
         url: url
     };
 };
-const callApi = async (url) => {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP Error: ${response.status} for ${url}`);
-    return await response.json();
-  } catch (error) {
-    console.error(`Failed to fetch data from ${url}:`, error);
-    throw error;
-  }
-};
-
 const fetchPostsData = async (startDate, endDate) => {
-  const ENGAGEMENT_URL = `http://127.0.0.1:8000/posts-by-engagement?start_date=${startDate}&end_date=${endDate}`;
-  const FOLLOWERS_URL = `http://127.0.0.1:8000/posts-by-followers?start_date=${startDate}&end_date=${endDate}`;
-
-  let engagementPosts = [];
-  let followersPosts = [];
-  let errorMessages = [];
   isLoading.value = true;
   apiError.value = null;
 
-  // --- PERBAIKAN: Panggil API secara paralel ---
-  const [engagementResult, followersResult] = await Promise.allSettled([
-    callApi(ENGAGEMENT_URL),
-    callApi(FOLLOWERS_URL)
-  ]);
+  await executePostsApi(
+    async () => {
+      logger.info('Hight', `Fetching posts data: ${startDate} to ${endDate}`)
+      const [engagementData, followersData] = await Promise.all([
+        ewsApi.posts.getPostsByEngagement({ start_date: startDate, end_date: endDate }),
+        ewsApi.posts.getPostsByFollowers({ start_date: startDate, end_date: endDate })
+      ])
 
-  // Handle hasil engagement
-  if (engagementResult.status === 'fulfilled' && engagementResult.value.posts_by_engagement?.length > 0) {
-    engagementPosts = engagementResult.value.posts_by_engagement.map((post, index) => mapApiPostToLocalPost(post, `engage-${index}`));
-  } else {
-    const errorMsg = engagementResult.status === 'rejected' ? engagementResult.reason.message : 'No data';
-    errorMessages.push(`Engagement: ${errorMsg}`);
-    engagementPosts = Array.from({ length: 10 }, (_, i) => createDummyPost(i + 1, 'x'));
-  }
+      let engagementPosts = []
+      let followersPosts = []
 
-  // Handle hasil followers
-  if (followersResult.status === 'fulfilled' && followersResult.value.posts_by_followers?.length > 0) {
-    followersPosts = followersResult.value.posts_by_followers.map((post, index) => mapApiPostToLocalPost(post, `foll-${index}`));
-  } else {
-    const errorMsg = followersResult.status === 'rejected' ? followersResult.reason.message : 'No data';
-    errorMessages.push(`Followers: ${errorMsg}`);
-    followersPosts = Array.from({ length: 10 }, (_, i) => createDummyPost(i + 1, 'facebook'));
-  }
-  // --- Akhir Perbaikan Paralel ---
+      if (engagementData.posts_by_engagement?.length > 0) {
+        engagementPosts = engagementData.posts_by_engagement.map((post, index) =>
+          mapApiPostToLocalPost(post, `engage-${index}`)
+        )
+        logger.info('Hight', `Loaded ${engagementPosts.length} engagement posts`)
+      } else {
+        logger.warn('Hight', 'No engagement posts data, using dummy data')
+        engagementPosts = Array.from({ length: 10 }, (_, i) => createDummyPost(i + 1, 'x'))
+      }
 
-  if (errorMessages.length > 0) {
-    apiError.value = errorMessages.join(' | ');
-  }
+      if (followersData.posts_by_followers?.length > 0) {
+        followersPosts = followersData.posts_by_followers.map((post, index) =>
+          mapApiPostToLocalPost(post, `foll-${index}`)
+        )
+        logger.info('Hight', `Loaded ${followersPosts.length} followers posts`)
+      } else {
+        logger.warn('Hight', 'No followers posts data, using dummy data')
+        followersPosts = Array.from({ length: 10 }, (_, i) => createDummyPost(i + 1, 'facebook'))
+      }
 
-  const bookmarkedIds = new Set(bookmarkedPosts.value.map(p => p.id));
-  engagementPosts.forEach(p => { if (bookmarkedIds.has(p.id)) p.isBookmarked = true; });
-  followersPosts.forEach(p => { if (bookmarkedIds.has(p.id)) p.isBookmarked = true; });
+      const bookmarkedIds = new Set(bookmarkedPosts.value.map(p => p.id))
+      engagementPosts.forEach(p => { if (bookmarkedIds.has(p.id)) p.isBookmarked = true })
+      followersPosts.forEach(p => { if (bookmarkedIds.has(p.id)) p.isBookmarked = true })
 
-  columnsData.value = [{
-    title: 'Posts From Highest Engagement', posts: engagementPosts,
-    pagination: { total: engagementPosts.length, currentPage: 1, perPage: 5 }
-  }, {
-    title: 'Posts From Highest Followers', posts: followersPosts,
-    pagination: { total: followersPosts.length, currentPage: 1, perPage: 5 }
-  }];
+      columnsData.value = [{
+        title: 'Posts From Highest Engagement',
+        posts: engagementPosts,
+        pagination: { total: engagementPosts.length, currentPage: 1, perPage: 5 }
+      }, {
+        title: 'Posts From Highest Followers',
+        posts: followersPosts,
+        pagination: { total: followersPosts.length, currentPage: 1, perPage: 5 }
+      }]
+
+      logger.info('Hight', 'Posts data loaded successfully')
+    },
+    {
+      showErrorNotification: true,
+      errorMessage: 'Gagal memuat data postingan',
+      onError: (err) => {
+        logger.error('Hight', 'Failed to fetch posts data:', err)
+        apiError.value = 'Gagal memuat data dari server'
+
+        const dummyEngagement = Array.from({ length: 10 }, (_, i) => createDummyPost(i + 1, 'x'))
+        const dummyFollowers = Array.from({ length: 10 }, (_, i) => createDummyPost(i + 1, 'facebook'))
+
+        columnsData.value = [{
+          title: 'Posts From Highest Engagement',
+          posts: dummyEngagement,
+          pagination: { total: dummyEngagement.length, currentPage: 1, perPage: 5 }
+        }, {
+          title: 'Posts From Highest Followers',
+          posts: dummyFollowers,
+          pagination: { total: dummyFollowers.length, currentPage: 1, perPage: 5 }
+        }]
+      }
+    }
+  )
+
   isLoading.value = false;
 };
 
 function loadAllData() {
-  fetchPostsData(filters.startDate, filters.endDate);
+  fetchPostsData(filterStore.startDate, filterStore.endDate);
 }
 
-watch(filters, (newFilters) => {
-  console.log(`Filter tanggal berubah ke: ${newFilters.startDate} - ${newFilters.endDate}. Memuat ulang data Hight.vue...`);
+watch(() => [filterStore.startDate, filterStore.endDate], () => {
+  logger.info('Hight', `Filter tanggal berubah ke: ${filterStore.startDate} - ${filterStore.endDate}. Memuat ulang data...`);
   loadAllData();
 });
 
-// --- PERBAIKAN: Computed allColumns sekarang hanya menggabungkan state ---
 const allColumns = computed(() => {
   return [...columnsData.value, bookmarkedColumn];
 });
 
 onMounted(() => {
   loadBookmarks();
-  console.log('Komponen Hight.vue dimuat, mengambil data awal...');
+  logger.info('Hight', 'Komponen dimuat, mengambil data awal...');
   loadAllData();
 });
 </script>
 
 
 <style scoped>
-/* Style tidak berubah */
 .loader {
   border-top-color: #3498db;
   animation: spinner 1.5s linear infinite;
