@@ -1,12 +1,12 @@
 <template>
   <div v-if="isLoading"
-    class="flex flex-col justify-center items-center p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm min-h-[40rem]">
-    <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-2"></div>
-    <p class="text-lg font-semibold text-gray-600 dark:text-gray-300">Memuat postingan...</p>
+    class="flex flex-col justify-center items-center p-8 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm min-h-[24rem]">
+    <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-3"></div>
+    <p class="text-base font-semibold text-gray-600 dark:text-gray-300">Memuat postingan...</p>
     <p v-if="apiError" class="text-sm text-red-500 mt-2">{{ apiError }}</p>
   </div>
 
-  <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+  <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 animate-fade-in">
     <div v-for="(column, index) in allColumns" :key="index" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-[4px_4px_6px_rgba(128,128,128,0.3)] flex flex-col p-4">
       <h3 class="text-lg font-bold text-[#03255C] mb-3">{{ column.title }}</h3>
 

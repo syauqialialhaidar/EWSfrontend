@@ -1,85 +1,93 @@
 <template>
-    <div class="bg-white rounded-2xl p-12 shadow-lg max-full mx-auto">
+    <div class="bg-white rounded-2xl p-8 shadow-lg max-w-6xl mx-auto">
 
-        <div class="flex items-center justify-between mb-6">
-            <h3 class="text-2xl font-bold text-black">Atur Rules</h3>
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h3 class="text-3xl font-bold text-[#03255C]">Konfigurasi Rules Threshold</h3>
+                <p class="text-sm text-gray-500 mt-1">Atur threshold untuk setiap status berdasarkan project</p>
+            </div>
+            <button @click="openFaqModal"
+                class="px-6 py-2.5 bg-blue-100 text-blue-700 font-semibold rounded-lg text-sm hover:bg-blue-200 transition-colors focus:outline-none flex items-center gap-2">
+                <span class="text-lg">?</span> FAQ
+            </button>
         </div>
 
-        <div class="">
+        <div class="mb-8">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Pilih Project</label>
+            <div class="relative max-w-md" ref="projectInputRef">
+                <div class="relative">
+                    <div
+                        class="relative w-full cursor-default overflow-hidden rounded-lg bg-white text-left border-2 border-gray-300 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200 transition-all">
+                        <input
+                            class="w-full border-none py-3 pl-11 pr-4 text-sm text-gray-900 focus:ring-0 focus:outline-none"
+                            v-model="selectedProject" @input="searchProject" @focus="showDropdown = true"
+                            placeholder="Ketik untuk mencari ID Project atau Topik..." />
 
-            <div class="flex items-center space-x-4 mb-6">
-
-                <div class="w-80">
-                    <div class="relative" ref="projectInputRef">
-                        <div class="relative">
-                            <div
-                                class="relative w-full cursor-default overflow-hidden rounded-lg bg-white text-left border border-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-opacity-75 sm:text-sm shadow-md hover:shadow-lg transition-all duration-200">
-                                <input
-                                    class="w-full border-none py-2.5 pl-10 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
-                                    v-model="selectedProject" @input="searchProject" @focus="showDropdown = true"
-                                    placeholder="Cari atau masukkan ID Project..." />
-
-                                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                    <MagnifyingGlassIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
-                                </span>
-                            </div>
-
-                            <div v-if="showDropdown && filteredProjects.length > 0"
-                                class="absolute z-10 mt-1 w-full rounded-md bg-white shadow-lg max-h-60 ring-1 ring-black ring-opacity-5 overflow-auto">
-                                <ul class="py-1 text-base">
-                                    <li v-for="(project, index) in filteredProjects" :key="index"
-                                        @click="selectProject(project)"
-                                        class="cursor-default select-none relative py-2 pl-10 pr-4 hover:bg-blue-100 hover:text-blue-900">
-
-                                        <div class="text-sm font-medium text-gray-900 truncate">
-                                            {{ project.id_project }}
-                                        </div>
-                                        <div class="text-xs text-gray-500 truncate">
-                                            Topik: {{ project.topik }}
-                                        </div>
-
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                <button @click="openFaqModal"
-                    class="px-5 bg-gray-300 text-gray-800 font-semibold rounded-lg text-sm hover:bg-gray-400 transition-colors focus:outline-none h-11">
-                    FAQ
-                </button>
-
-            </div>
-
-            <div>
-                <div class="grid grid-cols-5 gap-2 mb-2">
-                    <div v-for="def in thresholdDefinitions" :key="def.label" class="text-center">
-                        <span :class="[def.color, def.textColor]"
-                            class="inline-block text-lg text-center w-full h-10 font-bold px-4 py-1.5 rounded-md w-full">
-                            {{ def.label }}
+                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <MagnifyingGlassIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
                         </span>
                     </div>
-                </div>
-                <div class="grid grid-cols-5 gap-4">
-                    <div v-for="(cell, index) in thresholdGrid" :key="index" class="text-center">
-                        <input type="number" v-model="cell.value"
-                            class="w-full bg-gray-200 border-none font-bold text-gray-600 rounded-lg h-10 text-center focus:outline-none focus:ring-2 focus:ring-blue-400" />
+
+                    <div v-if="showDropdown && filteredProjects.length > 0"
+                        class="absolute z-10 mt-2 w-full rounded-lg bg-white shadow-xl max-h-64 ring-1 ring-gray-200 overflow-auto">
+                        <ul class="py-2">
+                            <li v-for="(project, index) in filteredProjects" :key="index"
+                                @click="selectProject(project)"
+                                class="cursor-pointer select-none px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-0">
+
+                                <div class="text-sm font-semibold text-gray-900">
+                                    {{ project.id_project }}
+                                </div>
+                                <div class="text-xs text-gray-500 mt-0.5">
+                                    Topik: {{ project.topik }}
+                                </div>
+
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="flex justify-end items-center space-x-4 mt-10">
-            <button @click="cancelChanges"
-                class="px-10 py-2.5 text-sm font-bold text-gray-800 bg-gray-300 hover:bg-gray-400 rounded-lg focus:outline-none transition-colors">
-                Batal
-            </button>
-            <button @click="saveRules"
-                class="px-8 py-2.5 text-sm font-bold text-white bg-green-500 hover:bg-green-600 rounded-lg focus:outline-none transition-colors">
-                Simpan
-            </button>
+        <div class="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border border-gray-200">
+            <h4 class="text-lg font-bold text-[#03255C] mb-4">Threshold Values</h4>
+
+            <div class="bg-white rounded-lg p-4 shadow-sm">
+                <div class="grid grid-cols-5 gap-3 mb-3">
+                    <div v-for="def in thresholdDefinitions" :key="def.label" class="text-center">
+                        <div :class="[def.color, def.textColor]"
+                            class="inline-flex items-center justify-center text-sm font-bold px-4 py-2.5 rounded-lg w-full shadow-sm">
+                            {{ def.label }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <div v-for="row in 10" :key="row" class="grid grid-cols-5 gap-3">
+                        <div v-for="col in 5" :key="col" class="text-center">
+                            <input type="number" v-model="thresholdGrid[(row - 1) * 5 + (col - 1)].value"
+                                class="w-full bg-gray-50 border-2 border-gray-200 font-semibold text-gray-700 rounded-lg h-11 text-center focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all hover:bg-gray-100"
+                                :placeholder="`R${row}C${col}`" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
+            <div class="text-sm text-gray-500">
+                <span class="font-semibold">Project:</span> {{ selectedProject || 'Belum dipilih' }}
+            </div>
+            <div class="flex items-center gap-3">
+                <button @click="cancelChanges"
+                    class="px-8 py-3 text-sm font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all">
+                    Batal
+                </button>
+                <button @click="saveRules"
+                    class="px-8 py-3 text-sm font-bold text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition-all shadow-md">
+                    Simpan Rules
+                </button>
+            </div>
         </div>
 
         <TransitionRoot appear :show="isFaqModalOpen" as="template">
@@ -142,7 +150,7 @@
 
 
 <script setup>
-import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue'; // Tambahkan onBeforeUnmount
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import {
     Dialog,
     DialogPanel,

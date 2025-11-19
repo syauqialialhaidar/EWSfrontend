@@ -54,15 +54,15 @@
       </div>
     </div>
     
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
       <div v-for="card in summaryCards" :key="card.key" :class="[card.gradient,
-        'relative p-5 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-white flex flex-col justify-between h-40 overflow-hidden'
+        'relative p-4 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-white flex flex-col justify-between h-36 overflow-hidden'
       ]">
-        <FontAwesomeIcon :icon="card.icon" class="absolute -right-4 -bottom-4 text-white/10 text-8xl" />
+        <FontAwesomeIcon :icon="card.icon" class="absolute -right-3 -bottom-3 text-white/10 text-7xl" />
         <div>
-          <p class="text-lg font-bold">{{ card.title }}</p>
+          <p class="text-base font-bold">{{ card.title }}</p>
         </div>
-        <p class="text-5xl font-bold text-right">{{ card.value }}</p>
+        <p class="text-4xl font-bold text-right">{{ card.value }}</p>
       </div>
     </div>
 

@@ -1,37 +1,29 @@
 <template>
-    <div class>
-        <header>
-        </header>
-
+    <div class="space-y-6">
         <div>
             <PostCard />
         </div>
-        <div class="mt-10">
+        <div>
             <TopTopik />
         </div>
-        <div class="mt-10">
+        <div>
             <Hight />
         </div>
-        <div class="mt-10">
+        <div>
             <Analisis />
         </div>
-        <div class="mt-10">
+        <div>
             <Flagged />
         </div>
-
-
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
 import PostCard from '@/components/charts/Post.vue'
 import TopTopik from '@/components/charts/TopTopik.vue'
 import Hight from '@/components/charts/Hight.vue'
 import Analisis from '@/components/charts/Analisis.vue'
 import Flagged from '@/components/charts/Flagged.vue'
-
-const search = ref('')
 </script>
 
 <style scoped></style>

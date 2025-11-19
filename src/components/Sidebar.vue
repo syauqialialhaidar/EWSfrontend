@@ -5,7 +5,10 @@
       isOpen ? 'w-64' : 'w-20',
       isMobile ? (isOpen ? 'left-0' : '-left-64') : 'left-0',
     ]">
-      <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+      <div :class="[
+        'flex items-center px-5 py-4 border-b border-gray-100',
+        isOpen ? 'justify-between' : 'justify-center'
+      ]">
         <h1 v-if="isOpen" class="font-bold text-lg text-blue-600 whitespace-nowrap transition-all">
           MEDMON APPS
         </h1>
@@ -19,14 +22,15 @@
       </div>
 
       <nav class="flex-1 overflow-y-auto mt-4">
-        <ul class="space-y-1">
+        <ul :class="isOpen ? 'space-y-1' : 'space-y-2'">
           <li v-for="item in menuItems" :key="item.name" class="px-3">
             <router-link v-if="!item.children" :to="item.route"
               class="flex items-center px-4 py-2.5 text-gray-700 hover:bg-blue-100 hover:text-blue-600 transition rounded-lg"
               :class="{
                 'bg-blue-50 text-blue-600 font-semibold': isActive(item.route),
+                'justify-center': !isOpen
               }" @click="isMobile ? $emit('toggleSidebar') : null">
-              <component :is="item.icon" class="w-5 h-5 mr-3" />
+              <component :is="item.icon" :class="isOpen ? 'w-5 h-5 mr-3' : 'w-5 h-5'" />
               <span v-if="isOpen" class="whitespace-nowrap">{{
                 item.name
               }}</span>
@@ -34,16 +38,17 @@
 
             <div v-else>
               <router-link :to="item.route"
-                class="flex items-center justify-between w-full px-4 py-2.5 rounded-lg transition" :class="[
+                class="flex items-center w-full px-4 py-2.5 rounded-lg transition" :class="[
                   isParentActive(item)
                     ? 'bg-blue-50 text-blue-600 font-semibold'
                     : 'text-gray-700 hover:bg-blue-100 hover:text-blue-600',
+                  isOpen ? 'justify-between' : 'justify-center'
                 ]" @click="
                   openDropdown(item.name);
                 isMobile ? $emit('toggleSidebar') : null;
                 ">
                 <div class="flex items-center">
-                  <component :is="item.icon" class="w-5 h-5 mr-3" />
+                  <component :is="item.icon" :class="isOpen ? 'w-5 h-5 mr-3' : 'w-5 h-5'" />
                   <span v-if="isOpen" class="whitespace-nowrap">{{
                     item.name
                   }}</span>
@@ -81,21 +86,10 @@ import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   Home,
-  FileText,
-  User,
-  Search,
-  Database,
-  BarChart2,
-  TrendingUp,
-  Mic,
-  Download,
-  Trash2,
   Settings,
-  Menu,
   X,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
 } from 'lucide-vue-next'
 
 defineProps({
@@ -127,25 +121,9 @@ const isParentActive = (item, currentPath = route.path) => {
 }
 
 const menuItems = [
-  { name: 'Dasbor', icon: Home, route: '/dasbor' },
-  { name: 'Berita & Postingan', icon: FileText, route: '/berita' },
-  { name: 'Akun & Media', icon: User, route: '/akun' },
-  { name: 'Pencarian', icon: Search, route: '/pencarian' },
-  { name: 'Pembersihan Data', icon: Database, route: '/pembersihan' },
-  { name: 'Analitik', icon: BarChart2, route: '/analitik' },
-  { name: 'Tren', icon: TrendingUp, route: '/tren' },
-  { name: 'Siaran Pers', icon: Mic, route: '/siaran-pers' },
-  { name: 'Ekspor Data', icon: Download, route: '/ekspor' },
-  { name: 'Data Terhapus', icon: Trash2, route: '/data-terhapus' },
+  { name: 'Dashboard EWS', icon: Home, route: '/crisis-compass' },
+  { name: 'Atur Rules', icon: Settings, route: '/rules' },
   { name: 'Pengaturan', icon: Settings, route: '/pengaturan' },
-  {
-    name: 'Virality System',
-    icon: Settings,
-    route: '/crisis-compass',
-    children: [
-      { name: 'Rules', route: '/rules' },
-    ],
-  },
 ]
 
 // Logika 'watch' tetap sama, ini yang akan menangani penutupan dropdown

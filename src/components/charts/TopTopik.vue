@@ -15,29 +15,46 @@
           <div class="text-5xl font-bold text-[#03255C] tracking-tight">{{ currentTime }}</div>
           <div class="text-base font-semibold text-gray-500">{{ currentDate }}</div>
         </div>
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col h-[700px]">
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col min-h-[500px] max-h-[800px] h-auto">
           <div class="p-4 border-b border-gray-100">
             <h3 class="text-lg font-bold text-[#03255C]">Postingan Viral Terbaru</h3>
             <p class="text-sm text-gray-500">Semua postingan viral teratas, diurutkan.</p>
           </div>
           <div class="p-4 space-y-3 flex-grow overflow-y-auto">
-            <div class="flex flex-wrap gap-2 mb-4">
-              <button v-for="topic in availableTopics" :key="topic" @click="selectedTopic = topic" :class="[
-                'px-3 py-1.5 text-xs font-semibold rounded-full border transition',
-                selectedTopic === topic
-                  ? 'bg-[#03255C] text-white border-[#03255C]'
-                  : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'
-              ]">
-                {{ topic }}
-              </button>
-              <button @click="selectedTopic = 'All'" :class="[
-                'px-3 py-1.5 text-xs font-semibold rounded-full border transition',
-                selectedTopic === 'All'
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'
-              ]">
-                Semua
-              </button>
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="text-xs font-bold text-[#03255C]">Filter Topik</h4>
+                <div class="flex items-center gap-1">
+                  <button @click="scrollTopics('left')"
+                    class="p-1 rounded-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-600 disabled:opacity-40"
+                    :disabled="topicScrollPosition <= 0">
+                    <FontAwesomeIcon :icon="faChevronLeft" class="h-3 w-3" />
+                  </button>
+                  <button @click="scrollTopics('right')"
+                    class="p-1 rounded-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-600 disabled:opacity-40"
+                    :disabled="topicScrollPosition >= maxTopicScroll">
+                    <FontAwesomeIcon :icon="faChevronRight" class="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+              <div ref="topicScrollContainer" class="flex gap-2 overflow-x-hidden scroll-smooth">
+                <button @click="selectedTopic = 'All'" :class="[
+                  'px-3 py-1.5 text-xs font-semibold rounded-full border transition flex-shrink-0',
+                  selectedTopic === 'All'
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'
+                ]">
+                  Semua
+                </button>
+                <button v-for="topic in availableTopics" :key="topic" @click="selectedTopic = topic" :class="[
+                  'px-3 py-1.5 text-xs font-semibold rounded-full border transition flex-shrink-0',
+                  selectedTopic === topic
+                    ? 'bg-[#03255C] text-white border-[#03255C]'
+                    : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'
+                ]">
+                  {{ topic }}
+                </button>
+              </div>
             </div>
 
             <div v-if="paginatedFeedPosts.length === 0" class="text-center text-sm text-gray-500 pt-10">
@@ -450,6 +467,11 @@ const selectedTopic = ref('All');
 // State untuk tooltip hover (gauge & tabel)
 const hoveredStatusRef = ref({ topic: null, status: null });
 
+// State untuk topic carousel
+const topicScrollContainer = ref(null);
+const topicScrollPosition = ref(0);
+const maxTopicScroll = ref(0);
+
 // [REVISI BARU] State untuk tooltip Pie Chart
 const pieTooltip = reactive({
   show: false,
@@ -621,6 +643,28 @@ const changeFeedPage = (page) => {
 watch(selectedTopic, () => {
   pagination.currentPage = 1;
 });
+
+// Fungsi untuk scroll topic carousel
+const scrollTopics = (direction) => {
+  if (!topicScrollContainer.value) return;
+  const scrollAmount = 150;
+  if (direction === 'left') {
+    topicScrollContainer.value.scrollLeft -= scrollAmount;
+    topicScrollPosition.value = Math.max(0, topicScrollPosition.value - scrollAmount);
+  } else {
+    topicScrollContainer.value.scrollLeft += scrollAmount;
+    topicScrollPosition.value = Math.min(maxTopicScroll.value, topicScrollPosition.value + scrollAmount);
+  }
+};
+
+// Update max scroll saat availableTopics berubah
+watch(availableTopics, () => {
+  setTimeout(() => {
+    if (topicScrollContainer.value) {
+      maxTopicScroll.value = topicScrollContainer.value.scrollWidth - topicScrollContainer.value.clientWidth;
+    }
+  }, 100);
+}, { immediate: true });
 
 // Logika Bookmark
 const saveBookmarks = () => localStorage.setItem(BOOKMARK_STORAGE_KEY, JSON.stringify(bookmarkedPosts.value));
