@@ -88,24 +88,23 @@ import { Line } from 'vue-chartjs';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faTiktok, faFacebook, faYoutube, faInstagram, faXTwitter } from '@fortawesome/free-brands-svg-icons';
-// [BARU] Impor ikon-ikon yang dibutuhkan
-import { faGlobe, faChevronDown, faCheckCircle, faShieldAlt, faExclamationTriangle, faFire, faRadiation } from '@fortawesome/free-solid-svg-icons';
+import { faGlobe, faChevronDown, faCheckCircle, faShieldAlt, faExclamationTriangle, faFire, faRadiation } from '@fortawesome/free-solid-svg-icons'
+import { useFilterStore } from '@/stores/useFilterStore'
+import { storeToRefs } from 'pinia'
 
-import { filters } from '@/stores/filterStore.js';
+const filterStore = useFilterStore()
+const { startDate, endDate } = storeToRefs(filterStore)
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
-// --- KONFIGURASI API ---
 const API_BASE_URL = 'http://127.0.0.1:8000';
 const TOP_TOPICS_URL = `${API_BASE_URL}/top-topics`;
 const SUMMARY_URL = `${API_BASE_URL}/analysis-summary`;
 const TOPIC_TREND_URL = `${API_BASE_URL}/topic-trend-analysis`;
 
-// --- STATE UTAMA ---
 const isLoading = ref(true);
 const lineChartData = ref({ labels: [], datasets: [] });
 
-// [REVISI] State summaryCards diubah untuk menyertakan ikon dan gradien
 const summaryCards = ref([
   { title: 'Normal Posts', value: '...', key: 'normal', icon: faCheckCircle, gradient: 'bg-gradient-to-br from-blue-500 to-blue-600' },
   { title: 'Early Posts', value: '...', key: 'early', icon: faShieldAlt, gradient: 'bg-gradient-to-br from-green-500 to-green-600' },
@@ -114,24 +113,22 @@ const summaryCards = ref([
   { title: 'Crisis Posts', value: '...', key: 'crisis', icon: faRadiation, gradient: 'bg-gradient-to-br from-red-600 to-red-700' },
 ]);
 
-// --- PENGATURAN GRAFIK ---
 const lineChartOptions = {
   responsive: true, maintainAspectRatio: false,
   plugins: { legend: { display: false } },
   scales: { 
     y: { 
       beginAtZero: true,
-      ticks: { color: '#6b7280' }, // Warna teks sumbu Y
-      grid: { color: '#e5e7eb' }  // Warna grid sumbu Y
+      ticks: { color: '#6b7280' }, 
+      grid: { color: '#e5e7eb' }  
     }, 
     x: { 
-      ticks: { color: '#6b7280' }, // Warna teks sumbu X
+      ticks: { color: '#6b7280' },
       grid: { display: false } 
     } 
   },
   interaction: { intersect: false, mode: 'index' },
 };
-// Opsi dark mode untuk chart (opsional, tapi bagus)
 const updateChartOptionsTheme = () => {
   const isDarkMode = document.documentElement.classList.contains('dark');
   const tickColor = isDarkMode ? '#9ca3af' : '#6b7280';
@@ -149,7 +146,6 @@ const categoryStyles = {
   'Normal': { borderColor: '#2092EC' },
 };
 
-// --- LOGIKA DROPDOWN ---
 const isTopicDropdownOpen = ref(false);
 const selectedTopic = ref('Semua Topik');
 const topicOptions = ref(['Semua Topik']);
@@ -163,8 +159,6 @@ const platformOptions = ref([
 const selectedPlatform = ref(platformOptions.value[0]);
 const platformDropdownEl = ref(null);
 
-// --- FUNGSI PENGAMBILAN DATA ---
-// (Tidak ada perubahan pada logika fetch, hanya pada state `summaryCards` di atas)
 const fetchSummaryData = async (startDate, endDate) => {
   summaryCards.value.forEach(card => card.value = '...');
   const topicParam = selectedTopic.value === 'Semua Topik' ? 'all' : selectedTopic.value;
@@ -195,7 +189,7 @@ const fetchLineChartData = async (startDate, endDate) => {
       backgroundColor: (categoryStyles[dataset.label]?.borderColor || '#cccccc') + '30', // Tambah area fill
       tension: 0.4,
       borderWidth: 2.5,
-      fill: true, // Aktifkan fill
+      fill: true, 
     }));
     lineChartData.value = {
       labels: data.labels,
@@ -225,14 +219,14 @@ const fetchTopicOptions = async (startDate, endDate) => {
 };
 
 function loadDashboardData() {
-  isLoading.value = true;
-  updateChartOptionsTheme(); // Update warna chart
+  isLoading.value = true
+  updateChartOptionsTheme() 
   Promise.all([
-    fetchSummaryData(filters.startDate, filters.endDate),
-    fetchLineChartData(filters.startDate, filters.endDate)
+    fetchSummaryData(startDate.value, endDate.value),
+    fetchLineChartData(startDate.value, endDate.value)
   ]).finally(() => {
-    isLoading.value = false;
-  });
+    isLoading.value = false
+  })
 }
 
 // --- EVENT HANDLERS ---
@@ -243,7 +237,6 @@ const selectTopic = (topic) => {
 const selectPlatform = (platform) => { 
   selectedPlatform.value = platform;
   isPlatformDropdownOpen.value = false;
-  // (Catatan: Anda belum menambahkan logika filter platform, tapi UI-nya siap)
 };
 const closeDropdowns = (event) => {
   if (topicDropdownEl.value && !topicDropdownEl.value.contains(event.target)) {
@@ -254,25 +247,23 @@ const closeDropdowns = (event) => {
   }
 };
 
-// --- WATCHERS & LIFECYCLE HOOKS ---
 watch(selectedTopic, () => {
   console.log('Topik berubah. Memuat ulang data Analisis.vue...');
   loadDashboardData();
 });
 
-watch(filters, async () => {
-  console.log('Filter tanggal berubah. Memuat ulang OPSI TOPIK dan data Analisis.vue...');
-  isLoading.value = true;
-  await fetchTopicOptions(filters.startDate, filters.endDate);
-  loadDashboardData();
-});
+watch([startDate, endDate], async () => {
+  console.log('Filter tanggal berubah. Memuat ulang OPSI TOPIK dan data Analisis.vue...')
+  isLoading.value = true
+  await fetchTopicOptions(startDate.value, endDate.value)
+  loadDashboardData()
+})
 
 onMounted(async () => {
-  await fetchTopicOptions(filters.startDate, filters.endDate);
-  loadDashboardData();
-  document.addEventListener('click', closeDropdowns);
+  await fetchTopicOptions(startDate.value, endDate.value)
+  loadDashboardData()
+  document.addEventListener('click', closeDropdowns)
   
-  // (Opsional) Monitor perubahan dark mode sistem
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateChartOptionsTheme);
 });
 
@@ -283,7 +274,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* (Style CSS tidak berubah, sudah bagus) */
 .loader {
   border-top-color: #3498db;
   animation: spinner 1.5s linear infinite;

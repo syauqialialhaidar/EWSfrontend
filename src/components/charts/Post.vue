@@ -85,12 +85,19 @@ import { ref, onMounted, reactive, computed, watch } from 'vue';
 import { Pie, Bar } from 'vue-chartjs';
 // Impor semua elemen Chart.js yang dibutuhkan
 import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement, CategoryScale, LinearScale, BarElement } from 'chart.js';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faCheckCircle, faExclamationTriangle, faFire, faRadiation, faShieldAlt } from '@fortawesome/free-solid-svg-icons';
-import { filters } from '@/stores/filterStore.js';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faCheckCircle, faExclamationTriangle, faFire, faRadiation, faShieldAlt } from '@fortawesome/free-solid-svg-icons'
+
+// Import Pinia stores
+import { useFilterStore } from '@/stores/useFilterStore'
+import { storeToRefs } from 'pinia'
+
+// Get filter store
+const filterStore = useFilterStore()
+const { startDate, endDate } = storeToRefs(filterStore)
 
 // Daftarkan semua elemen
-ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale, LinearScale, BarElement);
+ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale, LinearScale, BarElement)
 
 // --- STATE ---
 const totalApiData = ref(null);
@@ -260,16 +267,23 @@ function loadAllData() {
     isLoading.total = true; 
     isLoading.viral = true; 
     isLoading.analysis = true; 
-    isLoading.status = true;
-    
+    isLoading.status = true
+
     // Panggil semua API
-    fetchTotalData(filters.startDate, filters.endDate);
-    fetchViralData(filters.startDate, filters.endDate);
-    fetchAnalysisData(filters.startDate, filters.endDate);
-    fetchStatusData(filters.startDate, filters.endDate); // Tidak terpakai, tapi tidak apa-apa
+    fetchTotalData(startDate.value, endDate.value)
+    fetchViralData(startDate.value, endDate.value)
+    fetchAnalysisData(startDate.value, endDate.value)
+    fetchStatusData(startDate.value, endDate.value) // Tidak terpakai, tapi tidak apa-apa
 }
-watch(filters, () => { loadAllData(); });
-onMounted(() => { loadAllData(); });
+
+// Watch for filter changes using store refs
+watch([startDate, endDate], () => {
+  loadAllData()
+})
+
+onMounted(() => {
+  loadAllData()
+})
 
 
 // --- OPSI CHART ---

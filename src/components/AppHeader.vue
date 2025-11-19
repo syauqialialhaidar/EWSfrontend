@@ -25,7 +25,10 @@
         class="relative text-gray-500 dark:text-gray-400 hover:text-[#03255C] dark:hover:text-white transition-colors p-1 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
         <Bell class="w-6 h-6" />
         <span
-          class="absolute -top-0 -right-0 flex items-center justify-center h-4.5 w-4.5 bg-orange-500 text-white text-[10px] font-bold rounded-full">7</span>
+          v-if="notificationCount > 0"
+          class="absolute -top-0 -right-0 flex items-center justify-center h-4.5 w-4.5 bg-orange-500 text-white text-[10px] font-bold rounded-full">
+          {{ notificationCount > 99 ? '99+' : notificationCount }}
+        </span>
       </button>
       <div class="relative">
         <button
@@ -39,8 +42,16 @@
 </template>
 
 <script setup>
-import logo from '../assets/image/logo-min.png';
-// PERUBAHAN: Impor ChevronDown
-import { Moon, Bell, User, ChevronDown, Sun } from 'lucide-vue-next';
-import { theme, toggleTheme } from '@/components/themeStore.js';
+import logo from '../assets/image/logo-min.png'
+import { Moon, Bell, User, ChevronDown, Sun } from 'lucide-vue-next'
+import { useThemeStore } from '@/stores/useThemeStore'
+import { useAppStore } from '@/stores/useAppStore'
+import { computed } from 'vue'
+
+const themeStore = useThemeStore()
+const appStore = useAppStore()
+
+const theme = computed(() => themeStore.currentTheme)
+const toggleTheme = () => themeStore.toggleTheme()
+const notificationCount = computed(() => appStore.unreadNotificationCount)
 </script>

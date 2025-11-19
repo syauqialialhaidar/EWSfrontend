@@ -161,9 +161,7 @@ import {
 import { MagnifyingGlassIcon } from '@heroicons/vue/20/solid'
 import { XMarkIcon } from '@heroicons/vue/24/outline'
 
-// --- State untuk Modal FAQ ---
 const isFaqModalOpen = ref(false)
-// ... (closeFaqModal, openFaqModal) ...
 function closeFaqModal() {
     isFaqModalOpen.value = false
 }
@@ -171,17 +169,13 @@ function openFaqModal() {
     isFaqModalOpen.value = true
 }
 
-// --- State Pencarian Proyek ---
 const selectedProject = ref('');
 const availableProjects = ref([]);
 const filteredProjects = ref([]);
 const showDropdown = ref(false);
-
-// Tambahkan ref untuk elemen DOM input/dropdown
 const projectInputRef = ref(null);
 
 
-// Fungsi untuk memuat data unik topik + ID Project dari API
 const fetchUniqueTopics = async () => {
     try {
         const response = await fetch('http://127.0.0.1:8000/all-unique-topics');
@@ -197,17 +191,14 @@ const fetchUniqueTopics = async () => {
 };
 
 
-// Fungsi pencarian yang dipanggil saat input berubah
 const searchProject = () => {
     const query = selectedProject.value.toLowerCase();
-    showDropdown.value = true; // Selalu tampilkan dropdown saat mengetik
-
+    showDropdown.value = true;
     if (!query) {
         filteredProjects.value = availableProjects.value;
         return;
     }
 
-    // Filter berdasarkan id_project ATAU topik
     filteredProjects.value = availableProjects.value.filter(project => {
         const idMatch = project.id_project && project.id_project.toLowerCase().includes(query);
         const topicMatch = project.topik && project.topik.toLowerCase().includes(query);
@@ -215,8 +206,6 @@ const searchProject = () => {
     });
 };
 
-// Fungsi yang dipanggil saat user memilih dari dropdown
-// --- Fungsi baru untuk memuat threshold ---
 const fetchThresholdData = async (projectId) => {
     try {
         const response = await fetch(`http://127.0.0.1:8000/threshold/${projectId}`);
@@ -224,50 +213,31 @@ const fetchThresholdData = async (projectId) => {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        
-        // Ambil array threshold. Ini mungkin array kosong jika tidak ada data.
         const thresholds = data.threshold || [];
-        
         const newGrid = [];
         
-        // Asumsi: Kita hanya menampilkan nilai persentase (early, emerging, current, crisis)
-        // dan mengabaikan threshold awal (yg before: null) dan nilai before-nya sendiri
-        
-        // Urutan kolom: NORMAL, EARLY, EMERGING, CURRENT, CRISIS
-        const keys = ['before', 'early', 'emerging', 'current', 'crisis']; // Gunakan 'before' untuk kolom pertama (NORMAL)
-
-        // Kita akan loop melalui threshold yang ada
         thresholds.forEach((item, index) => {
-            // Kita hanya mengisi 5 kolom (NORMAL, EARLY, EMERGING, CURRENT, CRISIS)
-            // Normal (index 0) adalah batas bawah (sebelum EARLY)
-            // Jika item pertama (index 0) adalah threshold awal (before: null)
             if (index === 0 && item.before === null) {
-                // Baris pertama (Threshold Awal - Engagement Absolut)
-                newGrid.push({ value: 0 }); // NORMAL dimulai dari 0
+                newGrid.push({ value: 0 }); 
                 newGrid.push({ value: item.early });
                 newGrid.push({ value: item.emerging });
                 newGrid.push({ value: item.current });
                 newGrid.push({ value: item.crisis });
             } 
-            // Threshold Persentase
             else if (item.before !== undefined) { 
-                // NORMAL di baris ini adalah nilai 'before' dari threshold
-                newGrid.push({ value: item.before }); // Threshold batas Bawah Engagement
-                newGrid.push({ value: item.early });  // Persentase EARLY
-                newGrid.push({ value: item.emerging }); // Persentase EMERGING
-                newGrid.push({ value: item.current });  // Persentase CURRENT
-                newGrid.push({ value: item.crisis });   // Persentase CRISIS
+                newGrid.push({ value: item.before }); 
+                newGrid.push({ value: item.early });  
+                newGrid.push({ value: item.emerging });
+                newGrid.push({ value: item.current }); 
+                newGrid.push({ value: item.crisis }); 
             }
-            // Lanjutkan hingga grid terisi (jika data threshold < 10 baris)
         });
 
 
-        // Isi sisa grid dengan nilai kosong (jika threshold yang ditemukan kurang dari 10 baris * 5 kolom)
         while (newGrid.length < 50) {
             newGrid.push({ value: '' });
         }
         
-        // Ambil hanya 50 sel pertama jika terlalu banyak
         thresholdGrid.value = newGrid.slice(0, 50);
 
     } catch (error) {
@@ -279,35 +249,23 @@ const fetchThresholdData = async (projectId) => {
 
 
 const selectProject = (project) => {
-    // 1. Menetapkan ID Project yang dipilih ke input
     selectedProject.value = project.id_project;
-    showDropdown.value = false; // Sembunyikan dropdown setelah memilih
+    showDropdown.value = false; 
 
     console.log(`Project dipilih: ID=${project.id_project}, Topik=${project.topik}`);
-    
-    // 2. Panggil fungsi untuk memuat data threshold
     fetchThresholdData(project.id_project);
 };
 
-// Pastikan Anda juga memodifikasi Watcher (jika Anda ingin memuat data saat mengetik ID)
 watch(selectedProject, (newProjectId) => {
     if (!newProjectId) {
         initializeGrid();
     } else {
-        // Jika ID Project diketik dan sudah lengkap (misalnya 5 karakter), 
-        // Anda bisa memicu pemuatan data di sini juga
-        // fetchThresholdData(newProjectId); // Optional: Aktifkan jika ingin auto-load saat mengetik
+        // fetchThresholdData(newProjectId); 
     }
     console.log(`Input Project ID berubah: ${newProjectId}`);
 });
 
-// =======================================================
-// LOGIKA AUTO-HIDE DROPDOWN
-// =======================================================
-
-// Handler untuk mendeteksi klik di luar area input/dropdown
 const handleClickOutside = (event) => {
-    // Cek apakah elemen yang diklik BUKAN merupakan bagian dari div input/dropdown
     if (projectInputRef.value && !projectInputRef.value.contains(event.target)) {
         showDropdown.value = false;
     }
@@ -315,17 +273,13 @@ const handleClickOutside = (event) => {
 
 onMounted(() => {
     fetchUniqueTopics();
-    // Tambahkan event listener saat komponen dimuat
     document.addEventListener('click', handleClickOutside);
 });
 
 onBeforeUnmount(() => {
-    // Hapus event listener saat komponen dihancurkan
     document.removeEventListener('click', handleClickOutside);
 });
-// =======================================================
 
-// --- State Grid Thresholds ---
 const thresholdDefinitions = ref([
     { label: 'NORMAL', color: 'bg-[#2092EC]', textColor: 'text-white' },
     { label: 'EARLY', color: 'bg-[#28C76F]', textColor: 'text-white' },
@@ -336,7 +290,6 @@ const thresholdDefinitions = ref([
 
 const thresholdGrid = ref([]);
 
-// Fungsi untuk inisialisasi grid (mengisi 50 sel kosong)
 const initializeGrid = () => {
     const newGrid = [];
     for (let i = 0; i < 50; i++) {
@@ -347,7 +300,6 @@ const initializeGrid = () => {
 
 initializeGrid();
 
-// Watcher untuk membersihkan grid jika input project dikosongkan
 watch(selectedProject, (newProjectId) => {
     if (!newProjectId) {
         initializeGrid();
@@ -355,14 +307,12 @@ watch(selectedProject, (newProjectId) => {
     console.log(`Input Project ID berubah: ${newProjectId}`);
 });
 
-// Fungsi untuk tombol "Batal"
 const cancelChanges = () => {
     selectedProject.value = '';
     showDropdown.value = false;
     console.log('Perubahan dibatalkan');
 };
 
-// Fungsi untuk tombol "Simpan"
 const saveRules = () => {
     if (!selectedProject.value) {
         alert('Harap masukkan atau cari Project ID terlebih dahulu.');

@@ -410,11 +410,21 @@ import { faTiktok, faInstagram, faXTwitter } from '@fortawesome/free-brands-svg-
 import {
   faBookmark, faEye, faHeart, faCommentDots, faShareNodes,
   faCalendarDays, faUpRightFromSquare, faXmark, faChevronLeft, faChevronRight
-} from '@fortawesome/free-solid-svg-icons';
+} from '@fortawesome/free-solid-svg-icons'
 
-import { filters } from '@/stores/filterStore.js';
+// Import Pinia stores
+import { useFilterStore } from '@/stores/useFilterStore'
+import { useBookmarkStore } from '@/stores/useBookmarkStore'
+import { storeToRefs } from 'pinia'
 
-ChartJS.register(Title, Tooltip, Legend, ArcElement);
+ChartJS.register(Title, Tooltip, Legend, ArcElement)
+
+// Get stores
+const filterStore = useFilterStore()
+const bookmarkStore = useBookmarkStore()
+
+// Get reactive refs from stores
+const { startDate, endDate } = storeToRefs(filterStore)
 
 // Plugin Pie Chart (Tidak Berubah)
 const pieChartTextPlugin = {
@@ -442,23 +452,22 @@ const pieChartTextPlugin = {
 };
 
 // --- STATE ---
-const API_URL = 'http://127.0.0.1:8000/top-topics';
-const BOOKMARK_STORAGE_KEY = 'vue-bookmarked-posts';
+const API_URL = 'http://127.0.0.1:8000/top-topics'
 
-const isLoading = ref(true);
-const currentTime = ref('');
-const currentDate = ref('');
-let timerInterval = null;
-const isDetailModalOpen = ref(false);
-const selectedPost = ref(null);
-const topTopics = ref([]); // Untuk kartu stat di bawah kompas
-const pieStatus = ref('EMERGING');
-const pieStatus2 = ref('CURRENT');
-const pieStatus3 = ref('NORMAL');
-const bookmarkedPosts = ref([]);
-const pieChartData = ref({ labels: [], datasets: [] });
-const topicsDetailsData = ref([]); // Untuk 3 kolom detail
-const platformStatuses = ref([]); // Untuk tabel matriks
+const isLoading = ref(true)
+const currentTime = ref('')
+const currentDate = ref('')
+let timerInterval = null
+const isDetailModalOpen = ref(false)
+const selectedPost = ref(null)
+const topTopics = ref([]) // Untuk kartu stat di bawah kompas
+const pieStatus = ref('EMERGING')
+const pieStatus2 = ref('CURRENT')
+const pieStatus3 = ref('NORMAL')
+// bookmarkedPosts now managed by bookmarkStore
+const pieChartData = ref({ labels: [], datasets: [] })
+const topicsDetailsData = ref([]) // Untuk 3 kolom detail
+const platformStatuses = ref([]) // Untuk tabel matriks
 
 // State untuk feed postingan baru
 const allViralPosts = ref([]);
@@ -666,40 +675,27 @@ watch(availableTopics, () => {
   }, 100);
 }, { immediate: true });
 
-// Logika Bookmark
-const saveBookmarks = () => localStorage.setItem(BOOKMARK_STORAGE_KEY, JSON.stringify(bookmarkedPosts.value));
-const loadBookmarks = () => {
-  const saved = localStorage.getItem(BOOKMARK_STORAGE_KEY);
-  if (saved) {
-    try {
-      bookmarkedPosts.value = JSON.parse(saved);
-    } catch (e) {
-      console.error('Gagal memuat bookmark', e);
-      bookmarkedPosts.value = [];
-    }
-  }
-};
+// Logika Bookmark (now using Pinia store)
 const toggleBookmark = (post) => {
-  const postIndex = bookmarkedPosts.value.findIndex(p => p.id === post.id);
-  const isNowBookmarked = postIndex === -1;
-  post.isBookmarked = isNowBookmarked;
-  if (isNowBookmarked) {
-    bookmarkedPosts.value.unshift(post);
-  } else {
-    bookmarkedPosts.value.splice(postIndex, 1);
-  }
-  const postInFeed = allViralPosts.value.find(p => p.id === post.id);
+  const wasBookmarked = bookmarkStore.isBookmarked(post.id)
+  bookmarkStore.toggleBookmark(post)
+  const isNowBookmarked = !wasBookmarked
+
+  // Update isBookmarked flag in local data
+  post.isBookmarked = isNowBookmarked
+
+  const postInFeed = allViralPosts.value.find(p => p.id === post.id)
   if (postInFeed) {
-    postInFeed.isBookmarked = isNowBookmarked;
+    postInFeed.isBookmarked = isNowBookmarked
   }
+
   for (const topic of topicsDetailsData.value) {
-    const originalPost = topic.allPosts.find(p => p.id === post.id);
+    const originalPost = topic.allPosts.find(p => p.id === post.id)
     if (originalPost) {
-      originalPost.isBookmarked = isNowBookmarked;
+      originalPost.isBookmarked = isNowBookmarked
     }
   }
-  saveBookmarks();
-};
+}
 
 // Logika Modal & Waktu
 const openDetailModal = (post) => { selectedPost.value = post; isDetailModalOpen.value = true; };
@@ -726,7 +722,7 @@ const fetchAllDashboardData = async (startDate, endDate) => {
         id: post.post_id || post.tweet_id || post.id_video,
         url: post.url,
 
-        content: post.text_content, // GUNAKAN FIELD 'text_content' KANONIK
+        content: post.text_content || post.text, // GUNAKAN FIELD 'text_content' KANONIK
         postStatus: (post.latest_status || 'N/A').toUpperCase(),
 
         author: post.user.name || post.user.screen_name,
@@ -739,7 +735,6 @@ const fetchAllDashboardData = async (startDate, endDate) => {
 
         dateRaw: post.created_at,
         date: new Date(post.created_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
-        postStatus: (post.latest_status || 'N/A').toUpperCase(),
 
         followers: post.user.followers_count,
         following: post.user.following_count,
@@ -749,11 +744,8 @@ const fetchAllDashboardData = async (startDate, endDate) => {
         likes: String(post.metrics_detail[post.platform]?.likes || post.metrics_detail.twitter?.favorites || 0),
         comments: String(post.metrics_detail[post.platform]?.comments || post.metrics_detail.twitter?.replies || 0),
         shares: String(post.metrics_detail[post.platform]?.shares || post.metrics_detail.twitter?.retweets || 0),
-        dateRaw: post.created_at,
-        date: new Date(post.created_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
         topicTag: topicItem.topic,
-        isBookmarked: false,
-        content: post.text
+        isBookmarked: false
       }));
 
       const calculated_status = getHighestPriorityStatus(topicPosts);
@@ -783,7 +775,7 @@ const fetchAllDashboardData = async (startDate, endDate) => {
     };
 
     // 3. Siapkan data untuk DUA list
-    const bookmarkedIds = new Set(bookmarkedPosts.value.map(p => p.id));
+    const bookmarkedIds = new Set(bookmarkStore.bookmarkedPosts.map(p => p.id))
     let collectedPosts = [];
 
     // 4. Mengisi data Kartu Detail Topik
@@ -855,18 +847,23 @@ const fetchAllDashboardData = async (startDate, endDate) => {
 // Akhir Fungsi Fetch
 
 function loadAllData() {
-  fetchAllDashboardData(filters.startDate, filters.endDate);
+  // Use Pinia store values
+  fetchAllDashboardData(startDate.value, endDate.value)
 }
 
-watch(filters, () => { loadAllData(); });
+// Watch for filter changes using store refs
+watch([startDate, endDate], () => {
+  console.log(`Filters changed: ${startDate.value} to ${endDate.value}`)
+  loadAllData()
+})
 
 // --- LIFECYCLE HOOKS ---
 onMounted(() => {
-  loadBookmarks();
-  updateTime();
-  timerInterval = setInterval(updateTime, 1000);
-  loadAllData();
-});
+  // Bookmarks already loaded by store in main.js
+  updateTime()
+  timerInterval = setInterval(updateTime, 1000)
+  loadAllData()
+})
 
 onUnmounted(() => {
   clearInterval(timerInterval);

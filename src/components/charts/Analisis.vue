@@ -89,11 +89,17 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faTiktok, faInstagram, faXTwitter } from '@fortawesome/free-brands-svg-icons';
 // [BARU] Impor ikon-ikon yang dibutuhkan
-import { faGlobe, faChevronDown, faCheckCircle, faShieldAlt, faExclamationTriangle, faFire, faRadiation } from '@fortawesome/free-solid-svg-icons';
+import { faGlobe, faChevronDown, faCheckCircle, faShieldAlt, faExclamationTriangle, faFire, faRadiation } from '@fortawesome/free-solid-svg-icons'
 
-import { filters } from '@/stores/filterStore.js';
+// Import Pinia stores
+import { useFilterStore } from '@/stores/useFilterStore'
+import { storeToRefs } from 'pinia'
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+// Get filter store
+const filterStore = useFilterStore()
+const { startDate, endDate } = storeToRefs(filterStore)
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
 // --- KONFIGURASI API ---
 const API_BASE_URL = 'http://127.0.0.1:8000';
@@ -225,13 +231,13 @@ const fetchTopicOptions = async (startDate, endDate) => {
 
 function loadDashboardData() {
   isLoading.value = true;
-  updateChartOptionsTheme(); // Update warna chart
+  updateChartOptionsTheme() // Update warna chart
   Promise.all([
-    fetchSummaryData(filters.startDate, filters.endDate),
-    fetchLineChartData(filters.startDate, filters.endDate)
+    fetchSummaryData(startDate.value, endDate.value),
+    fetchLineChartData(startDate.value, endDate.value)
   ]).finally(() => {
-    isLoading.value = false;
-  });
+    isLoading.value = false
+  })
 }
 
 // --- EVENT HANDLERS ---
@@ -259,17 +265,18 @@ watch(selectedTopic, () => {
   loadDashboardData();
 });
 
-watch(filters, async () => {
-  console.log('Filter tanggal berubah. Memuat ulang OPSI TOPIK dan data Analisis.vue...');
-  isLoading.value = true;
-  await fetchTopicOptions(filters.startDate, filters.endDate);
-  loadDashboardData();
-});
+// Watch for filter changes using store refs
+watch([startDate, endDate], async () => {
+  console.log('Filter tanggal berubah. Memuat ulang OPSI TOPIK dan data Analisis.vue...')
+  isLoading.value = true
+  await fetchTopicOptions(startDate.value, endDate.value)
+  loadDashboardData()
+})
 
 onMounted(async () => {
-  await fetchTopicOptions(filters.startDate, filters.endDate);
-  loadDashboardData();
-  document.addEventListener('click', closeDropdowns);
+  await fetchTopicOptions(startDate.value, endDate.value)
+  loadDashboardData()
+  document.addEventListener('click', closeDropdowns)
   
   // (Opsional) Monitor perubahan dark mode sistem
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateChartOptionsTheme);

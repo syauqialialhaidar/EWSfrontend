@@ -223,12 +223,22 @@ import {
   faUser,
   faChartLine,
   faCalendarDays,
-  faUpRightFromSquare // <-- Icon yang hilang sudah ditambah
-} from '@fortawesome/free-solid-svg-icons';
+  faUpRightFromSquare
+} from '@fortawesome/free-solid-svg-icons'
 
-import { filters } from '@/stores/filterStore.js';
+// Import Pinia stores
+import { useFilterStore } from '@/stores/useFilterStore'
+import { useBookmarkStore } from '@/stores/useBookmarkStore'
+import { storeToRefs } from 'pinia'
 
-const isLoading = ref(true);
+// Get stores
+const filterStore = useFilterStore()
+const bookmarkStore = useBookmarkStore()
+
+// Get reactive refs from stores
+const { startDate, endDate } = storeToRefs(filterStore)
+
+const isLoading = ref(true)
 const apiError = ref(null);
 const columnsData = ref([]);
 const isDetailModalOpen = ref(false);
@@ -243,8 +253,9 @@ const openLinkInNewTab = (post) => {
 };
 
 
-const bookmarkedPosts = ref([]);
-const BOOKMARK_STORAGE_KEY = 'vue-bookmarked-posts';
+// Bookmarks now managed by bookmarkStore
+// Get reactive reference to bookmarked posts
+const { bookmarkedPosts } = storeToRefs(bookmarkStore)
 
 // --- PERBAIKAN: Kolom bookmark dijadikan state reactive ---
 const bookmarkedColumn = reactive({
@@ -255,7 +266,7 @@ const bookmarkedColumn = reactive({
     currentPage: 1,
     perPage: 5
   }
-});
+})
 
 // --- PERBAIKAN: Sinkronkan data bookmark ke state reactive ---
 watch(bookmarkedPosts, (newPosts) => {
@@ -295,53 +306,24 @@ const closeDetailModal = () => {
   selectedPost.value = null;
 };
 
-const saveBookmarks = () => {
-  localStorage.setItem(BOOKMARK_STORAGE_KEY, JSON.stringify(bookmarkedPosts.value));
-};
-
-const loadBookmarks = () => {
-  const savedBookmarks = localStorage.getItem(BOOKMARK_STORAGE_KEY);
-  if (savedBookmarks) {
-    try {
-      const parsedData = JSON.parse(savedBookmarks);
-      if (Array.isArray(parsedData)) {
-        bookmarkedPosts.value = parsedData;
-      } else {
-        console.warn('Data bookmark yang dimuat bukan array, direset menjadi kosong.');
-        bookmarkedPosts.value = [];
-      }
-    } catch (error) {
-      console.error('Gagal memuat bookmark dari localStorage. Data mungkin rusak:', error);
-      bookmarkedPosts.value = [];
-      localStorage.removeItem(BOOKMARK_STORAGE_KEY);
-    }
-  }
-};
-
+// Bookmark functions now using Pinia store
 const toggleBookmark = (post) => {
-  const postIndex = bookmarkedPosts.value.findIndex(p => p.id === post.id);
-  let isNowBookmarked; 
+  const wasBookmarked = bookmarkStore.isBookmarked(post.id)
+  bookmarkStore.toggleBookmark(post)
+  const isNowBookmarked = !wasBookmarked
 
-  if (postIndex === -1) {
-    post.isBookmarked = true;
-    isNowBookmarked = true;
-    bookmarkedPosts.value.unshift(post);
-  } else {
-    post.isBookmarked = false;
-    isNowBookmarked = false;
-    bookmarkedPosts.value.splice(postIndex, 1);
-  }
+  // Update local post object
+  post.isBookmarked = isNowBookmarked
 
+  // Update in columns data
   for (const column of columnsData.value) {
-    const originalPost = column.posts.find(p => p.id === post.id);
+    const originalPost = column.posts.find(p => p.id === post.id)
     if (originalPost) {
-      originalPost.isBookmarked = isNowBookmarked;
-      break; 
+      originalPost.isBookmarked = isNowBookmarked
+      break
     }
   }
-  
-  saveBookmarks();
-};
+}
 
 
 // Logika Paginasi
@@ -385,7 +367,7 @@ const createDummyPost = (id, social) => {
     content: `Ini adalah postingan dummy #${id} untuk mengisi kolom karena API gagal terhubung.`, topicTag: 'FallBack-Data', isBookmarked: false,
   };
 };
-const mapApiPostToLocalPost = (apiPost, postId) => {
+const mapApiPostToLocalPost = (apiPost) => {
   const platformKey = apiPost.platform?.toLowerCase();
   const socialIcon = ICONS[platformKey];
   let url = apiPost.url;
@@ -463,7 +445,7 @@ const fetchPostsData = async (startDate, endDate) => {
 
   // Handle hasil engagement
   if (engagementResult.status === 'fulfilled' && engagementResult.value.posts_by_engagement?.length > 0) {
-    engagementPosts = engagementResult.value.posts_by_engagement.map((post, index) => mapApiPostToLocalPost(post, `engage-${index}`));
+    engagementPosts = engagementResult.value.posts_by_engagement.map((post) => mapApiPostToLocalPost(post));
   } else {
     const errorMsg = engagementResult.status === 'rejected' ? engagementResult.reason.message : 'No data';
     errorMessages.push(`Engagement: ${errorMsg}`);
@@ -472,7 +454,7 @@ const fetchPostsData = async (startDate, endDate) => {
 
   // Handle hasil followers
   if (followersResult.status === 'fulfilled' && followersResult.value.posts_by_followers?.length > 0) {
-    followersPosts = followersResult.value.posts_by_followers.map((post, index) => mapApiPostToLocalPost(post, `foll-${index}`));
+    followersPosts = followersResult.value.posts_by_followers.map((post) => mapApiPostToLocalPost(post));
   } else {
     const errorMsg = followersResult.status === 'rejected' ? followersResult.reason.message : 'No data';
     errorMessages.push(`Followers: ${errorMsg}`);
@@ -499,13 +481,14 @@ const fetchPostsData = async (startDate, endDate) => {
 };
 
 function loadAllData() {
-  fetchPostsData(filters.startDate, filters.endDate);
+  fetchPostsData(startDate.value, endDate.value)
 }
 
-watch(filters, (newFilters) => {
-  console.log(`Filter tanggal berubah ke: ${newFilters.startDate} - ${newFilters.endDate}. Memuat ulang data Hight.vue...`);
-  loadAllData();
-});
+// Watch for filter changes using store refs
+watch([startDate, endDate], () => {
+  console.log(`Filter tanggal berubah ke: ${startDate.value} - ${endDate.value}. Memuat ulang data Hight.vue...`)
+  loadAllData()
+})
 
 // --- PERBAIKAN: Computed allColumns sekarang hanya menggabungkan state ---
 const allColumns = computed(() => {
@@ -513,10 +496,10 @@ const allColumns = computed(() => {
 });
 
 onMounted(() => {
-  loadBookmarks();
-  console.log('Komponen Hight.vue dimuat, mengambil data awal...');
-  loadAllData();
-});
+  // Bookmarks already loaded by store in main.js
+  console.log('Komponen Hight.vue dimuat, mengambil data awal...')
+  loadAllData()
+})
 </script>
 
 
