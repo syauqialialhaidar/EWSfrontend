@@ -178,7 +178,7 @@ const projectInputRef = ref(null);
 
 const fetchUniqueTopics = async () => {
     try {
-        const response = await fetch('http://127.0.0.1:8000/all-unique-topics');
+        const response = await fetch('http://154.26.134.72:8438/all-unique-topics');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -208,7 +208,7 @@ const searchProject = () => {
 
 const fetchThresholdData = async (projectId) => {
     try {
-        const response = await fetch(`http://127.0.0.1:8000/threshold/${projectId}`);
+        const response = await fetch(`http://154.26.134.72:8438/threshold/${projectId}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

@@ -88,7 +88,6 @@ import { Line } from 'vue-chartjs';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faTiktok, faInstagram, faXTwitter } from '@fortawesome/free-brands-svg-icons';
-// [BARU] Impor ikon-ikon yang dibutuhkan
 import { faGlobe, faChevronDown, faCheckCircle, faShieldAlt, faExclamationTriangle, faFire, faRadiation } from '@fortawesome/free-solid-svg-icons'
 
 // Import Pinia stores
@@ -102,57 +101,58 @@ const { startDate, endDate } = storeToRefs(filterStore)
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
 // --- KONFIGURASI API ---
-const API_BASE_URL = 'http://127.0.0.1:8000';
+const API_BASE_URL = 'http://154.26.134.72:8438';
 const TOP_TOPICS_URL = `${API_BASE_URL}/top-topics`;
 const SUMMARY_URL = `${API_BASE_URL}/analysis-summary`;
 const TOPIC_TREND_URL = `${API_BASE_URL}/topic-trend-analysis`;
 
+// (State Utama dan Pengaturan Grafik lainnya tidak berubah)
+
+// ... (Kode state utama dan pengaturan grafik) ...
 // --- STATE UTAMA ---
 const isLoading = ref(true);
 const lineChartData = ref({ labels: [], datasets: [] });
 
-// [REVISI] State summaryCards diubah untuk menyertakan ikon dan gradien
 const summaryCards = ref([
-  { title: 'Normal Posts', value: '...', key: 'normal', icon: faCheckCircle, gradient: 'bg-gradient-to-br from-blue-500 to-blue-600' },
-  { title: 'Early Posts', value: '...', key: 'early', icon: faShieldAlt, gradient: 'bg-gradient-to-br from-green-500 to-green-600' },
-  { title: 'Emerging Posts', value: '...', key: 'emerging', icon: faExclamationTriangle, gradient: 'bg-gradient-to-br from-yellow-500 to-yellow-600' },
-  { title: 'Current Posts', value: '...', key: 'current', icon: faFire, gradient: 'bg-gradient-to-br from-orange-500 to-orange-600' },
-  { title: 'Crisis Posts', value: '...', key: 'crisis', icon: faRadiation, gradient: 'bg-gradient-to-br from-red-600 to-red-700' },
+  { title: 'Normal Posts', value: '...', key: 'normal', icon: faCheckCircle, gradient: 'bg-gradient-to-br from-blue-500 to-blue-600' },
+  { title: 'Early Posts', value: '...', key: 'early', icon: faShieldAlt, gradient: 'bg-gradient-to-br from-green-500 to-green-600' },
+  { title: 'Emerging Posts', value: '...', key: 'emerging', icon: faExclamationTriangle, gradient: 'bg-gradient-to-br from-yellow-500 to-yellow-600' },
+  { title: 'Current Posts', value: '...', key: 'current', icon: faFire, gradient: 'bg-gradient-to-br from-orange-500 to-orange-600' },
+  { title: 'Crisis Posts', value: '...', key: 'crisis', icon: faRadiation, gradient: 'bg-gradient-to-br from-red-600 to-red-700' },
 ]);
 
-// --- PENGATURAN GRAFIK ---
 const lineChartOptions = {
-  responsive: true, maintainAspectRatio: false,
-  plugins: { legend: { display: false } },
-  scales: { 
-    y: { 
-      beginAtZero: true,
-      ticks: { color: '#6b7280' }, // Warna teks sumbu Y
-      grid: { color: '#e5e7eb' }  // Warna grid sumbu Y
-    }, 
-    x: { 
-      ticks: { color: '#6b7280' }, // Warna teks sumbu X
-      grid: { display: false } 
-    } 
-  },
-  interaction: { intersect: false, mode: 'index' },
-};
-// Opsi dark mode untuk chart (opsional, tapi bagus)
-const updateChartOptionsTheme = () => {
-  const isDarkMode = document.documentElement.classList.contains('dark');
-  const tickColor = isDarkMode ? '#9ca3af' : '#6b7280';
-  const gridColor = isDarkMode ? '#374151' : '#e5e7eb';
-  
-  lineChartOptions.scales.y.ticks.color = tickColor;
-  lineChartOptions.scales.y.grid.color = gridColor;
-  lineChartOptions.scales.x.ticks.color = tickColor;
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { 
+        y: { 
+            beginAtZero: true,
+            ticks: { color: '#6b7280' },
+            grid: { color: '#e5e7eb' }
+        }, 
+        x: { 
+            ticks: { color: '#6b7280' },
+            grid: { display: false }
+        } 
+    },
+    interaction: { intersect: false, mode: 'index' },
 };
 
+const updateChartOptionsTheme = () => {
+    // ... (Logika update theme) ...
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    const tickColor = isDarkMode ? '#9ca3af' : '#6b7280';
+    const gridColor = isDarkMode ? '#374151' : '#e5e7eb';
+    
+    lineChartOptions.scales.y.ticks.color = tickColor;
+    lineChartOptions.scales.y.grid.color = gridColor;
+    lineChartOptions.scales.x.ticks.color = tickColor;
+};
 
 const categoryStyles = {
-  'Crisis': { borderColor: '#E60000' }, 'Current': { borderColor: '#FF9900' },
-  'Emerging': { borderColor: '#AAD816' }, 'Early': { borderColor: '#28C76F' },
-  'Normal': { borderColor: '#2092EC' },
+    'Crisis': { borderColor: '#E60000' }, 'Current': { borderColor: '#FF9900' },
+    'Emerging': { borderColor: '#AAD816' }, 'Early': { borderColor: '#28C76F' },
+    'Normal': { borderColor: '#2092EC' },
 };
 
 // --- LOGIKA DROPDOWN ---
@@ -162,129 +162,152 @@ const topicOptions = ref(['Semua Topik']);
 const topicDropdownEl = ref(null);
 const isPlatformDropdownOpen = ref(false);
 const platformOptions = ref([
-  { name: 'Semua Platform', icon: faGlobe, color: 'text-gray-500' }, { name: 'TikTok', icon: faTiktok, color: 'text-[#03255C]' },
-  { name: 'Instagram', icon: faInstagram, color: 'text-pink-600' }, { name: 'X (Twitter)', icon: faXTwitter, color: 'text-[#03255C]' }
+  { name: 'Semua Platform', icon: faGlobe, color: 'text-gray-500' }, { name: 'TikTok', icon: faTiktok, color: 'text-[#03255C]' },
+  { name: 'Instagram', icon: faInstagram, color: 'text-pink-600' }, { name: 'X (Twitter)', icon: faXTwitter, color: 'text-[#03255C]' }
 ]);
 const selectedPlatform = ref(platformOptions.value[0]);
 const platformDropdownEl = ref(null);
 
-// --- FUNGSI PENGAMBILAN DATA ---
-// (Tidak ada perubahan pada logika fetch, hanya pada state `summaryCards` di atas)
+// 1. ✅ FUNGSI BARU: Menentukan parameter platform untuk API (seperti Kode 1)
+const getPlatformParam = () => {
+  const platformName = selectedPlatform.value.name;
+  if (platformName === 'Semua Platform') return 'all';
+  // Konversi ke lowercase untuk mencocokkan field database
+  return platformName.toLowerCase().replace(' (twitter)', ''); 
+};
+
+// --- FUNGSI PENGAMBILAN DATA (DIUBAH) ---
 const fetchSummaryData = async (startDate, endDate) => {
-  summaryCards.value.forEach(card => card.value = '...');
-  const topicParam = selectedTopic.value === 'Semua Topik' ? 'all' : selectedTopic.value;
-  try {
-    const url = `${SUMMARY_URL}?topic=${encodeURIComponent(topicParam)}&start_date=${startDate}&end_date=${endDate}`;
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const data = await response.json();
-    summaryCards.value.forEach(card => {
-      card.value = data[card.key] !== undefined ? data[card.key] : 'N/A';
-    });
-  } catch (error) {
-    console.error("Gagal memuat data summary:", error);
-    summaryCards.value.forEach(card => card.value = 'N/A');
-  }
+  summaryCards.value.forEach(card => card.value = '...');
+  const topicParam = selectedTopic.value === 'Semua Topik' ? 'all' : selectedTopic.value;
+  // 2a. ✅ TAMBAH parameter Platform
+  const platformParam = getPlatformParam(); 
+  
+  try {
+    // Ubah URL untuk menyertakan platformParam
+    const url = `${SUMMARY_URL}?topic=${encodeURIComponent(topicParam)}&platform=${platformParam}&start_date=${startDate}&end_date=${endDate}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const data = await response.json();
+    summaryCards.value.forEach(card => {
+      card.value = data[card.key] !== undefined ? data[card.key] : 'N/A';
+    });
+  } catch (error) {
+    console.error("Gagal memuat data summary:", error);
+    summaryCards.value.forEach(card => card.value = 'N/A');
+  }
 };
 
 const fetchLineChartData = async (startDate, endDate) => {
-  const topicParam = selectedTopic.value === 'Semua Topik' ? 'all' : selectedTopic.value;
-  try {
-    const url = `${TOPIC_TREND_URL}?topic=${encodeURIComponent(topicParam)}&start_date=${startDate}&end_date=${endDate}`;
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const data = await response.json();
-    const styledDatasets = data.datasets.map(dataset => ({
-      ...dataset,
-      borderColor: categoryStyles[dataset.label]?.borderColor || '#cccccc',
-      backgroundColor: (categoryStyles[dataset.label]?.borderColor || '#cccccc') + '30', // Tambah area fill
-      tension: 0.4,
-      borderWidth: 2.5,
-      fill: true, // Aktifkan fill
-    }));
-    lineChartData.value = {
-      labels: data.labels,
-      datasets: styledDatasets
-    };
-  } catch (error) {
-    console.error("Gagal memuat data line chart:", error);
-    lineChartData.value = { labels: [], datasets: [] };
-  }
+  const topicParam = selectedTopic.value === 'Semua Topik' ? 'all' : selectedTopic.value;
+  // 2b. ✅ TAMBAH parameter Platform
+  const platformParam = getPlatformParam(); 
+
+  try {
+    // Ubah URL untuk menyertakan platformParam
+    const url = `${TOPIC_TREND_URL}?topic=${encodeURIComponent(topicParam)}&platform=${platformParam}&start_date=${startDate}&end_date=${endDate}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const data = await response.json();
+    const styledDatasets = data.datasets.map(dataset => ({
+      ...dataset,
+      borderColor: categoryStyles[dataset.label]?.borderColor || '#cccccc',
+      backgroundColor: (categoryStyles[dataset.label]?.borderColor || '#cccccc') + '30', 
+      tension: 0.4,
+      borderWidth: 2.5,
+      fill: true, 
+    }));
+    lineChartData.value = {
+      labels: data.labels,
+      datasets: styledDatasets
+    };
+  } catch (error) {
+    console.error("Gagal memuat data line chart:", error);
+    lineChartData.value = { labels: [], datasets: [] };
+  }
 };
 
 const fetchTopicOptions = async (startDate, endDate) => {
-  try {
-    const url = `${TOP_TOPICS_URL}?start_date=${startDate}&end_date=${endDate}`;
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const data = await response.json();
-    const fetchedTopicNames = (data.top_topics || []).map(item => item.topic);
-    topicOptions.value = ['Semua Topik', ...fetchedTopicNames];
-    if (!topicOptions.value.includes(selectedTopic.value)) {
-      selectedTopic.value = 'Semua Topik';
-    }
-  } catch (error) {
-    console.error("Gagal memuat daftar topik dinamis:", error);
-    topicOptions.value = ['Semua Topik', 'Gagal memuat...'];
-  }
+  try {
+    const url = `${TOP_TOPICS_URL}?start_date=${startDate}&end_date=${endDate}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const data = await response.json();
+    // CATATAN: Mengubah top_topics ke all_topics_with_top_posts jika diperlukan, tapi asumsi API Kode 2 menggunakan top_topics
+    const fetchedTopicNames = (data.all_topics_with_top_posts || []).map(item => item.topic); 
+    topicOptions.value = ['Semua Topik', ...fetchedTopicNames];
+    if (!topicOptions.value.includes(selectedTopic.value)) {
+      selectedTopic.value = 'Semua Topik';
+    }
+  } catch (error) {
+    console.error("Gagal memuat daftar topik dinamis:", error);
+    topicOptions.value = ['Semua Topik', 'Gagal memuat...'];
+  }
 };
 
 function loadDashboardData() {
-  isLoading.value = true;
-  updateChartOptionsTheme() // Update warna chart
-  Promise.all([
-    fetchSummaryData(startDate.value, endDate.value),
-    fetchLineChartData(startDate.value, endDate.value)
-  ]).finally(() => {
-    isLoading.value = false
-  })
+  isLoading.value = true;
+  updateChartOptionsTheme() 
+  Promise.all([
+    fetchSummaryData(startDate.value, endDate.value),
+    fetchLineChartData(startDate.value, endDate.value)
+  ]).finally(() => {
+    isLoading.value = false
+  })
 }
 
 // --- EVENT HANDLERS ---
 const selectTopic = (topic) => {
-  selectedTopic.value = topic;
-  isTopicDropdownOpen.value = false;
+  selectedTopic.value = topic;
+  isTopicDropdownOpen.value = false;
 };
 const selectPlatform = (platform) => { 
-  selectedPlatform.value = platform;
-  isPlatformDropdownOpen.value = false;
-  // (Catatan: Anda belum menambahkan logika filter platform, tapi UI-nya siap)
+  selectedPlatform.value = platform;
+  isPlatformDropdownOpen.value = false;
+  // PENTING: Panggil loadDashboardData() setelah Platform dipilih
+  loadDashboardData();
 };
 const closeDropdowns = (event) => {
-  if (topicDropdownEl.value && !topicDropdownEl.value.contains(event.target)) {
-    isTopicDropdownOpen.value = false;
-  }
-  if (platformDropdownEl.value && !platformDropdownEl.value.contains(event.target)) {
-    isPlatformDropdownOpen.value = false;
-  }
+  if (topicDropdownEl.value && !topicDropdownEl.value.contains(event.target)) {
+    isTopicDropdownOpen.value = false;
+  }
+  if (platformDropdownEl.value && !platformDropdownEl.value.contains(event.target)) {
+    isPlatformDropdownOpen.value = false;
+  }
 };
 
 // --- WATCHERS & LIFECYCLE HOOKS ---
 watch(selectedTopic, () => {
-  console.log('Topik berubah. Memuat ulang data Analisis.vue...');
-  loadDashboardData();
+  console.log('Topik berubah. Memuat ulang data Analisis.vue...');
+  loadDashboardData();
+});
+
+// 3. ✅ WATCHER BARU: Memuat ulang data ketika Platform berubah (seperti Kode 1)
+watch(selectedPlatform, () => {
+  console.log('Platform berubah. Memuat ulang data Analisis.vue...');
+  loadDashboardData();
 });
 
 // Watch for filter changes using store refs
 watch([startDate, endDate], async () => {
-  console.log('Filter tanggal berubah. Memuat ulang OPSI TOPIK dan data Analisis.vue...')
-  isLoading.value = true
-  await fetchTopicOptions(startDate.value, endDate.value)
-  loadDashboardData()
+  console.log('Filter tanggal berubah. Memuat ulang OPSI TOPIK dan data Analisis.vue...')
+  isLoading.value = true
+  await fetchTopicOptions(startDate.value, endDate.value)
+  loadDashboardData()
 })
 
 onMounted(async () => {
-  await fetchTopicOptions(startDate.value, endDate.value)
-  loadDashboardData()
-  document.addEventListener('click', closeDropdowns)
-  
-  // (Opsional) Monitor perubahan dark mode sistem
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateChartOptionsTheme);
+  await fetchTopicOptions(startDate.value, endDate.value)
+  loadDashboardData()
+  document.addEventListener('click', closeDropdowns)
+  
+  // (Opsional) Monitor perubahan dark mode sistem
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateChartOptionsTheme);
 });
 
 onUnmounted(() => {
-  document.removeEventListener('click', closeDropdowns);
-  window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', updateChartOptionsTheme);
+  document.removeEventListener('click', closeDropdowns);
+  window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', updateChartOptionsTheme);
 });
 </script>
 

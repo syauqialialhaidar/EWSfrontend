@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 
 export const useAppStore = defineStore('app', () => {
   // State
-  const apiBaseUrl = ref(import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000')
+  const apiBaseUrl = ref(import.meta.env.VITE_API_URL || 'http://154.26.134.72:8438')
   const isOnline = ref(navigator.onLine)
   const appVersion = ref('1.0.0')
   const notifications = ref([])

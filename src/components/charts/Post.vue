@@ -137,8 +137,8 @@ async function fetchTotalData(startDate, endDate) {
     isLoading.total = true;
     error.total = null;
     try {
-        const totalUrl = `http://127.0.0.1:8000/total-unique-posts?start_date=${startDate}&end_date=${endDate}`;
-        const sentimentUrl = `http://127.0.0.1:8000/sentiment-distribution?start_date=${startDate}&end_date=${endDate}`;
+        const totalUrl = `http://154.26.134.72:8438/total-unique-posts?start_date=${startDate}&end_date=${endDate}`;
+        const sentimentUrl = `http://154.26.134.72:8438/sentiment-distribution?start_date=${startDate}&end_date=${endDate}`;
 
         const [totalResponse, sentimentResponse] = await Promise.all([
             fetch(totalUrl),
@@ -173,7 +173,7 @@ async function fetchViralData(startDate, endDate) {
     isLoading.viral = true;
     error.viral = null;
     try {
-        const url = `http://127.0.0.1:8000/viral-posts?start_date=${startDate}&end_date=${endDate}`;
+        const url = `http://154.26.134.72:8438/viral-posts?start_date=${startDate}&end_date=${endDate}`;
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
@@ -182,17 +182,16 @@ async function fetchViralData(startDate, endDate) {
         viralApiData.value = {
             total: data.total_viral_posts || 0,
             by_status: data.by_status || {},
-            viral_positive: data.viral_positive || 0,
-            viral_negative: data.viral_negative || 0
+            viral_positive: data.sentiment_distribution.positive || 0,
+            viral_negative: data.sentiment_distribution.negative || 0,
+            viral_neutral: data.sentiment_distribution.neutral || 0
         };
 
         // --- INI PERBAIKANNYA ---
         // Hitung sentimen netral viral
-        const total = viralApiData.value.total;
         const positive = viralApiData.value.viral_positive;
         const negative = viralApiData.value.viral_negative;
-        // Pastikan tidak negatif jika API belum lengkap
-        const neutral = Math.max(0, total - positive - negative); 
+        const neutral = viralApiData.value.viral_neutral;
         
         // Update state bar chart
         viralSentimentChartData.value.labels = ['Viral Positif', 'Viral Negatif', 'Viral Netral'];
@@ -210,7 +209,7 @@ async function fetchAnalysisData(startDate, endDate) {
     isLoading.analysis = true;
     error.analysis = null;
     try {
-        const url = `http://127.0.0.1:8000/analysis-summary?topic=all&start_date=${startDate}&end_date=${endDate}`;
+        const url = `http://154.26.134.72:8438/analysis-summary?topic=all&start_date=${startDate}&end_date=${endDate}`;
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         analysisApiData.value = await response.json();
@@ -226,7 +225,7 @@ async function fetchAnalysisData(startDate, endDate) {
 async function fetchStatusData(startDate, endDate) {
     isLoading.status = true;
     try {
-        const url = `http://127.0.0.1:8000/status-distribution?start_date=${startDate}&end_date=${endDate}`;
+        const url = `http://154.26.134.72:8438/status-distribution?start_date=${startDate}&end_date=${endDate}`;
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         // statusApiData.value = await response.json(); // Datanya tidak terpakai
