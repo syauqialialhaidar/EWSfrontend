@@ -134,12 +134,33 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div v-for="stat in topTopics" :key="stat.title"
-            :class="[getStatusClass(stat.status).border, 'p-4 rounded-lg bg-white border-l-4 shadow-sm']">
-            <p class="text-xs font-semibold text-gray-500 line-clamp-1">{{ stat.title }}</p>
-            <span class="text-3xl font-bold text-gray-800">{{ stat.value }}</span>
-            <span class="text-sm font-medium text-gray-500 ml-1">posts</span>
+        <div class="flex space-x-4 overflow-x-auto p-2 carousel-container custom-scrollbar snap-x snap-mandatory">
+          <div v-for="(stat, index) in allTopicStats" :key="stat.title"
+            class="flex-shrink-0 w-[15.5rem] h-[15.5rem] rounded-xl p-6 text-white transition-transform duration-300 hover:scale-[1.02] flex flex-col justify-center items-center text-center snap-center"
+            :class="getCardBackground(index)">
+
+            <div class="absolute top-4 left-4 right-4 flex justify-between items-start">
+              <p class="text-base font-semibold opacity-90 flex items-center gap-2">
+                <span
+                  class="w-6 h-6 rounded-full bg-white bg-opacity-30 flex items-center justify-center font-extrabold text-sm">
+                  {{ index + 1 }}
+                </span>
+              </p>
+            </div>
+
+            <div class="flex flex-col items-center justify-center mt-auto mb-auto">
+              <span class="text-xl font-extrabold tracking-tight leading-snug line-clamp-2" :title="stat.title">{{
+                stat.title }}</span>
+
+              <span class="text-6xl font-extrabold tracking-tight leading-none mt-3">{{ stat.value }}</span>
+              <span class="text-lg font-light uppercase tracking-wider opacity-80 mt-2">Total Posts</span>
+            </div>
+
+          </div>
+
+          <div v-if="allTopicStats.length === 0"
+            class="flex-shrink-0 w-64 h-64 rounded-xl p-4 shadow-xl text-gray-500 bg-white border border-dashed border-gray-300 flex items-center justify-center snap-center">
+            <p class="text-sm">Tidak Ada Data Topik Tersedia</p>
           </div>
         </div>
 
@@ -148,16 +169,23 @@
 
     <div>
       <h2 class="text-2xl font-bold text-[#03255C]">Detail per Topik</h2>
-      <p class="text-sm text-gray-500">Breakdown postingan teratas untuk 3 topik utama.</p>
+      <p class="text-sm text-gray-500">
+        Breakdown postingan teratas untuk setiap topik yang terdeteksi. Geser ke samping untuk melihat lebih banyak.
+      </p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div v-for="(topic, index) in topicsDetailsData" :key="index"
-        class="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col">
+    <div class="flex space-x-6 overflow-x-auto p-2 carousel-container custom-scrollbar snap-x snap-mandatory">
+
+      <div v-for="(topic, index) in allTopicsDetailsData" :key="index"
+        class="flex-shrink-0 w-80 bg-white rounded-xl border border-gray-200 shadow-lg flex flex-col snap-center">
+
         <div class="p-4 border-b border-gray-200">
-          <h3 class="text-lg font-bold text-[#03255C] line-clamp-1">Topik {{ index + 1 }}: {{ topic.title }}</h3>
+          <h3 class="text-lg font-bold text-[#03255C] line-clamp-1">
+            Topik {{ index + 1 }}: {{ topic.title }}
+          </h3>
         </div>
 
+        <!-- Gauge -->
         <div class="relative p-4 flex flex-col items-center bg-gray-50/50 cursor-help"
           @mouseenter="hoveredStatusRef = { topic: topic.title, status: topic.status }"
           @mouseleave="hoveredStatusRef = { topic: null, status: null }">
@@ -165,91 +193,126 @@
             <div class="gauge-semi-circle" :style="getGaugeStyle(topic.status)">
               <div class="gauge-needle"></div>
             </div>
+
             <div class="gauge-inner-circle">
               <div class="gauge-label">STATUS</div>
-              <div class="gauge-value" :class="getStatusClass(topic.status).text">{{ topic.status }}</div>
-            </div>
-          </div>
-
-          <div v-if="hoveredStatusRef.topic === topic.title && hoveredStatusRef.status === topic.status"
-            class="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-72 bg-white border border-gray-300 rounded-lg shadow-xl p-3 z-20 max-h-64 overflow-y-auto">
-            <h5 class="text-sm font-bold text-gray-900 mb-2">Postingan dengan status "{{ topic.status }}"</h5>
-            <div v-if="postsInHoveredStatus.length > 0" class="space-y-2">
-              <div v-for="p in postsInHoveredStatus" :key="p.id"
-                class="text-xs text-gray-700 border-b border-gray-100 last:border-none pb-2 mb-2">
-                <span class="font-bold text-gray-800 block truncate">{{ p.author }}</span>
-                <p class="text-gray-600 line-clamp-2">{{ p.content }}</p>
+              <div class="gauge-value" :class="getStatusClass(topic.status).text">
+                {{ topic.status }}
               </div>
-            </div>
-            <div v-else class="text-gray-400 text-xs text-center py-2">
-              (Tidak ada postingan di daftar ini)
             </div>
           </div>
         </div>
 
-        <div class="p-4 flex-grow h-96 overflow-y-auto">
-          <h4 class="text-base font-bold text-[#03255C] mb-3">Postingan Teratas Topik Ini</h4>
+        <!-- Posts List -->
+        <div class="p-4 flex-grow h-96 overflow-y-auto custom-scrollbar">
+
+          <h4 class="text-base font-bold text-[#03255C] mb-3">
+            Postingan Teratas Topik Ini
+          </h4>
+
           <div class="space-y-3">
+
             <div v-if="topic.allPosts.length === 0" class="text-center text-sm text-gray-500 py-10">
               Tidak ada postingan untuk topik ini.
             </div>
+
             <div v-for="post in topic.allPosts" :key="post.id"
               class="bg-white border border-gray-200 rounded-lg p-3 group transition-shadow hover:shadow-md hover:border-blue-300">
+
+              <!-- Header -->
               <div class="flex items-start mb-2.5">
                 <img :src="post.avatar" alt="Avatar" class="w-10 h-10 rounded-full mr-3">
+
                 <div class="flex-grow min-w-0">
+
                   <div class="flex justify-between items-start mb-1">
+
                     <div class="flex items-center gap-2 max-w-[calc(100%-4rem)]">
                       <FontAwesomeIcon :icon="post.socialIcon" :class="getSocialIconColor(post.socialIcon)"
                         class="h-4 w-4" />
+
                       <span
                         class="font-bold text-sm text-gray-800 block truncate group-hover:text-blue-600 transition-colors">
                         {{ post.author }}
                       </span>
                     </div>
-                    <FontAwesomeIcon :icon="faBookmark" @click="toggleBookmark(post)" :class="['h-4 w-4 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-125',
+
+                    <FontAwesomeIcon :icon="faBookmark" @click="toggleBookmark(post)" :class="[
+                      'h-4 w-4 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-125',
                       post.isBookmarked ? 'text-yellow-500' : 'text-gray-300 group-hover:text-yellow-400'
                     ]" />
                   </div>
+
                   <p class="text-xs text-gray-500 flex items-center gap-1.5">
                     <FontAwesomeIcon :icon="faCalendarDays" class="h-3 w-3" />
                     <span>{{ post.date }}</span>
                   </p>
                 </div>
               </div>
-              <p class="text-sm text-gray-700 mb-3 line-clamp-2">{{ post.content }}</p>
 
+              <!-- Content -->
+              <p class="text-sm text-gray-700 mb-3 line-clamp-2">
+                {{ post.content }}
+              </p>
+
+              <!-- Stats -->
               <div class="flex items-center justify-between text-xs text-gray-500 mb-3 border-t border-gray-100 pt-3">
                 <div class="flex items-center gap-3">
+
                   <span class="flex items-center gap-1" title="Likes">
-                    <FontAwesomeIcon :icon="faHeart" /> {{ post.likes }}
+                    <FontAwesomeIcon :icon="faHeart" class="text-red-500" />
+                    {{ post.likes }}
                   </span>
+
                   <span class="flex items-center gap-1" title="Comments">
-                    <FontAwesomeIcon :icon="faCommentDots" /> {{ post.comments }}
+                    <FontAwesomeIcon :icon="faCommentDots" />
+                    {{ post.comments }}
                   </span>
-                  <span class="flex items-center gap-1" title="Shares">
-                    <FontAwesomeIcon :icon="faShareNodes" /> {{ post.shares }}
+
+                  <span v-if="post.views > 0 && (post.platform === 'twitter')" class="flex items-center gap-1"
+                    title="Reposts">
+                    <FontAwesomeIcon :icon="faArrowsRotate" class="text-blue-500" />
+                    {{ post.repost }}
                   </span>
+
+                  <span v-if="post.shares > 0 && (post.platform === 'instagram' || post.platform === 'tiktok')"
+                    class="flex items-center gap-1" title="Shares">
+                    <FontAwesomeIcon :icon="faShareNodes" class="text-green-500" />
+                    {{ post.shares }}
+                  </span>
+
+                  <span v-if="post.views > 0 && (post.platform === 'twitter' || post.platform === 'tiktok')"
+                    class="flex items-center gap-1" title="Views">
+                    <FontAwesomeIcon :icon="faEye" />
+                    {{ post.views }}
+                  </span>
+
                 </div>
+
                 <span :class="[getStatusClass(post.postStatus).badge, 'text-xs font-bold px-2 py-0.5 rounded-full']">
                   {{ post.postStatus }}
                 </span>
               </div>
+
+              <!-- Buttons -->
               <div class="flex items-center gap-2">
                 <button @click="openLinkInNewTab(post)"
                   class="w-full text-xs font-semibold bg-white text-gray-700 border border-gray-300 px-3 py-1.5 rounded-md hover:bg-gray-100 transition flex items-center justify-center gap-1.5">
                   <FontAwesomeIcon :icon="faUpRightFromSquare" /> Kunjungi
                 </button>
+
                 <button @click="openDetailModal(post)"
                   class="w-full text-xs font-semibold bg-[#03255C] text-white px-3 py-1.5 rounded-md hover:bg-opacity-90 transition flex items-center justify-center gap-1.5">
                   <FontAwesomeIcon :icon="faEye" /> Detail
                 </button>
               </div>
+
             </div>
           </div>
         </div>
       </div>
     </div>
+
 
     <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
       <h3 class="text-xl font-bold text-[#03255C] mb-4">Matriks Status Platform</h3>
@@ -265,7 +328,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in platformStatuses" :key="item.topic" class="bg-white border-b border-gray-100">
+            <tr v-for="item in allPlatformStatuses" :key="item.topic" class="bg-white border-b border-gray-100">
               <th scope="row" class="px-6 py-4 font-bold text-gray-800 whitespace-nowrap">{{ item.topic }}</th>
 
               <td v-for="(status, statusIndex) in item.statuses" :key="`${item.topic}-${statusIndex}`"
@@ -278,20 +341,7 @@
                     {{ status }}
                   </span>
 
-                  <div v-if="hoveredStatusRef.topic === item.topic && hoveredStatusRef.status === status"
-                    class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-72 bg-white border border-gray-300 rounded-lg shadow-xl p-3 z-20 max-h-64 overflow-y-auto text-left">
-                    <h5 class="text-sm font-bold text-gray-900 mb-2">Postingan dengan status "{{ status }}"</h5>
-                    <div v-if="postsInHoveredStatus.length > 0" class="space-y-2">
-                      <div v-for="p in postsInHoveredStatus" :key="p.id"
-                        class="text-xs text-gray-700 border-b border-gray-100 last:border-none pb-2 mb-2">
-                        <span class="font-bold text-gray-800 block truncate">{{ p.author }}</span>
-                        <p class="text-gray-600 line-clamp-2">{{ p.content }}</p>
-                      </div>
-                    </div>
-                    <div v-else class="text-gray-400 text-xs text-center py-2">
-                      (Tidak ada postingan di daftar ini)
-                    </div>
-                  </div>
+
                 </div>
                 <span v-else class="text-gray-400">-</span>
               </td>
@@ -363,23 +413,6 @@
         </div>
       </div>
 
-      <div v-if="pieTooltip.show" :style="pieTooltip.style"
-        class="fixed z-[60] w-72 bg-white border border-gray-300 rounded-lg shadow-xl p-3 max-h-64 overflow-y-auto animate-fade-in-fast">
-        <h5 class="text-sm font-bold text-gray-900 mb-2">Postingan dengan status "{{ pieTooltip.status }}"</h5>
-        <div v-if="pieTooltip.posts.length > 0" class="space-y-2">
-          <div v-for="p in pieTooltip.posts.slice(0, 10)" :key="p.id"
-            class="text-xs text-gray-700 border-b border-gray-100 last:border-none pb-2 mb-2">
-            <span class="font-bold text-gray-800 block truncate" :title="p.author">{{ p.author }}</span>
-            <p class="text-gray-600 line-clamp-2">{{ p.content }}</p>
-          </div>
-          <div v-if="pieTooltip.posts.length > 10" class="text-xs text-gray-500 italic text-center">
-            ...dan {{ pieTooltip.posts.length - 10 }} lainnya.
-          </div>
-        </div>
-        <div v-else class="text-gray-400 text-xs text-center py-2">
-          (Tidak ada postingan di daftar ini)
-        </div>
-      </div>
     </Teleport>
   </div>
 </template>
@@ -391,7 +424,7 @@ import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faTiktok, faInstagram, faXTwitter } from '@fortawesome/free-brands-svg-icons';
 import {
-  faBookmark, faEye, faHeart, faCommentDots, faShareNodes,
+  faBookmark, faEye, faHeart, faCommentDots, faShareNodes, faArrowsRotate,
   faCalendarDays, faUpRightFromSquare, faXmark, faChevronLeft, faChevronRight
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -425,7 +458,7 @@ const pieChartTextPlugin = {
 };
 
 // --- STATE ---
-const API_URL = 'http://127.0.0.1:8000/top-topics';
+const API_URL = 'http://154.26.134.72:8438/top-topics';
 const BOOKMARK_STORAGE_KEY = 'vue-bookmarked-posts';
 
 const isLoading = ref(true);
@@ -434,14 +467,23 @@ const currentDate = ref('');
 let timerInterval = null;
 const isDetailModalOpen = ref(false);
 const selectedPost = ref(null);
-const topTopics = ref([]); // Untuk kartu stat di bawah kompas
+
+// State baru untuk menyimpan SEMUA topik yang diolah
+const allTopicsDetailsData = ref([]);
+// State baru untuk statistik SEMUA topik
+const allTopicStats = ref([]);
+
+// Tetap gunakan ini untuk Kompas/Jarum (Top 3)
+const topTopics = ref([]);
+
 const pieStatus = ref('EMERGING');
 const pieStatus2 = ref('CURRENT');
 const pieStatus3 = ref('NORMAL');
 const bookmarkedPosts = ref([]);
 const pieChartData = ref({ labels: [], datasets: [] });
-const topicsDetailsData = ref([]); // Untuk 3 kolom detail
-const platformStatuses = ref([]); // Untuk tabel matriks
+
+const platformStatuses = ref([]);
+const allPlatformStatuses = ref([]); // State baru untuk tabel (Semua Topik)
 
 // State untuk feed postingan baru
 const allViralPosts = ref([]);
@@ -458,10 +500,41 @@ const pieTooltip = reactive({
   posts: []
 });
 
+const getCardBackground = (index) => {
+  const gradients = [
+    'bg-gradient-to-br from-indigo-500 to-purple-600', // Ungu
+    'bg-gradient-to-br from-teal-500 to-emerald-600',  // Hijau
+    'bg-gradient-to-br from-pink-500 to-red-600',     // Merah/Pink
+    'bg-gradient-to-br from-amber-500 to-yellow-600', // Kuning/Jingga
+    // Tambahkan lebih banyak jika perlu, atau akan berulang dari awal
+  ];
+  return gradients[index % gradients.length];
+};
+
+
+const getShareIcon = (platform) => {
+  const platformLower = platform ? platform.toLowerCase() : '';
+
+  // Twitter dan Instagram (khusus Repost) menggunakan ikon 'Repeat' (faArrowsRotate)
+  if (platformLower === 'twitter' || platformLower === 'instagram') {
+    // Catatan: Untuk data Instagram, kita asumsikan 'post.shares' berisi data 'repost'
+    return {
+      icon: faArrowsRotate,
+      title: platformLower === 'twitter' ? 'Retweets' : 'Reposts'
+    };
+  }
+  // TikTok (dan Instagram/Lainnya yang dianggap Share) menggunakan ikon 'Share' (faShareNodes)
+  return {
+    icon: faShareNodes,
+    title: 'Shares'
+  };
+};
+
 // Ambil semua topik unik dari post
 const availableTopics = computed(() => {
-  const topics = allViralPosts.value.map(p => p.topicTag).filter(Boolean);
-  return [...new Set(topics)];
+  // Ambil 3 topik teratas berdasarkan urutan dari API (yang sudah diurutkan)
+  const top3Topics = allTopicStats.value.slice(0, 3).map(stat => stat.title);
+  return top3Topics;
 });
 
 // Agregat semua post
@@ -484,7 +557,7 @@ const topTopicsForLegend = computed(() => {
   const topics = topTopics.value.slice(0, 3);
   const colors = [needleColors.primary, needleColors.secondary, needleColors.tertiary];
   while (topics.length < 3) {
-    topics.push({ title: 'N/A' });
+    topics.push({ title: 'NORMAL' });
   }
   return topics.map((topic, index) => ({
     title: topic.title,
@@ -519,25 +592,22 @@ const postsInHoveredStatus = computed(() => {
   }
   return allViralPosts.value.filter(p =>
     p.topicTag === hoveredStatusRef.value.topic &&
-    (p.postStatus || 'N/A').toUpperCase() === hoveredStatusRef.value.status.toUpperCase()
+    (p.postStatus || 'NORMAL').toUpperCase() === hoveredStatusRef.value.status.toUpperCase()
   );
 });
 
-// --- [REVISI BARU] FUNGSI & OPSI CHART ---
+// --- FUNGSI & OPSI CHART (Tidak Berubah) ---
 
-// Fungsi untuk menangani hover pada Pie Chart
 const handlePieHover = (event, activeElements, chart) => {
   if (activeElements.length > 0) {
     const firstElement = activeElements[0];
     const label = chart.data.labels[firstElement.index];
     pieTooltip.show = true;
     pieTooltip.status = label;
-    // Filter SEMUA post, bukan per topik
-    pieTooltip.posts = allViralPosts.value.filter(p => (p.postStatus || 'N/A').toUpperCase() === label.toUpperCase());
+    pieTooltip.posts = allViralPosts.value.filter(p => (p.postStatus || 'NORMAL').toUpperCase() === label.toUpperCase());
 
     const nativeEvent = event.native;
     if (nativeEvent) {
-      // Atur posisi awal
       pieTooltip.style = {
         top: `${nativeEvent.clientY + 10}px`,
         left: `${nativeEvent.clientX + 10}px`,
@@ -545,13 +615,11 @@ const handlePieHover = (event, activeElements, chart) => {
         bottom: 'auto'
       };
 
-      // Cek jika tooltip keluar layar di kanan
-      if (nativeEvent.clientX + 300 > window.innerWidth) { // 300px ~ w-72
+      if (nativeEvent.clientX + 300 > window.innerWidth) {
         pieTooltip.style.left = 'auto';
         pieTooltip.style.right = `${window.innerWidth - nativeEvent.clientX + 10}px`;
       }
-      // Cek jika tooltip keluar layar di bawah
-      if (nativeEvent.clientY + 270 > window.innerHeight) { // 270px ~ max-h-64
+      if (nativeEvent.clientY + 270 > window.innerHeight) {
         pieTooltip.style.top = 'auto';
         pieTooltip.style.bottom = `${window.innerHeight - nativeEvent.clientY + 10}px`;
       }
@@ -561,57 +629,63 @@ const handlePieHover = (event, activeElements, chart) => {
   }
 };
 
-// Fungsi untuk menyembunyikan tooltip Pie Chart
 const hidePieTooltip = () => {
   pieTooltip.show = false;
 };
 
-// Opsi Chart
 const pieChartOptions = {
   responsive: true, maintainAspectRatio: false,
   plugins: {
     legend: { display: false },
-    tooltip: { enabled: false }, // Penting: Matikan tooltip bawaan
+    tooltip: { enabled: false },
     pieChartText: true
   },
   events: ['mousemove', 'mouseout', 'touchstart', 'touchmove'],
-  onHover: handlePieHover, // Gunakan handler kustom kita
+  onHover: handlePieHover,
 };
 
 // --- METODE & FUNGSI (Lainnya) ---
 const getSocialIconColor = (icon) => ({ [faXTwitter.iconName]: 'text-gray-700' }[icon.iconName] || 'text-gray-700');
 
 const getStatusClass = (status) => {
-  const upperStatus = (status || 'N/A').toUpperCase();
+  const upperStatus = (status || 'NORMAL').toUpperCase();
   const statusMap = {
     'NORMAL': { text: 'text-blue-600', badge: 'bg-blue-100 text-blue-800', border: 'border-blue-500' },
     'EARLY': { text: 'text-green-600', badge: 'bg-green-100 text-green-800', border: 'border-green-500' },
     'EMERGING': { text: 'text-yellow-600', badge: 'bg-yellow-100 text-yellow-800', border: 'border-yellow-500' },
     'CURRENT': { text: 'text-orange-600', badge: 'bg-orange-100 text-orange-800', border: 'border-orange-500' },
     'CRISIS': { text: 'text-red-600', badge: 'bg-red-100 text-red-800', border: 'border-red-500' },
-    'N/A': { text: 'text-gray-500', badge: 'bg-gray-100 text-gray-800', border: 'border-gray-400' }
   };
-  return statusMap[upperStatus] || statusMap['N/A'];
+  return statusMap[upperStatus] || statusMap['NORMAL'];
 };
 
 const getGaugeStyle = (status) => {
-  const angleMap = { NORMAL: 162, EARLY: 126, EMERGING: 90, CURRENT: 54, CRISIS: 18 };
-  const angle = angleMap[(status || 'N/A').toUpperCase()] || 162;
+  const upperStatus = (status || 'NORMAL').toUpperCase();
+  const normalizedStatus = upperStatus === 'NORMAL' ? 'NORMAL' : upperStatus;
+
+  // PASTIKAN INI TIDAK BERUBAH DAN BERADA DI VUE.JS
+  const angleMap = {
+    NORMAL: 18, // Paling Kiri
+    EARLY: 54,
+    EMERGING: 90, // Tengah
+    CURRENT: 126,
+    CRISIS: 162 // Paling Kanan
+  };
+  const angle = angleMap[normalizedStatus] || 162;
   return { '--gauge-angle': `${angle}deg` };
 };
 
 const getHighestPriorityStatus = (posts) => {
-  if (!posts || posts.length === 0) return 'N/A';
+  if (!posts || posts.length === 0) return 'NORMAL';
   const priority = ['CRISIS', 'CURRENT', 'EMERGING', 'EARLY', 'NORMAL'];
   for (const status of priority) {
-    if (posts.some(p => (p.postStatus || 'N/A').toUpperCase() === status)) {
+    if (posts.some(p => (p.postStatus || 'NORMAL').toUpperCase() === status)) {
       return status;
     }
   }
   return 'NORMAL';
 };
 
-// Metode untuk paginasi feed
 const changeFeedPage = (page) => {
   if (page >= 1 && page <= totalFeedPages.value) {
     pagination.currentPage = page;
@@ -648,7 +722,9 @@ const toggleBookmark = (post) => {
   if (postInFeed) {
     postInFeed.isBookmarked = isNowBookmarked;
   }
-  for (const topic of topicsDetailsData.value) {
+
+  // UBAH: Menggunakan allTopicsDetailsData
+  for (const topic of allTopicsDetailsData.value) {
     const originalPost = topic.allPosts.find(p => p.id === post.id);
     if (originalPost) {
       originalPost.isBookmarked = isNowBookmarked;
@@ -657,7 +733,6 @@ const toggleBookmark = (post) => {
   saveBookmarks();
 };
 
-// Logika Modal & Waktu
 const openDetailModal = (post) => { selectedPost.value = post; isDetailModalOpen.value = true; };
 const closeDetailModal = () => { isDetailModalOpen.value = false; selectedPost.value = null; };
 const openLinkInNewTab = (post) => { if (post && post.url) window.open(post.url, '_blank', 'noopener,noreferrer'); };
@@ -675,15 +750,17 @@ const fetchAllDashboardData = async (startDate, endDate) => {
     const response = await fetch(API_URL_DATED);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data = await response.json();
-    const topTopicsApiData = data.top_topics || [];
 
-    const enrichedTopicsData = topTopicsApiData.map(topicItem => {
+    // Mengambil data dari key 'all_topics_with_top_posts'
+    const allTopicsApiData = data.all_topics_with_top_posts || [];
+
+    const enrichedTopicsData = allTopicsApiData.map(topicItem => {
       const topicPosts = (topicItem.top_10_posts || []).map(post => ({
         id: post.post_id || post.tweet_id || post.id_video,
         url: post.url,
 
         content: post.text_content, // GUNAKAN FIELD 'text_content' KANONIK
-        postStatus: (post.latest_status || 'N/A').toUpperCase(),
+        postStatus: (post.latest_status || 'NORMAL').toUpperCase(),
 
         author: post.user.name || post.user.screen_name,
         avatar: post.user.profile_image_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
@@ -695,21 +772,22 @@ const fetchAllDashboardData = async (startDate, endDate) => {
 
         dateRaw: post.created_at,
         date: new Date(post.created_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
-        postStatus: (post.latest_status || 'N/A').toUpperCase(),
+        postStatus: (post.latest_status || 'NORMAL').toUpperCase(),
 
         followers: post.user.followers_count,
         following: post.user.following_count,
 
         engagementScore: (post.engagement || 0).toFixed(2),
-        views: String((post.retweet_count || 0) + (post.favorite_count || 0) + (post.reply_count || 0)),
+        views: String(post.views || 0),
         likes: String(post.metrics_detail[post.platform]?.likes || post.metrics_detail.twitter?.favorites || 0),
         comments: String(post.metrics_detail[post.platform]?.comments || post.metrics_detail.twitter?.replies || 0),
-        shares: String(post.metrics_detail[post.platform]?.shares || post.metrics_detail.twitter?.retweets || 0),
+        repost: String(post.metrics_detail[post.platform]?.repost || post.metrics_detail.twitter?.retweets || 0),
+        shares: String(post.metrics_detail[post.platform]?.shares || post.metrics_detail.tiktok?.shares || 0),
         dateRaw: post.created_at,
         date: new Date(post.created_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
         topicTag: topicItem.topic,
         isBookmarked: false,
-        content: post.text
+        content: post.text_content
       }));
 
       const calculated_status = getHighestPriorityStatus(topicPosts);
@@ -720,14 +798,29 @@ const fetchAllDashboardData = async (startDate, endDate) => {
         mapped_posts: topicPosts
       };
     });
-    // 1. Mengisi topTopics
-    topTopics.value = enrichedTopicsData.slice(0, 3).map((item) => ({
+
+    // 1. Set status jarum (Top 3)
+    const top3Topics = enrichedTopicsData.slice(0, 3);
+
+    pieStatus.value = top3Topics.length > 0 ? top3Topics[0].calculated_status.toUpperCase() : 'NORMAL';
+    pieStatus2.value = top3Topics.length > 1 ? top3Topics[1].calculated_status.toUpperCase() : 'NORMAL';
+    pieStatus3.value = top3Topics.length > 2 ? top3Topics[2].calculated_status.toUpperCase() : 'NORMAL';
+
+    // 2. Mengisi topTopics (Hanya untuk Legend Kompas)
+    topTopics.value = top3Topics.map((item) => ({
       title: item.topic,
-      value: String(item.total_posts).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-      status: item.calculated_status || 'N/A'
+      value: String(item.total_unique_posts).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+      status: item.calculated_status || 'NORMAL'
     }));
 
-    // 2. Mengisi data Pie Chart Kompas
+    // 3. Mengisi allTopicStats (SEMUA Topik untuk Kartu Statistik)
+    allTopicStats.value = enrichedTopicsData.map((item) => ({
+      title: item.topic,
+      value: String(item.total_unique_posts).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+      status: item.calculated_status || 'NORMAL'
+    }));
+
+    // 4. Mengisi data Pie Chart Kompas (Tidak berubah)
     pieChartData.value = {
       labels: ['CRISIS', 'NORMAL', 'EARLY', 'EMERGING', 'CURRENT'],
       datasets: [{
@@ -738,66 +831,58 @@ const fetchAllDashboardData = async (startDate, endDate) => {
       }],
     };
 
-    // 3. Siapkan data untuk DUA list
+    // 5. Mengisi allTopicsDetailsData (SEMUA Topik untuk Detail)
     const bookmarkedIds = new Set(bookmarkedPosts.value.map(p => p.id));
-    let collectedPosts = [];
 
-    // 4. Mengisi data Kartu Detail Topik
-    topicsDetailsData.value = enrichedTopicsData.slice(0, 3).map((topicItem) => {
+    allTopicsDetailsData.value = enrichedTopicsData.map((topicItem) => {
       const topicPostsWithBookmark = topicItem.mapped_posts.map(post => ({
         ...post,
         isBookmarked: bookmarkedIds.has(post.id)
       }));
-      collectedPosts.push(...topicPostsWithBookmark);
       return {
         title: topicItem.topic,
-        status: (topicItem.calculated_status || 'N/A').toUpperCase(),
+        status: (topicItem.calculated_status || 'NORMAL').toUpperCase(),
         allPosts: topicPostsWithBookmark,
       };
     });
 
-    // 5. Mengisi data Tabel Platform
-    // Di dalam fetchAllDashboardData, ganti logic platformStatuses.value
-    platformStatuses.value = topicsDetailsData.value.map(topic => {
+    // 6. Mengisi allPlatformStatuses (SEMUA Topik untuk Tabel Matriks)
+    const top3TopicsDetails = allTopicsDetailsData.value.slice(0, 3);
+
+    allPlatformStatuses.value = top3TopicsDetails.map(topic => {
       const statusArray = Array(platforms.value.length).fill('');
 
-      // Ambil SEMUA post unik untuk topik ini (dari top_10_posts)
       const allPosts = topic.allPosts;
 
       platforms.value.forEach((platform, index) => {
-        // Filter post hanya untuk platform ini
-        const platformPosts = allPosts.filter(p => {
-          // Mapping nama platform di frontend ke nilai platform di post
-          const platformName = platform.name.toLowerCase().includes('twitter') ? 'twitter'
-            : platform.name.toLowerCase().includes('tiktok') ? 'tiktok'
-              : platform.name.toLowerCase().includes('instagram') ? 'instagram'
-                : 'unknown';
+        const platformName = platform.name.toLowerCase().includes('twitter') ? 'twitter'
+          : platform.name.toLowerCase().includes('tiktok') ? 'tiktok'
+            : platform.name.toLowerCase().includes('instagram') ? 'instagram'
+              : 'unknown';
 
-          return p.platform.toLowerCase() === platformName;
-        });
+        const platformPosts = allPosts.filter(p => p.platform.toLowerCase() === platformName);
 
-        // Hitung status prioritas tertinggi untuk post di platform ini
         const platformStatus = getHighestPriorityStatus(platformPosts);
 
-        // Isi array status hanya jika statusnya bukan 'N/A' atau 'NORMAL'
-        if (platformStatus !== 'N/A' && platformStatus !== 'NORMAL') {
-          statusArray[index] = platformStatus;
-        } else {
-          statusArray[index] = platformStatus; // Bisa diatur ke '-' jika ingin menyembunyikan 'NORMAL'
-        }
+        statusArray[index] = platformStatus;
       });
 
       return { topic: topic.title, statuses: statusArray };
     });
 
-    // 6. Set status jarum
-    pieStatus.value = enrichedTopicsData.length > 0 ? enrichedTopicsData[0].calculated_status.toUpperCase() : 'NORMAL';
-    pieStatus2.value = enrichedTopicsData.length > 1 ? enrichedTopicsData[1].calculated_status.toUpperCase() : 'NORMAL';
-    pieStatus3.value = enrichedTopicsData.length > 2 ? enrichedTopicsData[2].calculated_status.toUpperCase() : 'NORMAL';
-
     // 7. Selesaikan Feed Agregat
-    const uniquePosts = Array.from(new Map(collectedPosts.map(p => [p.id, p])).values());
+    let allPostsFromAllTopics = [];
+    enrichedTopicsData.forEach(topicItem => {
+      const topicPostsWithBookmark = topicItem.mapped_posts.map(post => ({
+        ...post,
+        isBookmarked: bookmarkedIds.has(post.id)
+      }));
+      allPostsFromAllTopics.push(...topicPostsWithBookmark);
+    });
+
+    const uniquePosts = Array.from(new Map(allPostsFromAllTopics.map(p => [p.id, p])).values());
     uniquePosts.sort((a, b) => new Date(b.dateRaw) - new Date(a.dateRaw));
+
     allViralPosts.value = uniquePosts;
     pagination.total = uniquePosts.length;
     pagination.currentPage = 1;
@@ -830,6 +915,32 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* ... CSS Lainnya ... */
+
+/* CSS untuk menyembunyikan scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.custom-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+/* Tambahkan styling opsional untuk carousel container */
+.carousel-container {
+  /* Memberi sedikit padding horizontal agar kartu tidak menempel */
+  padding-left: 1rem;
+  padding-right: 1rem;
+  margin-left: -0.5rem;
+  /* Kompensasi untuk p-2 di div induk */
+  margin-right: -0.5rem;
+}
+
+/* ... CSS Lainnya ... */
+
 /* CSS untuk Gauge Meter Modern */
 .gauge-container {
   position: relative;
@@ -838,6 +949,8 @@ onUnmounted(() => {
   overflow: hidden;
   margin-bottom: 1rem;
 }
+
+/* GANTI SEPENUHNYA DEFINISI INI DI BAGIAN <style scoped> */
 .gauge-semi-circle {
   width: 200px;
   height: 200px;
@@ -845,14 +958,31 @@ onUnmounted(() => {
   position: absolute;
   top: 0;
   left: 0;
+
+  /* 
+    DEFINISI CONIC GRADIENT YANG DIPERBAIKI:
+    Biru (NORMAL) di kiri (180deg) → Merah (CRISIS) di kanan (0deg)
+  */
   background: conic-gradient(from 180deg,
-      #E60000 0deg 36deg,
-      #FF9900 36deg 72deg,
-      #AAD816 72deg 108deg,
-      #28C76F 108deg 144deg,
-      #2092EC 144deg 180deg,
-      #f0f0f0 180deg 360deg);
+      /* NORMAL (Blue 500) */
+      #3B82F6 100deg 130deg,
+
+      /* EARLY (Green 500) */
+      #22C55E 130deg 160deg,
+
+      /* EMERGING (Yellow 500) */
+      #EAB308 160deg 200deg,
+
+      /* CURRENT (Orange 500) */
+      #F97316 200deg 230deg,
+
+      /* CRISIS (Red 600) */
+      #DC2626 230deg 260deg);
+
+
+
 }
+
 
 .gauge-needle {
   content: '';
@@ -885,6 +1015,7 @@ onUnmounted(() => {
   padding-bottom: 1rem;
   z-index: 5;
 }
+
 .gauge-label {
   font-size: 0.75rem;
   color: #6b7280;
@@ -892,6 +1023,7 @@ onUnmounted(() => {
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+
 .gauge-value {
   font-size: 1.5rem;
   font-weight: 700;
@@ -949,6 +1081,7 @@ onUnmounted(() => {
   background: #059669;
   z-index: 11;
 }
+
 .pie-needle-wrapper.tertiary .needle {
   width: 170px;
   background: #2563EB;
@@ -957,11 +1090,11 @@ onUnmounted(() => {
 
 /* Animasi untuk kelas status jarum */
 .pie-needle-wrapper.normal {
-  transform: rotate(-27deg);
+  transform: rotate(0deg);
 }
 
 .pie-needle-wrapper.early {
-  transform: rotate(45deg);
+  transform: rotate(255deg);
 }
 
 .pie-needle-wrapper.emerging {
@@ -969,11 +1102,11 @@ onUnmounted(() => {
 }
 
 .pie-needle-wrapper.current {
-  transform: rotate(225deg);
+  transform: rotate(45deg);
 }
 
 .pie-needle-wrapper.crisis {
-  transform: rotate(-72deg);
+  transform: rotate(-27deg);
 }
 
 /* Loader & Animasi Fade */
@@ -1028,6 +1161,7 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-box-orient: vertical;

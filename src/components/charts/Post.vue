@@ -6,21 +6,26 @@
             <p class="text-sm text-gray-500">Distribusi postingan berdasarkan status deteksi dini.</p>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
-            <div v-if="isLoading.analysis" class="text-gray-500 col-span-5 text-center py-10">Memuat status posts...</div>
-            <div v-else-if="error.analysis" class="text-red-500 col-span-5 text-center py-10">Gagal memuat status: {{ error.analysis }}</div>
-            <div v-else v-for="card in analysisCards" :key="card.title" :class="[card.gradient, 'relative p-5 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-white flex flex-col justify-between h-40 overflow-hidden']">
+            <div v-if="isLoading.analysis" class="text-gray-500 col-span-5 text-center py-10">Memuat status posts...
+            </div>
+            <div v-else-if="error.analysis" class="text-red-500 col-span-5 text-center py-10">Gagal memuat status: {{
+                error.analysis }}</div>
+            <div v-else v-for="card in analysisCards" :key="card.title"
+                :class="[card.gradient, 'relative p-5 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-white flex flex-col justify-between h-40 overflow-hidden']">
                 <FontAwesomeIcon :icon="card.icon" class="absolute -right-4 -bottom-4 text-white/10 text-8xl" />
-                <div><p class="text-lg font-bold">{{ card.title }}</p></div>
+                <div>
+                    <p class="text-lg font-bold">{{ card.title }}</p>
+                </div>
                 <p class="text-5xl font-bold text-right">{{ card.value }}</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
+
             <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                <h3 class="text-lg font-bold text-[#03255C] mb-1">Analisis Sentimen (Semua Post)</h3>
+                <h3 class="text-lg font-bold text-[#03255C] mb-1">Analisis Sentimen Semua Postingan</h3>
                 <p class="text-sm text-gray-500 mb-4">Distribusi sentimen dari semua postingan unik.</p>
-                
+
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
                     <div class="text-center bg-gray-100 text-gray-800 rounded-lg p-2 border border-gray-300">
                         <p class="text-xs font-semibold">TOTAL POST</p>
@@ -43,7 +48,8 @@
                 <div class="h-48 w-full flex justify-center items-center">
                     <div v-if="isLoading.total" class="text-gray-500">Memuat chart...</div>
                     <div v-else-if="error.total" class="text-red-500 text-sm">Gagal memuat chart</div>
-                    <Pie v-else-if="totalApiData && totalApiData.total > 0" :data="sentimentChartData" :options="pieChartOptions" />
+                    <Pie v-else-if="totalApiData && totalApiData.total > 0" :data="sentimentChartData"
+                        :options="pieChartOptions" />
                     <div v-else class="text-gray-500">Tidak ada data sentimen</div>
                 </div>
             </div>
@@ -70,7 +76,8 @@
                 <div class="h-48 w-full flex justify-center items-center">
                     <div v-if="isLoading.viral" class="text-gray-500">Memuat chart...</div>
                     <div v-else-if="error.viral" class="text-red-500 text-sm">Gagal memuat chart</div>
-                    <Bar v-else-if="viralApiData && viralApiData.total > 0" :data="viralSentimentChartData" :options="barChartOptions" />
+                    <Bar v-else-if="viralApiData && viralApiData.total > 0" :data="viralSentimentChartData"
+                        :options="barChartOptions" />
                     <div v-else class="text-gray-500">Tidak ada data postingan viral</div>
                 </div>
             </div>
@@ -130,8 +137,8 @@ async function fetchTotalData(startDate, endDate) {
     isLoading.total = true;
     error.total = null;
     try {
-        const totalUrl = `http://127.0.0.1:8000/total-unique-posts?start_date=${startDate}&end_date=${endDate}`;
-        const sentimentUrl = `http://127.0.0.1:8000/sentiment-distribution?start_date=${startDate}&end_date=${endDate}`;
+        const totalUrl = `http://154.26.134.72:8438/total-unique-posts?start_date=${startDate}&end_date=${endDate}`;
+        const sentimentUrl = `http://154.26.134.72:8438/sentiment-distribution?start_date=${startDate}&end_date=${endDate}`;
 
         const [totalResponse, sentimentResponse] = await Promise.all([
             fetch(totalUrl),
@@ -151,7 +158,7 @@ async function fetchTotalData(startDate, endDate) {
             positive: sentiment.positive,
             neutral: sentiment.neutral
         };
-        
+
         sentimentChartData.value.datasets[0].data = [sentiment.positive, sentiment.negative, sentiment.neutral];
     } catch (err) {
         console.error("Gagal memuat data total/sentimen:", err);
@@ -166,27 +173,26 @@ async function fetchViralData(startDate, endDate) {
     isLoading.viral = true;
     error.viral = null;
     try {
-        const url = `http://127.0.0.1:8000/viral-posts?start_date=${startDate}&end_date=${endDate}`;
+        const url = `http://154.26.134.72:8438/viral-posts?start_date=${startDate}&end_date=${endDate}`;
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
-        
+
         // Simpan data ringkasan
         viralApiData.value = {
             total: data.total_viral_posts || 0,
             by_status: data.by_status || {},
-            viral_positive: data.viral_positive || 0,
-            viral_negative: data.viral_negative || 0
+            viral_positive: data.sentiment_distribution.positive || 0,
+            viral_negative: data.sentiment_distribution.negative || 0,
+            viral_neutral: data.sentiment_distribution.neutral || 0
         };
 
         // --- INI PERBAIKANNYA ---
         // Hitung sentimen netral viral
-        const total = viralApiData.value.total;
         const positive = viralApiData.value.viral_positive;
         const negative = viralApiData.value.viral_negative;
-        // Pastikan tidak negatif jika API belum lengkap
-        const neutral = Math.max(0, total - positive - negative); 
-        
+        const neutral = viralApiData.value.viral_neutral;
+
         // Update state bar chart
         viralSentimentChartData.value.labels = ['Viral Positif', 'Viral Negatif', 'Viral Netral'];
         viralSentimentChartData.value.datasets[0].data = [positive, negative, neutral];
@@ -203,7 +209,7 @@ async function fetchAnalysisData(startDate, endDate) {
     isLoading.analysis = true;
     error.analysis = null;
     try {
-        const url = `http://127.0.0.1:8000/analysis-summary?topic=all&start_date=${startDate}&end_date=${endDate}`;
+        const url = `http://154.26.134.72:8438/analysis-summary?topic=all&start_date=${startDate}&end_date=${endDate}`;
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         analysisApiData.value = await response.json();
@@ -219,7 +225,7 @@ async function fetchAnalysisData(startDate, endDate) {
 async function fetchStatusData(startDate, endDate) {
     isLoading.status = true;
     try {
-        const url = `http://127.0.0.1:8000/status-distribution?start_date=${startDate}&end_date=${endDate}`;
+        const url = `http://154.26.134.72:8438/status-distribution?start_date=${startDate}&end_date=${endDate}`;
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         // statusApiData.value = await response.json(); // Datanya tidak terpakai
@@ -257,11 +263,11 @@ const analysisCards = computed(() => {
 
 function loadAllData() {
     // Set loading
-    isLoading.total = true; 
-    isLoading.viral = true; 
-    isLoading.analysis = true; 
+    isLoading.total = true;
+    isLoading.viral = true;
+    isLoading.analysis = true;
     isLoading.status = true;
-    
+
     // Panggil semua API
     fetchTotalData(filters.startDate, filters.endDate);
     fetchViralData(filters.startDate, filters.endDate);
@@ -327,14 +333,29 @@ const barChartOptions = { // Untuk Bar Chart Sentimen Viral
     border-top-color: #3498db;
     animation: spinner 1.5s linear infinite;
 }
+
 @keyframes spinner {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
+
 @keyframes fade-in {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
+
 .animate-fade-in {
     animation: fade-in 0.5s ease-out forwards;
 }

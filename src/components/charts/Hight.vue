@@ -446,8 +446,8 @@ const callApi = async (url) => {
 };
 
 const fetchPostsData = async (startDate, endDate) => {
-  const ENGAGEMENT_URL = `http://127.0.0.1:8000/posts-by-engagement?start_date=${startDate}&end_date=${endDate}`;
-  const FOLLOWERS_URL = `http://127.0.0.1:8000/posts-by-followers?start_date=${startDate}&end_date=${endDate}`;
+  const ENGAGEMENT_URL = `http://154.26.134.72:8438/posts-by-engagement?start_date=${startDate}&end_date=${endDate}`;
+  const FOLLOWERS_URL = `http://154.26.134.72:8438/posts-by-followers?start_date=${startDate}&end_date=${endDate}`;
 
   let engagementPosts = [];
   let followersPosts = [];

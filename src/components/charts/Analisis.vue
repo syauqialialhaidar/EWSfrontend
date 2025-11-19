@@ -96,7 +96,7 @@ import { filters } from '@/stores/filterStore.js';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 // --- KONFIGURASI API ---
-const API_BASE_URL = 'http://127.0.0.1:8000';
+const API_BASE_URL = 'http://154.26.134.72:8438';
 const TOP_TOPICS_URL = `${API_BASE_URL}/top-topics`;
 const SUMMARY_URL = `${API_BASE_URL}/analysis-summary`;
 const TOPIC_TREND_URL = `${API_BASE_URL}/topic-trend-analysis`;
