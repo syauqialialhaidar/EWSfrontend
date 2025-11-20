@@ -16,7 +16,8 @@
           <div class="text-base font-semibold text-gray-500">{{ currentDate }}</div>
         </div>
 
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col min-h-[500px] max-h-[800px] h-auto">
+        <div
+          class="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col min-h-[500px] max-h-[800px] h-auto">
           <div class="p-4 border-b border-gray-100">
             <h3 class="text-lg font-bold text-[#03255C]">Postingan Viral Terbaru</h3>
             <p class="text-sm text-gray-500">Semua postingan viral teratas, diurutkan.</p>
@@ -65,7 +66,8 @@
             <div v-for="post in paginatedFeedPosts" :key="post.id"
               class="bg-gray-50 border border-gray-200 rounded-lg p-3 transition-shadow hover:shadow-md hover:border-blue-300">
               <div class="flex items-start">
-                <img :src="post.avatar" alt="Avatar" class="w-10 h-10 rounded-full mr-3">
+                <img :src="post.avatar" referrerpolicy="no-referrer" alt="Avatar" class="w-10 h-10 rounded-full mr-3"
+                  @error="$event.target.src = 'https://cdn-icons-png.flaticon.com/512/149/149071.png'">
                 <div class="flex-grow min-w-0">
 
                   <div class="flex justify-between items-center">
@@ -236,7 +238,8 @@
               class="bg-white border border-gray-200 rounded-lg p-3 group transition-shadow hover:shadow-md hover:border-blue-300">
 
               <div class="flex items-start mb-2.5">
-                <img :src="post.avatar" alt="Avatar" class="w-10 h-10 rounded-full mr-3">
+                <img :src="post.avatar" referrerpolicy="no-referrer" alt="Avatar" class="w-10 h-10 rounded-full mr-3"
+                  @error="$event.target.src = 'https://cdn-icons-png.flaticon.com/512/149/149071.png'">
 
                 <div class="flex-grow min-w-0">
 
@@ -332,29 +335,13 @@
 
               <td v-for="(status, statusIndex) in item.statuses" :key="`${item.topic}-${statusIndex}`"
                 class="px-6 py-4 text-center">
-                <div v-if="status" class="relative inline-block"
-                  @mouseenter="hoveredStatusRef = { topic: item.topic, status: status }"
-                  @mouseleave="hoveredStatusRef = { topic: null, status: null }">
-                  <span :class="getStatusClass(status).badge"
-                    class="px-2.5 py-1 text-xs font-bold rounded-full cursor-help">
+
+                <div v-if="status" class="relative inline-block">
+                  <span :class="getStatusClass(status).badge" class="px-2.5 py-1 text-xs font-bold rounded-full">
                     {{ status }}
                   </span>
-
-                  <div v-if="hoveredStatusRef.topic === item.topic && hoveredStatusRef.status === status"
-                    class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-72 bg-white border border-gray-300 rounded-lg shadow-xl p-3 z-20 max-h-64 overflow-y-auto text-left">
-                    <h5 class="text-sm font-bold text-gray-900 mb-2">Postingan dengan status "{{ status }}"</h5>
-                    <div v-if="postsInHoveredStatus.length > 0" class="space-y-2">
-                      <div v-for="p in postsInHoveredStatus" :key="p.id"
-                        class="text-xs text-gray-700 border-b border-gray-100 last:border-none pb-2 mb-2">
-                        <span class="font-bold text-gray-800 block truncate">{{ p.author }}</span>
-                        <p class="text-gray-600 line-clamp-2">{{ p.content }}</p>
-                      </div>
-                    </div>
-                    <div v-else class="text-gray-400 text-xs text-center py-2">
-                      (Tidak ada postingan di daftar ini)
-                    </div>
-                  </div>
                 </div>
+
                 <span v-else class="text-gray-400">-</span>
               </td>
             </tr>
@@ -506,15 +493,15 @@ let timerInterval = null
 const isDetailModalOpen = ref(false)
 const selectedPost = ref(null)
 
-const allTopicStats = ref([]);          
-const allTopicsDetailsData = ref([]);   
+const allTopicStats = ref([]);
+const allTopicsDetailsData = ref([]);
 
 const pieStatus = ref('EMERGING')
 const pieStatus2 = ref('CURRENT')
 const pieStatus3 = ref('NORMAL')
 
 const pieChartData = ref({ labels: [], datasets: [] })
-const platformStatuses = ref([]) 
+const platformStatuses = ref([])
 
 const allViralPosts = ref([]);
 const selectedTopic = ref('All');
@@ -577,7 +564,7 @@ const filteredPosts = computed(() => {
   const activeStatuses = ['EARLY', 'EMERGING', 'CURRENT', 'CRISIS'];
   let postsToFilter = allViralPosts.value && Array.isArray(allViralPosts.value) ? allViralPosts.value : [];
   if (selectedTopic.value !== 'All') {
-      postsToFilter = postsToFilter.filter(post => post.topicTag === selectedTopic.value);
+    postsToFilter = postsToFilter.filter(post => post.topicTag === selectedTopic.value);
   }
   return postsToFilter.filter(post => {
     const status = (post.postStatus || 'NORMAL').toUpperCase();
@@ -655,7 +642,7 @@ const getSocialIconColor = (icon) => ({ [faXTwitter.iconName]: 'text-gray-700' }
 
 const getStatusClass = (status) => {
   // Status di tabel Matriks sekarang akan selalu 'NORMAL' jika tidak ada post.
-  const upperStatus = (status || 'NORMAL').toUpperCase(); 
+  const upperStatus = (status || 'NORMAL').toUpperCase();
   const statusMap = {
     'NORMAL': { text: 'text-blue-600', badge: 'bg-blue-100 text-blue-800', border: 'border-blue-500' },
     'EARLY': { text: 'text-green-600', badge: 'bg-green-100 text-green-800', border: 'border-green-500' },
@@ -669,7 +656,7 @@ const getStatusClass = (status) => {
 
 const getGaugeStyle = (status) => {
   const upperStatus = (status || 'NORMAL').toUpperCase();
-  const normalizedStatus = upperStatus === 'N/A' ? 'NORMAL' : upperStatus; 
+  const normalizedStatus = upperStatus === 'N/A' ? 'NORMAL' : upperStatus;
 
   // Sudut rotasi jarum (CRISIS di KANAN, NORMAL di KIRI)
   const angleMap = {
@@ -687,7 +674,7 @@ const getGaugeStyle = (status) => {
 const getHighestPriorityStatus = (posts) => {
   // Jika posts kosong, kembalikan 'NORMAL' (sebelumnya 'N/A')
   if (!posts || posts.length === 0) return 'NORMAL'; // <--- DIUBAH DARI 'N/A'
-  
+
   const priority = ['CRISIS', 'CURRENT', 'EMERGING', 'EARLY', 'NORMAL'];
   for (const status of priority) {
     if (posts.some(p => (p.postStatus || 'N/A').toUpperCase() === status)) {
@@ -713,10 +700,10 @@ const scrollTopics = (direction) => {
   const scrollAmount = 150;
   if (direction === 'left') {
     topicScrollContainer.value.scrollLeft -= scrollAmount;
-    topicScrollPosition.value = Math.max(0, topicScrollContainer.value.scrollLeft - scrollAmount); 
+    topicScrollPosition.value = Math.max(0, topicScrollContainer.value.scrollLeft - scrollAmount);
   } else {
     topicScrollContainer.value.scrollLeft += scrollAmount;
-    topicScrollPosition.value = Math.min(maxTopicScroll.value, topicScrollContainer.value.scrollLeft + scrollAmount); 
+    topicScrollPosition.value = Math.min(maxTopicScroll.value, topicScrollContainer.value.scrollLeft + scrollAmount);
   }
 };
 
@@ -724,29 +711,86 @@ watch(availableTopics, () => {
   setTimeout(() => {
     if (topicScrollContainer.value) {
       maxTopicScroll.value = topicScrollContainer.value.scrollWidth - topicScrollContainer.value.clientWidth;
-      topicScrollPosition.value = topicScrollContainer.value.scrollLeft; 
+      topicScrollPosition.value = topicScrollContainer.value.scrollLeft;
     }
   }, 100);
 }, { immediate: true });
 
+// Aktifkan tombol bookmark
+
 const toggleBookmark = (post) => {
   const wasBookmarked = bookmarkStore.isBookmarked(post.id)
-  bookmarkStore.toggleBookmark(post)
+
+  if (wasBookmarked) {
+    bookmarkStore.toggleBookmark(post)
+  } else {
+    const getHightStyle = (status) => {
+      const s = (status || 'NORMAL').toUpperCase();
+      if (s === 'CRISIS') return 'text-[#E60000] border border-[#E60000] bg-[#E60000]/10';
+      if (s === 'CURRENT') return 'text-[#FF9900] border border-[#FF9900] bg-[#FF9900]/10';
+      if (s === 'EMERGING') return 'text-[#AAD816] border border-[#AAD816] bg-[#AAD816]/10';
+      if (s === 'EARLY') return 'text-[#28C76F] border border-[#28C76F] bg-[#28C76F]/10';
+      return 'text-[#2092EC] border border-[#2092EC] bg-[#2092EC]/10';
+    };
+
+    // --- MAPPING DATA ---
+    const mappedPostForStore = {
+      ...post,
+      statusColor: getHightStyle(post.postStatus),
+      postStatus: (post.postStatus || 'Normal').charAt(0).toUpperCase() + (post.postStatus || 'normal').slice(1).toLowerCase(),
+
+      socialIcon: post.platform === 'instagram' ? 'fab fa-instagram text-pink-600'
+        : post.platform === 'tiktok' ? 'fab fa-tiktok text-[#03255C]'
+          : 'fab fa-x-twitter text-[#03255C]',
+
+      stats: {
+        followers: post.followers || 'N/A',
+        following: post.following || 'N/A',
+        engagement: post.engagementScore || 'N/A',
+        views: post.views || '0',
+        favorites: post.likes || '0',
+        replies: post.comments || '0',
+        retweets: post.shares || '0'
+      }
+    };
+
+    bookmarkStore.toggleBookmark(mappedPostForStore)
+  }
+
   const isNowBookmarked = !wasBookmarked
   post.isBookmarked = isNowBookmarked
 
   const postInFeed = allViralPosts.value.find(p => p.id === post.id)
-  if (postInFeed) {
-    postInFeed.isBookmarked = isNowBookmarked
-  }
+  if (postInFeed) postInFeed.isBookmarked = isNowBookmarked
 
   for (const topic of allTopicsDetailsData.value) {
     const originalPost = topic.allPosts.find(p => p.id === post.id)
-    if (originalPost) {
-      originalPost.isBookmarked = isNowBookmarked
-    }
+    if (originalPost) originalPost.isBookmarked = isNowBookmarked
   }
 }
+
+watch(() => bookmarkStore.bookmarkedPosts, (newBookmarkedPosts) => {
+  const bookmarkedIds = new Set(newBookmarkedPosts.map(p => p.id));
+
+  if (allViralPosts.value) {
+    allViralPosts.value.forEach(post => {
+      post.isBookmarked = bookmarkedIds.has(post.id);
+    });
+  }
+
+  if (allTopicsDetailsData.value) {
+    allTopicsDetailsData.value.forEach(topic => {
+      if (topic.allPosts) {
+        topic.allPosts.forEach(post => {
+          post.isBookmarked = bookmarkedIds.has(post.id);
+        });
+      }
+    });
+  }
+  if (selectedPost.value) {
+    selectedPost.value.isBookmarked = bookmarkedIds.has(selectedPost.value.id);
+  }
+}, { deep: true });
 
 const openDetailModal = (post) => { selectedPost.value = post; isDetailModalOpen.value = true; };
 const closeDetailModal = () => { isDetailModalOpen.value = false; selectedPost.value = null; };
@@ -764,15 +808,15 @@ const fetchAllDashboardData = async (startDate, endDate) => {
     const response = await fetch(API_URL_DATED);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data = await response.json();
-    
-    const topTopicsApiData = data.top_topics || data.all_topics_with_top_posts || []; 
+
+    const topTopicsApiData = data.top_topics || data.all_topics_with_top_posts || [];
 
     const enrichedTopicsData = topTopicsApiData.map(topicItem => {
       const topicPosts = (topicItem.top_10_posts || []).map(post => ({
         id: post.post_id || post.tweet_id || post.id_video,
         url: post.url,
 
-        content: post.text_content || post.text, 
+        content: post.text_content || post.text,
         postStatus: (post.latest_status || 'N/A').toUpperCase(),
 
         author: post.user.name || post.user.screen_name,
@@ -790,10 +834,10 @@ const fetchAllDashboardData = async (startDate, endDate) => {
         following: post.user.following_count,
 
         engagementScore: (post.engagement || 0).toFixed(2),
-        views: String(post.views || 0), 
+        views: String(post.views || 0),
         likes: String(post.metrics_detail[post.platform]?.likes || post.metrics_detail.twitter?.favorites || 0),
         comments: String(post.metrics_detail[post.platform]?.comments || post.metrics_detail.twitter?.replies || 0),
-        shares: String(post.metrics_detail[post.platform]?.shares || post.metrics_detail.twitter?.retweets || 0), 
+        shares: String(post.metrics_detail[post.platform]?.shares || post.metrics_detail.twitter?.retweets || 0),
         topicTag: topicItem.topic,
         isBookmarked: false
       }));
@@ -807,22 +851,18 @@ const fetchAllDashboardData = async (startDate, endDate) => {
       };
     });
 
-    // 1. Mengisi allTopicStats (SEMUA Topik)
-    // Catatan: Jika tidak ada post, statusnya sekarang 'NORMAL'
     allTopicStats.value = enrichedTopicsData.map((item) => ({
       title: item.topic,
       value: String(item.total_posts || item.total_unique_posts).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
       status: item.calculated_status || 'NORMAL'
     }));
 
-    // 2. Set status jarum (Top 3)
     const top3Topics = enrichedTopicsData.slice(0, 3);
 
     pieStatus.value = top3Topics.length > 0 ? top3Topics[0].calculated_status.toUpperCase() : 'NORMAL';
     pieStatus2.value = top3Topics.length > 1 ? top3Topics[1].calculated_status.toUpperCase() : 'NORMAL';
     pieStatus3.value = top3Topics.length > 2 ? top3Topics[2].calculated_status.toUpperCase() : 'NORMAL';
 
-    // 3. Mengisi data Pie Chart Kompas (Tidak Berubah)
     pieChartData.value = {
       labels: ['CRISIS', 'NORMAL', 'EARLY', 'EMERGING', 'CURRENT'],
       datasets: [{
@@ -842,7 +882,7 @@ const fetchAllDashboardData = async (startDate, endDate) => {
         ...post,
         isBookmarked: bookmarkedIds.has(post.id)
       }));
-      collectedPosts.push(...topicPostsWithBookmark); 
+      collectedPosts.push(...topicPostsWithBookmark);
       return {
         title: topicItem.topic,
         status: (topicItem.calculated_status || 'NORMAL').toUpperCase(), // Default ke NORMAL
@@ -851,7 +891,7 @@ const fetchAllDashboardData = async (startDate, endDate) => {
     });
 
     // 5. Mengisi Tabel Platform (Hanya Top 3 Topik)
-    const top3Details = allTopicsDetailsData.value.slice(0, 3); 
+    const top3Details = allTopicsDetailsData.value.slice(0, 3);
 
     platformStatuses.value = top3Details.map(topic => {
       const statusArray = Array(platforms.value.length).fill('');

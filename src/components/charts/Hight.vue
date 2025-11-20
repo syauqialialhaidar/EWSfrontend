@@ -7,40 +7,46 @@
   </div>
 
   <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 animate-fade-in">
-    <div v-for="(column, index) in allColumns" :key="index" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-[4px_4px_6px_rgba(128,128,128,0.3)] flex flex-col p-4">
+    <div v-for="(column, index) in allColumns" :key="index"
+      class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-[4px_4px_6px_rgba(128,128,128,0.3)] flex flex-col p-4">
       <h3 class="text-lg font-bold text-[#03255C] mb-3">{{ column.title }}</h3>
 
       <div class="relative mb-4">
-        <input type="text" placeholder="Cari Akun" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 dark:bg-gray-700 dark:text-gray-200">
-        <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg"
-          width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
+        <input type="text" placeholder="Cari Akun"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 dark:bg-gray-700 dark:text-gray-200">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500"
+          xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
       </div>
 
       <div class="space-y-4 flex-grow">
-        <div v-for="post in paginatedPosts(column)" :key="post.id" class="bg-[#F8F7FA] dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 hover:shadow-md transition-shadow">
+        <div v-for="post in paginatedPosts(column)" :key="post.id"
+          class="bg-[#F8F7FA] dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 hover:shadow-md transition-shadow">
           <div class="flex items-start mb-4">
-            <img :src="post.avatar" alt="Avatar" class="w-10 h-10 rounded-full mr-3">
+            <img :src="post.avatar" referrerpolicy="no-referrer" alt="Avatar" class="w-10 h-10 rounded-full mr-3"
+              @error="$event.target.src = 'https://cdn-icons-png.flaticon.com/512/149/149071.png'">
             <div class="flex-grow">
               <div class="flex justify-between items-center mb-2">
-                <div class="flex items-center gap-2 min-w-0 max-w-[66%]">
-                  <i :class="[post.socialIcon, 'h-4 w-4']"></i> <span class="font-bold text-sm text-[#03255C] block overflow-hidden whitespace-nowrap text-ellipsis">
+                <div class="flex items-center gap-2 min-w-0 max-w-[180px]">
+                  <i :class="[post.socialIcon, 'h-4 w-4']"></i>
+                  <span class="font-bold text-sm text-[#03255C] block truncate">
                     {{ post.author }}
                   </span>
                 </div>
 
-                <div class="flex items-center gap-3 flex-shrink-0">
+
+                <div class="flex items-center gap-2 flex-shrink-0 flex-nowrap">
+
                   <span :class="[post.statusColor, 'text-xs font-bold px-2 py-0.5 rounded-full']">
                     {{ post.postStatus }}
                   </span>
-                  <FontAwesomeIcon :icon="faBookmark" @click="toggleBookmark(post)"
-                    :class="[
-                      'h-4 w-4 cursor-pointer transition-colors',
-                      post.isBookmarked ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 dark:text-gray-500 hover:text-[#03255C] dark:hover:text-white'
-                    ]" />
+                  <FontAwesomeIcon :icon="faBookmark" @click="toggleBookmark(post)" :class="[
+                    'h-4 w-4 cursor-pointer transition-colors',
+                    post.isBookmarked ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 dark:text-gray-500 hover:text-[#03255C] dark:hover:text-white'
+                  ]" />
                 </div>
               </div>
               <div class="flex justify-start items-center gap-4 mt-0.5">
@@ -86,7 +92,8 @@
           </div>
           <div class="flex items-center justify-between mt-3">
             <div class="min-w-0 mr-4">
-              <span class="text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-600 dark:border-gray-500 px-2 py-0.5 rounded-lg block overflow-hidden whitespace-nowrap text-ellipsis bg-transparent">
+              <span
+                class="text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-600 dark:border-gray-500 px-2 py-0.5 rounded-lg block overflow-hidden whitespace-nowrap text-ellipsis bg-transparent">
                 {{ post.topicTag }}
               </span>
             </div>
@@ -96,7 +103,8 @@
                 <FontAwesomeIcon :icon="faUpRightFromSquare" class="h-3 w-3" />
                 Kunjungi
               </button>
-              <button @click="openDetailModal(post)" class="text-xs font-semibold bg-[#2092EC] dark:bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-600 dark:hover:bg-blue-700 transition flex items-center gap-1">
+              <button @click="openDetailModal(post)"
+                class="text-xs font-semibold bg-[#2092EC] dark:bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-600 dark:hover:bg-blue-700 transition flex items-center gap-1">
                 <i class="fas fa-eye h-3 w-3"></i>
                 Lihat Detail
               </button>
@@ -155,7 +163,8 @@
         class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-11/12 max-w-lg transform transition-all duration-300 scale-100 opacity-100">
         <div class="flex justify-between items-center border-b dark:border-gray-700 pb-3 mb-4">
           <h3 class="text-xl font-bold text-[#03255C] dark:text-gray-100">Detail Postingan</h3>
-          <button @click="closeDetailModal" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
+          <button @click="closeDetailModal"
+            class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24" xmlns="http://www.w3.org/2000/svg">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
@@ -174,13 +183,15 @@
               </p>
             </div>
           </div>
-          <p class="text-gray-700 dark:text-gray-200 text-base border-t dark:border-gray-700 pt-4">{{ selectedPost.content }}</p>
+          <p class="text-gray-700 dark:text-gray-200 text-base border-t dark:border-gray-700 pt-4">{{
+            selectedPost.content }}</p>
           <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-sm p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <p><strong>Status EWS:</strong> <span
                 :class="[selectedPost.statusColor, 'font-bold px-2 py-0.5 rounded']">{{
                   selectedPost.postStatus
                 }}</span></p>
-            <p class="dark:text-gray-300"><strong>Topik:</strong> <span class="font-semibold text-blue-600 dark:text-blue-400">{{ selectedPost.topicTag
+            <p class="dark:text-gray-300"><strong>Topik:</strong> <span
+                class="font-semibold text-blue-600 dark:text-blue-400">{{ selectedPost.topicTag
                 }}</span></p>
             <p class="dark:text-gray-300"><strong>Followers:</strong> {{ selectedPost.stats.followers }}</p>
             <p class="dark:text-gray-300"><strong>Following:</strong> {{ selectedPost.stats.following }}</p>
@@ -192,7 +203,8 @@
           </div>
         </div>
         <div class="mt-6 flex justify-end">
-          <button @click="openLinkInNewTab(selectedPost)" class="text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-[#2092EC] dark:text-blue-400 border border-[#2092EC] dark:border-blue-500 px-3 py-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center gap-1">
+          <button @click="openLinkInNewTab(selectedPost)"
+            class="text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-[#2092EC] dark:text-blue-400 border border-[#2092EC] dark:border-blue-500 px-3 py-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center gap-1">
             <FontAwesomeIcon :icon="faUpRightFromSquare" class="h-3 w-3" />
             Kunjungi sumber asli
           </button>
@@ -252,12 +264,9 @@ const openLinkInNewTab = (post) => {
   }
 };
 
-
-// Bookmarks now managed by bookmarkStore
-// Get reactive reference to bookmarked posts
+//    Tombol Bookmark aktif
 const { bookmarkedPosts } = storeToRefs(bookmarkStore)
 
-// --- PERBAIKAN: Kolom bookmark dijadikan state reactive ---
 const bookmarkedColumn = reactive({
   title: 'Posts From Marked Accounts',
   posts: [],
@@ -268,17 +277,52 @@ const bookmarkedColumn = reactive({
   }
 })
 
-// --- PERBAIKAN: Sinkronkan data bookmark ke state reactive ---
 watch(bookmarkedPosts, (newPosts) => {
-  bookmarkedColumn.posts = newPosts;
-  bookmarkedColumn.pagination.total = newPosts.length;
-  
-  const totalP = Math.ceil(newPosts.length / bookmarkedColumn.pagination.perPage) || 1;
+  const processedPosts = newPosts.map(p => {
+    if (!p.statusColor) {
+      const rawStatus = p.postStatus || 'Normal';
+      const matchKey = Object.keys(STATUS_MAPPING).find(key =>
+        key.toUpperCase() === rawStatus.toUpperCase()
+      ) || 'Normal';
+
+      const style = STATUS_MAPPING[matchKey];
+      return {
+        ...p,
+        postStatus: style.title, 
+        statusColor: style.color 
+      };
+    }
+    return p;
+  });
+
+  bookmarkedColumn.posts = processedPosts;
+  bookmarkedColumn.pagination.total = processedPosts.length;
+
+  const totalP = Math.ceil(processedPosts.length / bookmarkedColumn.pagination.perPage) || 1;
   if (bookmarkedColumn.pagination.currentPage > totalP) {
     bookmarkedColumn.pagination.currentPage = 1;
   }
-}, { deep: true });
+}, { deep: true, immediate: true });
 
+
+// Bookmark functions now using Pinia store
+const toggleBookmark = (post) => {
+  const wasBookmarked = bookmarkStore.isBookmarked(post.id)
+  bookmarkStore.toggleBookmark(post)
+  const isNowBookmarked = !wasBookmarked
+
+  // Update local post object
+  post.isBookmarked = isNowBookmarked
+
+  // Update in columns data
+  for (const column of columnsData.value) {
+    const originalPost = column.posts.find(p => p.id === post.id)
+    if (originalPost) {
+      originalPost.isBookmarked = isNowBookmarked
+      break
+    }
+  }
+}
 
 
 
@@ -305,25 +349,6 @@ const closeDetailModal = () => {
   isDetailModalOpen.value = false;
   selectedPost.value = null;
 };
-
-// Bookmark functions now using Pinia store
-const toggleBookmark = (post) => {
-  const wasBookmarked = bookmarkStore.isBookmarked(post.id)
-  bookmarkStore.toggleBookmark(post)
-  const isNowBookmarked = !wasBookmarked
-
-  // Update local post object
-  post.isBookmarked = isNowBookmarked
-
-  // Update in columns data
-  for (const column of columnsData.value) {
-    const originalPost = column.posts.find(p => p.id === post.id)
-    if (originalPost) {
-      originalPost.isBookmarked = isNowBookmarked
-      break
-    }
-  }
-}
 
 
 // Logika Paginasi
@@ -379,9 +404,9 @@ const mapApiPostToLocalPost = (apiPost) => {
   const metrics = apiPost.metrics_detail[platformKey] || {};
 
   let views = metrics.views || 'N/A';
-    let favorites = metrics.favorites || metrics.likes || 'N/A'; // Likes untuk IG/TikTok
-    let replies = metrics.replies || metrics.comments || metrics.coments || 'N/A'; // Comments untuk IG/TikTok
-    let retweets = metrics.retweets || metrics.reposts || metrics.shares || 'N/A'; // Reposts/Shares untuk IG/TikTok
+  let favorites = metrics.favorites || metrics.likes || 'N/A'; // Likes untuk IG/TikTok
+  let replies = metrics.replies || metrics.comments || metrics.coments || 'N/A'; // Comments untuk IG/TikTok
+  let retweets = metrics.retweets || metrics.reposts || metrics.shares || 'N/A'; // Reposts/Shares untuk IG/TikTok
   const formatNumber = (num) => {
     if (typeof num !== 'number') return '0';
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
@@ -389,32 +414,32 @@ const mapApiPostToLocalPost = (apiPost) => {
     return num.toLocaleString('en-US');
   };
   const dateString = apiPost.created_at ? new Date(apiPost.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Tanggal tidak tersedia';
-  
+
   return {
-        id: apiPost.post_id, // Gunakan ID Kanonik yang dikembalikan API
-        author: authorName, 
-        avatar: avatarUrl,
-        socialIcon: socialIcon,
-        
-        stats: { 
-            // Ambil dari user object yang sudah di flat di API backend
-            followers: formatNumber(apiPost.user.followers_count), 
-            following: formatNumber(apiPost.user.following_count), 
-            engagement: formatNumber(apiPost.engagement), // Engagement total dari API
-            
-            // Metrik Spesifik
-            views: formatNumber(views), 
-            favorites: formatNumber(favorites), 
-            replies: formatNumber(replies), 
-            retweets: formatNumber(retweets), 
-        },
-        
-        date: dateString, postStatus: statusData.title, statusColor: statusData.color,
-        content: postContent,
-        topicTag: apiPost.topik || 'N/A', 
-        isBookmarked: false, 
-        url: url
-    };
+    id: apiPost.post_id, // Gunakan ID Kanonik yang dikembalikan API
+    author: authorName,
+    avatar: avatarUrl,
+    socialIcon: socialIcon,
+
+    stats: {
+      // Ambil dari user object yang sudah di flat di API backend
+      followers: formatNumber(apiPost.user.followers_count),
+      following: formatNumber(apiPost.user.following_count),
+      engagement: formatNumber(apiPost.engagement), // Engagement total dari API
+
+      // Metrik Spesifik
+      views: formatNumber(views),
+      favorites: formatNumber(favorites),
+      replies: formatNumber(replies),
+      retweets: formatNumber(retweets),
+    },
+
+    date: dateString, postStatus: statusData.title, statusColor: statusData.color,
+    content: postContent,
+    topicTag: apiPost.topik || 'N/A',
+    isBookmarked: false,
+    url: url
+  };
 };
 const callApi = async (url) => {
   try {
