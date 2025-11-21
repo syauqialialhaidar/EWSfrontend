@@ -30,19 +30,23 @@
               @error="$event.target.src = 'https://cdn-icons-png.flaticon.com/512/149/149071.png'">
             <div class="flex-grow">
               <div class="flex justify-between items-center mb-2">
-                <div class="flex items-center gap-2 min-w-0 max-w-[180px]">
+                <div class="flex items-center gap-2 min-w-0 max-w-[140px]">
                   <i :class="[post.socialIcon, 'h-4 w-4']"></i>
                   <span class="font-bold text-sm text-[#03255C] block truncate">
                     {{ post.author }}
                   </span>
                 </div>
 
-
                 <div class="flex items-center gap-2 flex-shrink-0 flex-nowrap">
+                  <span v-if="post.sentiment" 
+                        :class="[post.sentimentColor, 'text-[10px] font-bold px-2 py-0.5 rounded-full border']">
+                    {{ post.sentiment }}
+                  </span>
 
                   <span :class="[post.statusColor, 'text-xs font-bold px-2 py-0.5 rounded-full']">
                     {{ post.postStatus }}
                   </span>
+                  
                   <FontAwesomeIcon :icon="faBookmark" @click="toggleBookmark(post)" :class="[
                     'h-4 w-4 cursor-pointer transition-colors',
                     post.isBookmarked ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 dark:text-gray-500 hover:text-[#03255C] dark:hover:text-white'
@@ -190,6 +194,10 @@
                 :class="[selectedPost.statusColor, 'font-bold px-2 py-0.5 rounded']">{{
                   selectedPost.postStatus
                 }}</span></p>
+            <p><strong>Sentiment:</strong> <span
+                :class="[selectedPost.sentimentColor, 'font-bold px-2 py-0.5 rounded border']">{{
+                  selectedPost.sentiment
+                }}</span></p>
             <p class="dark:text-gray-300"><strong>Topik:</strong> <span
                 class="font-semibold text-blue-600 dark:text-blue-400">{{ selectedPost.topicTag
                 }}</span></p>
@@ -220,7 +228,7 @@ import {
   onMounted,
   computed,
   watch,
-  reactive // <-- Diperlukan untuk perbaikan paginasi
+  reactive
 } from 'vue';
 import {
   FontAwesomeIcon
@@ -249,6 +257,38 @@ const bookmarkStore = useBookmarkStore()
 
 // Get reactive refs from stores
 const { startDate, endDate } = storeToRefs(filterStore)
+const { bookmarkedPosts } = storeToRefs(bookmarkStore)
+
+// ==========================================
+// 1. KONSTANTA DILETAKKAN DI ATAS
+// Agar bisa diakses oleh Watcher yang { immediate: true }
+// ==========================================
+
+const ICONS = {
+  twitter: 'fab fa-x-twitter text-[#03255C]',
+  instagram: 'fab fa-instagram text-pink-600',
+  tiktok: 'fab fa-tiktok text-[#03255C]',
+};
+
+const STATUS_MAPPING = {
+  'Crisis': { title: 'Crisis', color: 'text-[#E60000] border border-[#E60000] bg-[#E60000]/10' },
+  'Current': { title: 'Current', color: 'text-[#FF9900] border border-[#FF9900] bg-[#FF9900]/10' },
+  'Emerging': { title: 'Emerging', color: 'text-[#AAD816] border border-[#AAD816] bg-[#AAD816]/10' },
+  'Early': { title: 'Early', color: 'text-[#28C76F] border border-[#28C76F] bg-[#28C76F]/10' },
+  'Normal': { title: 'Normal', color: 'text-[#2092EC] border border-[#2092EC] bg-[#2092EC]/10' },
+  'N/A': { title: 'Unknown', color: 'text-gray-500 border border-gray-500 bg-gray-100' },
+};
+
+const SENTIMENT_MAPPING = {
+  'Positive': { color: 'text-green-600 bg-green-100 border-green-200 dark:text-green-400 dark:bg-green-900/30 dark:border-green-800' },
+  'Negative': { color: 'text-red-600 bg-red-100 border-red-200 dark:text-red-400 dark:bg-red-900/30 dark:border-red-800' },
+  'Neutral': { color: 'text-gray-600 bg-gray-100 border-gray-200 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600' },
+  'N/A': { color: 'text-gray-400 bg-gray-50 border-gray-100' }
+};
+
+// ==========================================
+// 2. STATE & LOGIKA LAINNYA
+// ==========================================
 
 const isLoading = ref(true)
 const apiError = ref(null);
@@ -264,9 +304,6 @@ const openLinkInNewTab = (post) => {
   }
 };
 
-//    Tombol Bookmark aktif
-const { bookmarkedPosts } = storeToRefs(bookmarkStore)
-
 const bookmarkedColumn = reactive({
   title: 'Posts From Marked Accounts',
   posts: [],
@@ -277,20 +314,25 @@ const bookmarkedColumn = reactive({
   }
 })
 
+// Watcher ini aman dijalankan sekarang karena Mapping sudah didefinisikan di atas
 watch(bookmarkedPosts, (newPosts) => {
   const processedPosts = newPosts.map(p => {
+    // Handle Status
     if (!p.statusColor) {
       const rawStatus = p.postStatus || 'Normal';
       const matchKey = Object.keys(STATUS_MAPPING).find(key =>
         key.toUpperCase() === rawStatus.toUpperCase()
       ) || 'Normal';
-
       const style = STATUS_MAPPING[matchKey];
-      return {
-        ...p,
-        postStatus: style.title, 
-        statusColor: style.color 
-      };
+      p.postStatus = style.title;
+      p.statusColor = style.color;
+    }
+    // Handle Sentiment
+    if (!p.sentimentColor) {
+       const rawSentiment = p.sentiment || 'Neutral';
+       const sentimentStyle = SENTIMENT_MAPPING[rawSentiment] || SENTIMENT_MAPPING['Neutral'];
+       p.sentiment = rawSentiment;
+       p.sentimentColor = sentimentStyle.color;
     }
     return p;
   });
@@ -323,23 +365,6 @@ const toggleBookmark = (post) => {
     }
   }
 }
-
-
-
-const ICONS = {
-  twitter: 'fab fa-x-twitter text-[#03255C]',
-  instagram: 'fab fa-instagram text-pink-600',
-  tiktok: 'fab fa-tiktok text-[#03255C]',
-};
-
-const STATUS_MAPPING = {
-  'Crisis': { title: 'Crisis', color: 'text-[#E60000] border border-[#E60000] bg-[#E60000]/10' },
-  'Current': { title: 'Current', color: 'text-[#FF9900] border border-[#FF9900] bg-[#FF9900]/10' },
-  'Emerging': { title: 'Emerging', color: 'text-[#AAD816] border border-[#AAD816] bg-[#AAD816]/10' },
-  'Early': { title: 'Early', color: 'text-[#28C76F] border border-[#28C76F] bg-[#28C76F]/10' },
-  'Normal': { title: 'Normal', color: 'text-[#2092EC] border border-[#2092EC] bg-[#2092EC]/10' },
-  'N/A': { title: 'Unknown', color: 'text-gray-500 border border-gray-500 bg-gray-100' },
-};
 
 const openDetailModal = (post) => {
   selectedPost.value = post;
@@ -384,14 +409,19 @@ const nextPage = (column) => { goToPage(column, column.pagination.currentPage + 
 const createDummyPost = (id, social) => {
   const status = 'Normal';
   const statusData = STATUS_MAPPING[status];
+  const sentiment = 'Neutral'; // Dummy sentiment
+  const sentimentData = SENTIMENT_MAPPING[sentiment];
+  
   return {
     id, author: `Dummy-${social}-${id}`, avatar: 'https://placehold.co/40x40/E2E8F0/4A5568?text=DA',
     socialIcon: ICONS[social],
     stats: { followers: `${id}K`, following: 'N/A', retweets: 'N/A', favorites: 'N/A', replies: 'N/A', views: 'N/A', engagement: 'N/A', },
     date: new Date().toLocaleDateString('id-ID'), postStatus: statusData.title, statusColor: statusData.color,
+    sentiment: sentiment, sentimentColor: sentimentData.color, // Add dummy properties
     content: `Ini adalah postingan dummy #${id} untuk mengisi kolom karena API gagal terhubung.`, topicTag: 'FallBack-Data', isBookmarked: false,
   };
 };
+
 const mapApiPostToLocalPost = (apiPost) => {
   const platformKey = apiPost.platform?.toLowerCase();
   const socialIcon = ICONS[platformKey];
@@ -402,6 +432,10 @@ const mapApiPostToLocalPost = (apiPost) => {
   const statusKey = apiPost.latest_status || 'N/A';
   const statusData = STATUS_MAPPING[statusKey] || STATUS_MAPPING['N/A'];
   const metrics = apiPost.metrics_detail[platformKey] || {};
+
+  // Logic Mapping Sentiment
+  const sentimentKey = apiPost.sentiment || 'N/A';
+  const sentimentData = SENTIMENT_MAPPING[sentimentKey] || SENTIMENT_MAPPING['N/A'];
 
   let views = metrics.views || 'N/A';
   let favorites = metrics.favorites || metrics.likes || 'N/A'; // Likes untuk IG/TikTok
@@ -434,7 +468,14 @@ const mapApiPostToLocalPost = (apiPost) => {
       retweets: formatNumber(retweets),
     },
 
-    date: dateString, postStatus: statusData.title, statusColor: statusData.color,
+    date: dateString, 
+    postStatus: statusData.title, 
+    statusColor: statusData.color,
+    
+    // Properties untuk Sentiment
+    sentiment: sentimentKey,
+    sentimentColor: sentimentData.color,
+    
     content: postContent,
     topicTag: apiPost.topik || 'N/A',
     isBookmarked: false,
@@ -462,7 +503,7 @@ const fetchPostsData = async (startDate, endDate) => {
   isLoading.value = true;
   apiError.value = null;
 
-  // --- PERBAIKAN: Panggil API secara paralel ---
+  // Panggil API secara paralel
   const [engagementResult, followersResult] = await Promise.allSettled([
     callApi(ENGAGEMENT_URL),
     callApi(FOLLOWERS_URL)
@@ -485,7 +526,6 @@ const fetchPostsData = async (startDate, endDate) => {
     errorMessages.push(`Followers: ${errorMsg}`);
     followersPosts = Array.from({ length: 10 }, (_, i) => createDummyPost(i + 1, 'facebook'));
   }
-  // --- Akhir Perbaikan Paralel ---
 
   if (errorMessages.length > 0) {
     apiError.value = errorMessages.join(' | ');
@@ -515,13 +555,12 @@ watch([startDate, endDate], () => {
   loadAllData()
 })
 
-// --- PERBAIKAN: Computed allColumns sekarang hanya menggabungkan state ---
+// Computed allColumns sekarang hanya menggabungkan state
 const allColumns = computed(() => {
   return [...columnsData.value, bookmarkedColumn];
 });
 
 onMounted(() => {
-  // Bookmarks already loaded by store in main.js
   console.log('Komponen Hight.vue dimuat, mengambil data awal...')
   loadAllData()
 })

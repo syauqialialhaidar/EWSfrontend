@@ -9,11 +9,12 @@
         <div>
             <Hight />
         </div>
-        <div>
-            <Analisis />
-        </div>
+        
         <div>
             <Flagged />
+        </div>
+        <div>
+            <Analisis />
         </div>
     </div>
 </template>
@@ -22,8 +23,8 @@
 import PostCard from '@/components/charts/Post.vue'
 import TopTopik from '@/components/charts/TopTopik.vue'
 import Hight from '@/components/charts/Hight.vue'
-import Analisis from '@/components/charts/Analisis.vue'
 import Flagged from '@/components/charts/Flagged.vue'
+import Analisis from '@/components/charts/Analisis.vue'
 </script>
 
 <style scoped></style>

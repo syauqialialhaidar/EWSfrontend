@@ -72,10 +72,21 @@
 
                   <div class="flex justify-between items-center">
                     <span class="font-bold text-sm text-gray-800 truncate">{{ post.author }}</span>
-                    <span
-                      :class="[getStatusClass(post.postStatus).badge, 'text-xs font-bold px-2 py-0.5 rounded-full']">
-                      {{ post.postStatus }}
-                    </span>
+                  </div>
+                  <div class="flex justify-between items-center mb-1">
+                    <span class="font-bold text-sm text-gray-800 truncate max-w-[120px]">{{ post.author }}</span>
+
+                    <div class="flex items-center gap-2">
+                      <span v-if="post.sentiment"
+                        :class="[getSentimentStyle(post.sentiment), 'text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider']">
+                        {{ post.sentiment }}
+                      </span>
+
+                      <span
+                        :class="[getStatusClass(post.postStatus).badge, 'text-xs font-bold px-2 py-0.5 rounded-full']">
+                        {{ post.postStatus }}
+                      </span>
+                    </div>
                   </div>
                   <p class="text-xs text-gray-500">{{ post.date }}</p>
 
@@ -292,9 +303,16 @@
 
                 </div>
 
-                <span :class="[getStatusClass(post.postStatus).badge, 'text-xs font-bold px-2 py-0.5 rounded-full']">
-                  {{ post.postStatus }}
-                </span>
+                <div class="flex items-center gap-1.5">
+                  <span
+                    :class="[getSentimentStyle(post.sentiment), 'text-[10px] font-bold px-1.5 py-0.5 rounded border']">
+                    {{ post.sentiment ? post.sentiment.charAt(0) : 'N' }}
+                  </span>
+
+                  <span :class="[getStatusClass(post.postStatus).badge, 'text-xs font-bold px-2 py-0.5 rounded-full']">
+                    {{ post.postStatus }}
+                  </span>
+                </div>
               </div>
 
               <div class="flex items-center gap-2">
@@ -411,24 +429,6 @@
           </div>
         </div>
       </div>
-
-      <div v-if="pieTooltip.show" :style="pieTooltip.style"
-        class="fixed z-[60] w-72 bg-white border border-gray-300 rounded-lg shadow-xl p-3 max-h-64 overflow-y-auto animate-fade-in-fast">
-        <h5 class="text-sm font-bold text-gray-900 mb-2">Postingan dengan status "{{ pieTooltip.status }}"</h5>
-        <div v-if="pieTooltip.posts.length > 0" class="space-y-2">
-          <div v-for="p in pieTooltip.posts.slice(0, 10)" :key="p.id"
-            class="text-xs text-gray-700 border-b border-gray-100 last:border-none pb-2 mb-2">
-            <span class="font-bold text-gray-800 block truncate" :title="p.author">{{ p.author }}</span>
-            <p class="text-gray-600 line-clamp-2">{{ p.content }}</p>
-          </div>
-          <div v-if="pieTooltip.posts.length > 10" class="text-xs text-gray-500 italic text-center">
-            ...dan {{ pieTooltip.posts.length - 10 }} lainnya.
-          </div>
-        </div>
-        <div v-else class="text-gray-400 text-xs text-center py-2">
-          (Tidak ada postingan di daftar ini)
-        </div>
-      </div>
     </Teleport>
   </div>
 </template>
@@ -535,6 +535,14 @@ const getCardBackground = (index) => {
     'bg-gradient-to-br from-amber-500 to-yellow-600',
   ];
   return gradients[index % gradients.length];
+};
+
+//Sentiment
+const getSentimentStyle = (sentiment) => {
+  const s = (sentiment || 'neutral').toLowerCase();
+  if (s === 'positive') return 'bg-green-100 text-green-700 border border-green-200';
+  if (s === 'negative') return 'bg-red-100 text-red-700 border border-red-200';
+  return 'bg-gray-100 text-gray-600 border border-gray-200'; // Neutral/Default
 };
 
 const availableTopics = computed(() => {
@@ -818,6 +826,7 @@ const fetchAllDashboardData = async (startDate, endDate) => {
 
         content: post.text_content || post.text,
         postStatus: (post.latest_status || 'N/A').toUpperCase(),
+        sentiment: post.sentiment || 'Neutral',
 
         author: post.user.name || post.user.screen_name,
         avatar: post.user.profile_image_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
